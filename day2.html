@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Security, Governance &amp; Cost Management — Day 2 | Interactive Learning Platform</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS — void black base, Oracle red signal,
+   cool blue for data, amber for warnings, green for success.
+   ============================================================ */
+:root{
+  --void:#08090b;
+  --panel:#101217;
+  --panel-2:#15171e;
+  --panel-glass: rgba(21,23,30,0.6);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text-1:#eef0f3;
+  --text-2:#a7acb8;
+  --text-3:#6b7180;
+  --red:#c74634;
+  --red-bright:#ff5a3c;
+  --red-dim: rgba(199,70,52,0.15);
+  --blue:#4f8cff;
+  --blue-dim: rgba(79,140,255,0.15);
+  --amber:#e8a33d;
+  --amber-dim: rgba(232,163,61,0.15);
+  --green:#3ec28f;
+  --green-dim: rgba(62,194,143,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: "Space Grotesk","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-body: "Inter","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.35);
+}
+html[data-theme="light"]{
+  --void:#f3f2ee;
+  --panel:#ffffff;
+  --panel-2:#f7f6f2;
+  --panel-glass: rgba(255,255,255,0.7);
+  --border: rgba(10,10,10,0.08);
+  --border-strong: rgba(10,10,10,0.16);
+  --text-1:#15171c;
+  --text-2:#4b4f58;
+  --text-3:#838791;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void); color:var(--text-1); font-family:var(--font-body); line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 500px at 15% -5%, rgba(199,70,52,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(79,140,255,0.10), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 100%, rgba(199,70,52,0.08), transparent 60%);
+}
+h1,h2,h3,h4{font-family:var(--font-display); letter-spacing:-0.02em; font-weight:700; color:var(--text-1);}
+code,.mono{font-family:var(--font-mono);}
+a{color:inherit;}
+::selection{background:var(--red); color:#fff;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:10px;}
+
+#particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg,var(--red),var(--red-bright));
+  z-index:9999; box-shadow:0 0 12px var(--red-bright); transition:width .1s linear;
+}
+#topbar{
+  position:fixed; top:0; left:0; right:0; z-index:900; height:60px; display:flex; align-items:center; gap:14px;
+  padding:0 18px; margin-top:3px; background:var(--panel-glass); backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:15px; white-space:nowrap;}
+#topbar .brand .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,var(--red),var(--red-bright)); box-shadow:0 0 14px var(--red-bright);}
+#sidebar-toggle{
+  background:transparent; border:1px solid var(--border); color:var(--text-2); width:36px; height:36px;
+  border-radius:var(--radius-sm); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:.2s;
+}
+#sidebar-toggle:hover{border-color:var(--border-strong); color:var(--text-1);}
+#search-wrap{position:relative; flex:1; max-width:420px;}
+#search{
+  width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text-1);
+  padding:8px 14px 8px 34px; border-radius:999px; font-size:13px; font-family:var(--font-body); outline:none; transition:.2s;
+}
+#search:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-dim);}
+#search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-3);}
+#search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--panel); border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm); box-shadow:var(--shadow-lg); max-height:320px; overflow-y:auto; display:none; z-index:50;
+}
+#search-results a{display:block; padding:9px 14px; font-size:13px; color:var(--text-2); border-bottom:1px solid var(--border); text-decoration:none;}
+#search-results a:hover{background:var(--panel-2); color:var(--text-1);}
+#search-results .sr-cat{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--red-bright); display:block; margin-bottom:2px;}
+.topbar-spacer{flex:1;}
+#theme-toggle{
+  background:var(--panel); border:1px solid var(--border); color:var(--text-2); width:36px; height:36px; border-radius:999px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s; font-size:15px;
+}
+#theme-toggle:hover{border-color:var(--red); color:var(--red-bright);}
+#score-chip{
+  display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border);
+  padding:6px 12px; border-radius:999px; font-size:12px; color:var(--text-2); white-space:nowrap;
+}
+#score-chip b{color:var(--red-bright); font-family:var(--font-display);}
+
+#shell{display:flex; padding-top:63px; position:relative; z-index:1;}
+#sidebar{
+  width:270px; flex-shrink:0; height:calc(100vh - 63px); position:sticky; top:63px; overflow-y:auto;
+  border-right:1px solid var(--border); padding:18px 10px 60px; transition:margin-left .3s ease, opacity .3s ease;
+}
+#sidebar.collapsed{margin-left:-270px; opacity:0;}
+#sidebar .nav-head{font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3); padding:14px 12px 6px; font-weight:700;}
+#sidebar a.nav-link{
+  display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:var(--radius-sm); font-size:13.5px;
+  color:var(--text-2); text-decoration:none; transition:.15s; border-left:2px solid transparent;
+}
+#sidebar a.nav-link:hover{background:var(--panel); color:var(--text-1);}
+#sidebar a.nav-link.active{background:var(--red-dim); color:var(--red-bright); border-left-color:var(--red-bright); font-weight:600;}
+#sidebar a.nav-link .num{font-family:var(--font-mono); font-size:10px; color:var(--text-3); width:18px;}
+
+main{flex:1; min-width:0; padding:0 0 100px;}
+.container{max-width:980px; margin:0 auto; padding:0 32px;}
+
+#hero{position:relative; padding:100px 32px 70px; overflow:hidden;}
+#hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red-bright); background:var(--red-dim); border:1px solid rgba(199,70,52,0.3);
+  padding:6px 14px; border-radius:999px; margin-bottom:22px; font-weight:600;
+}
+#hero h1{font-size:clamp(2.4rem,5vw,4.2rem); line-height:1.02; max-width:820px;}
+#hero h1 .accent{background:linear-gradient(135deg,var(--red),var(--red-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+#hero p.lede{max-width:620px; font-size:17px; color:var(--text-2); margin-top:22px;}
+#hero .hero-stats{display:flex; gap:34px; margin-top:40px; flex-wrap:wrap;}
+#hero .hstat b{font-family:var(--font-display); font-size:26px; display:block;}
+#hero .hstat span{font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;}
+#hero .cta-row{display:flex; gap:14px; margin-top:38px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:14px; padding:12px 22px; border-radius:999px;
+  border:1px solid var(--border-strong); cursor:pointer; transition:.2s; display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn-primary{background:linear-gradient(135deg,var(--red),var(--red-bright)); color:#fff; border:none; box-shadow:0 8px 24px rgba(199,70,52,0.35);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px rgba(199,70,52,0.45);}
+.btn-ghost{background:var(--panel); color:var(--text-1);}
+.btn-ghost:hover{border-color:var(--red); color:var(--red-bright);}
+
+section.chapter{padding:70px 0 10px; border-top:1px solid var(--border); scroll-margin-top:80px;}
+section.chapter:first-of-type{border-top:none;}
+.chapter-kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.chapter-kicker .idx{font-family:var(--font-mono); font-size:12px; color:var(--red-bright); background:var(--red-dim); padding:4px 10px; border-radius:6px; border:1px solid rgba(199,70,52,.3);}
+.chapter-kicker .track{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3);}
+.chapter h2{font-size:clamp(1.6rem,3vw,2.3rem); margin-bottom:6px;}
+.chapter .dek{color:var(--text-2); font-size:15.5px; max-width:680px; margin-bottom:30px;}
+.chapter h3{font-size:1.15rem; margin:34px 0 14px;}
+.chapter p{color:var(--text-2); font-size:15px; margin-bottom:14px; max-width:720px;}
+.chapter ul,.chapter ol{color:var(--text-2); font-size:15px; margin:0 0 16px 20px;}
+.chapter li{margin-bottom:6px;}
+.chapter strong{color:var(--text-1);}
+
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--border);
+  border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); position:relative;
+}
+.grid{display:grid; gap:16px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:800px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; transition:.25s; cursor:default;}
+.card:hover{border-color:var(--border-strong); transform:translateY(-3px); box-shadow:var(--shadow-sm);}
+.card h4{font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.card p{font-size:13.5px; margin:0; color:var(--text-2);}
+
+.callout{border-radius:var(--radius-sm); padding:14px 16px; margin:16px 0; border:1px solid; font-size:14px; display:flex; gap:12px; align-items:flex-start;}
+.callout .ic{font-size:16px; flex-shrink:0; margin-top:1px;}
+.callout-tip{background:var(--green-dim); border-color:rgba(62,194,143,.35); color:var(--text-1);}
+.callout-warn{background:var(--amber-dim); border-color:rgba(232,163,61,.35); color:var(--text-1);}
+.callout-trap{background:var(--red-dim); border-color:rgba(199,70,52,.35); color:var(--text-1);}
+.callout-q{background:var(--blue-dim); border-color:rgba(79,140,255,.35); color:var(--text-1);}
+.callout b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; margin:18px 0;}
+table.cmp th{text-align:left; color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--border-strong);}
+table.cmp td{padding:12px; border-bottom:1px solid var(--border); color:var(--text-2);}
+table.cmp tr:hover td{background:var(--panel);}
+table.cmp td:first-child, table.cmp th:first-child{color:var(--text-1); font-weight:600;}
+
+.chip-btn{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text-2); font-size:12.5px;
+  padding:7px 14px; border-radius:999px; cursor:pointer; transition:.2s; font-family:var(--font-body); font-weight:600;
+}
+.chip-btn:hover{border-color:var(--red); color:var(--red-bright);}
+.chip-btn.active{background:var(--red); color:#fff; border-color:var(--red);}
+.chip-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+/* CIA triangle */
+.cia-wrap{display:flex; justify-content:center; padding:20px 0;}
+.cia-triangle{position:relative; width:340px; height:300px;}
+.cia-node{
+  position:absolute; width:130px; padding:14px; border-radius:var(--radius-sm); text-align:center;
+  border:1px solid var(--border-strong); background:var(--panel); cursor:pointer; transition:.25s; font-size:13px;
+}
+.cia-node:hover,.cia-node.active{transform:scale(1.06); box-shadow:var(--shadow-sm);}
+.cia-node.confidentiality{top:0; left:50%; transform:translateX(-50%);}
+.cia-node.confidentiality.active,.cia-node.confidentiality:hover{border-color:var(--blue); color:var(--blue); transform:translateX(-50%) scale(1.06);}
+.cia-node.integrity{bottom:0; left:0;}
+.cia-node.integrity.active,.cia-node.integrity:hover{border-color:var(--amber); color:var(--amber);}
+.cia-node.availability{bottom:0; right:0;}
+.cia-node.availability.active,.cia-node.availability:hover{border-color:var(--green); color:var(--green);}
+.cia-triangle svg{position:absolute; inset:0; z-index:-1;}
+.cia-detail{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; margin-top:16px; font-size:13.5px; color:var(--text-2); min-height:70px;}
+.cia-detail strong{color:var(--text-1);}
+.cia-examples{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+.cia-examples span{font-size:11px; background:var(--panel-2); border:1px solid var(--border); padding:4px 10px; border-radius:999px;}
+
+/* Defense-in-depth attack simulator */
+.did-wrap{display:grid; grid-template-columns:1fr 300px; gap:20px;}
+@media (max-width:860px){.did-wrap{grid-template-columns:1fr;}}
+.did-stack{display:flex; flex-direction:column; gap:0; align-items:stretch;}
+.did-endpoint{
+  text-align:center; padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; font-weight:700;
+  border:1px dashed var(--border-strong); background:var(--panel-2); color:var(--text-2);
+}
+.did-endpoint.danger{border-color:rgba(199,70,52,.5); color:var(--red-bright); background:var(--red-dim);}
+.did-endpoint.treasure-hit{animation:shake .4s; border-style:solid; box-shadow:0 0 0 3px var(--red-dim);}
+.did-conn{text-align:center; color:var(--text-3); font-size:14px; line-height:1.6; padding:1px 0;}
+.did-layer{
+  display:flex; align-items:center; gap:12px; padding:11px 16px; border-radius:10px;
+  border:1px solid var(--border-strong); background:var(--panel); transition:.3s; font-size:13px;
+}
+.did-layer .dl-ico{font-size:17px; width:26px; text-align:center; flex-shrink:0;}
+.did-layer .dl-body{flex:1; min-width:0;}
+.did-layer .dl-name{font-weight:700; color:var(--text-1);}
+.did-layer .dl-castle{font-size:11px; color:var(--text-3);}
+.did-layer .dl-status{font-family:var(--font-mono); font-size:10px; padding:3px 9px; border-radius:20px; background:var(--panel-2); color:var(--text-3); flex-shrink:0; min-width:86px; text-align:center;}
+.did-layer.off{opacity:.45; border-style:dashed;}
+.did-layer.off .dl-status{background:var(--panel-2); color:var(--text-3);}
+.did-layer.on .dl-status{background:var(--green-dim); color:var(--green);}
+.did-layer.attacking{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); animation:shake .35s;}
+.did-layer.breached{border-color:rgba(199,70,52,.55); background:var(--red-dim); opacity:.8;}
+.did-layer.breached .dl-status{background:var(--red-dim); color:var(--red-bright);}
+.did-layer.held{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); background:var(--green-dim);}
+.did-layer.held .dl-status{background:var(--green-dim); color:var(--green);}
+.did-log{
+  background:#0c0d10; border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+  padding:12px 14px; font-family:var(--font-mono); font-size:11.5px; line-height:1.8;
+  height:100%; min-height:260px; max-height:430px; overflow-y:auto; color:var(--text-2);
+}
+html[data-theme="light"] .did-log{background:#1b1d22;}
+.did-log .l-pass{color:var(--red-bright);}
+.did-log .l-block{color:var(--green);}
+.did-log .l-info{color:var(--text-3);}
+.did-log .l-warn{color:var(--amber);}
+.did-verdict{margin-top:12px; padding:11px 14px; border-radius:8px; font-size:13px; font-weight:600; display:none;}
+.did-verdict.ok{display:block; background:var(--green-dim); color:var(--green); border:1px solid rgba(62,194,143,.35);}
+.did-verdict.bad{display:block; background:var(--red-dim); color:var(--red-bright); border:1px solid rgba(199,70,52,.35);}
+
+/* Zero trust flow */
+.zt-flow{display:flex; align-items:center; justify-content:space-between; gap:8px; overflow-x:auto; padding:10px 0;}
+.zt-node{flex:1; min-width:110px; text-align:center; padding:14px 8px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--panel); font-size:12px; transition:.3s;}
+.zt-node.active{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim);}
+.zt-arrow{color:var(--text-3); flex-shrink:0;}
+
+/* shared responsibility */
+.resp-layers{display:flex; flex-direction:column; gap:8px; margin-top:20px;}
+.resp-layer-row{display:flex; align-items:center; gap:12px; font-size:13px;}
+.resp-layer-row .name{width:150px; flex-shrink:0; color:var(--text-1); font-weight:600;}
+.resp-layer-row .who{font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px;}
+.who-oracle{background:var(--blue-dim); color:var(--blue);}
+.who-you{background:var(--red-dim); color:var(--red-bright);}
+.who-shared{background:var(--amber-dim); color:var(--amber);}
+
+/* shared responsibility tower */
+.sr-tower{display:flex; flex-direction:column; gap:0; margin-top:16px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-strong);}
+.sr-row{
+  display:flex; align-items:center; gap:12px; padding:12px 16px; font-size:13px;
+  border-bottom:1px solid var(--border); transition:background .45s ease, color .45s ease;
+}
+.sr-row:last-child{border-bottom:none;}
+.sr-row .sr-ico{width:24px; text-align:center; flex-shrink:0;}
+.sr-row .sr-name{flex:1; font-weight:600; color:var(--text-1);}
+.sr-row .sr-why{font-size:11px; color:var(--text-3); flex:1.4; display:none;}
+@media (min-width:800px){.sr-row .sr-why{display:block;}}
+.sr-row .who{font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px; flex-shrink:0; min-width:82px; text-align:center;}
+.sr-row.side-you{background:rgba(199,70,52,0.08);}
+.sr-row.side-oracle{background:rgba(79,140,255,0.07);}
+.sr-row.side-shared{background:rgba(232,163,61,0.08);}
+.sr-boundary{
+  display:flex; align-items:center; gap:10px; padding:6px 16px;
+  background:var(--panel-2); border-top:2px dashed var(--red-bright); border-bottom:2px dashed var(--blue);
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3);
+  animation:popIn .4s ease;
+}
+.sr-boundary .b-left{color:var(--red-bright);}
+.sr-boundary .b-right{color:var(--blue); margin-left:auto;}
+.sr-legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--text-2);}
+.sr-legend .who{margin-right:4px;}
+.sr-takeaway{margin-top:14px; padding:12px 14px; border-radius:8px; font-size:13px; background:var(--panel); border:1px solid var(--border); color:var(--text-2); transition:.3s;}
+.sr-takeaway strong{color:var(--text-1);}
+
+/* who's responsible game */
+.sr-scen{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px 18px; margin-bottom:12px;}
+.sr-scen .sc-q{font-size:13.5px; font-weight:600; margin-bottom:10px; color:var(--text-1);}
+.sr-scen .sc-opts{display:flex; gap:8px; flex-wrap:wrap;}
+.sr-scen .sc-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.sr-scen.answered .sc-explain{display:block;}
+.sr-scen .chip-btn.right{background:var(--green); color:#fff; border-color:var(--green);}
+.sr-scen .chip-btn.wrong{background:var(--red); color:#fff; border-color:var(--red);}
+.cost-filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+
+/* tools */
+.tool-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px;}
+.tool-chip{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; text-align:center; font-size:12px; transition:.2s; cursor:pointer;}
+.tool-chip:hover{border-color:var(--border-strong); transform:translateY(-2px);}
+.tool-chip.native{border-top:2px solid var(--red-bright);}
+.tool-chip.analogy{border-top:2px solid var(--blue);}
+.tool-detail{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-top:12px; font-size:13px; color:var(--text-2); min-height:44px;}
+
+/* cloud guard */
+.cg-toggle-row{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:14px; gap:14px;}
+.switch{position:relative; width:44px; height:24px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .slider{position:absolute; inset:0; background:var(--panel-2); border:1px solid var(--border-strong); border-radius:999px; cursor:pointer; transition:.25s;}
+.switch .slider::before{content:""; position:absolute; width:16px; height:16px; left:3px; top:2px; background:var(--text-3); border-radius:50%; transition:.25s;}
+.switch input:checked + .slider{background:var(--red-dim); border-color:var(--red);}
+.switch input:checked + .slider::before{transform:translateX(20px); background:var(--red-bright);}
+.detector-row{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px; gap:14px;}
+.responder-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; cursor:pointer; transition:.2s; text-align:center;}
+.responder-card.selected{border-color:var(--red); background:var(--red-dim);}
+.problem-pipeline{display:flex; align-items:center; gap:4px; overflow-x:auto; padding:14px 0;}
+.pipe-step{flex-shrink:0; min-width:100px; text-align:center; padding:12px 6px; border-radius:8px; background:var(--panel); border:1px solid var(--border); font-size:11px; transition:.3s;}
+.pipe-step.lit{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); color:var(--amber);}
+.pipe-arrow{color:var(--text-3); flex-shrink:0; font-size:14px;}
+
+/* security zones */
+.sz-console{background:var(--panel); border:1px solid var(--border-strong); border-radius:var(--radius); padding:20px;}
+.sz-attempt-row{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0;}
+.sz-result{margin-top:12px; padding:12px 14px; border-radius:8px; font-size:13px; display:none;}
+.sz-result.blocked{display:block; background:var(--red-dim); color:var(--red-bright); border:1px solid rgba(199,70,52,.35);}
+.sz-result.allowed{display:block; background:var(--green-dim); color:var(--green); border:1px solid rgba(62,194,143,.35);}
+
+/* score rings */
+.score-ring-wrap{display:flex; align-items:center; gap:28px; flex-wrap:wrap;}
+.score-ring{width:130px; height:130px; border-radius:50%; position:relative; background:conic-gradient(var(--green) calc(var(--score,60)*3.6deg), var(--panel-2) 0); transition:background .6s ease; flex-shrink:0;}
+.score-ring::before{content:""; position:absolute; inset:10px; border-radius:50%; background:var(--panel);}
+.score-ring span{position:relative; display:flex; align-items:center; justify-content:center; height:100%; font-family:var(--font-display); font-size:26px; font-weight:700;}
+.rec-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px;}
+.rec-row.fixed{opacity:.45;}
+.priority-pill{font-size:10px; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:.04em;}
+.priority-high{background:var(--red-dim); color:var(--red-bright);}
+.priority-med{background:var(--amber-dim); color:var(--amber);}
+.priority-low{background:var(--blue-dim); color:var(--blue);}
+
+/* billing */
+.bill-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+@media (max-width:800px){.bill-stats{grid-template-columns:1fr 1fr;}}
+.bill-stat{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px;}
+.bill-stat .label{font-size:10px; text-transform:uppercase; color:var(--text-3); letter-spacing:.06em;}
+.bill-stat .val{font-family:var(--font-display); font-size:20px; margin-top:4px;}
+.bill-stat .delta{font-size:11px; margin-top:2px;}
+.bill-stat .delta.up{color:var(--red-bright);}
+.bill-stat .delta.down{color:var(--green);}
+canvas#costTrendChart,canvas#costPieChart{width:100%;}
+
+/* cost analysis guided story */
+.ca-steps{display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:22px;}
+.ca-steps .cas{
+  width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:700; font-size:13px; flex-shrink:0;
+  background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-3); transition:.3s;
+}
+.ca-steps .cas.now{background:var(--red); border-color:var(--red); color:#fff; box-shadow:0 0 0 4px var(--red-dim);}
+.ca-steps .cas.done{background:var(--green-dim); border-color:var(--green); color:var(--green);}
+.ca-steps .cas-line{width:48px; height:2px; background:var(--border-strong); flex-shrink:0; transition:.3s;}
+.ca-steps .cas-line.done{background:var(--green);}
+.ca-question{
+  font-family:var(--font-display); font-size:17px; font-weight:700; color:var(--text-1);
+  text-align:center; margin-bottom:6px; line-height:1.45;
+}
+.ca-sub{font-size:13px; color:var(--text-2); text-align:center; max-width:560px; margin:0 auto 20px; line-height:1.6;}
+.ca-next-wrap{text-align:center; margin-top:20px;}
+.ca-next-wrap .chip-btn{font-size:13.5px; padding:10px 22px;}
+
+/* cost analysis drill-down */
+.ca-bars{display:flex; flex-direction:column; gap:12px;}
+.ca-bar{transition:.2s;}
+.ca-bar.drill{cursor:pointer;}
+.ca-bar .cb-head{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; margin-bottom:4px;}
+.ca-bar .cb-name{font-weight:600; color:var(--text-1);}
+.ca-bar .cb-val{font-family:var(--font-mono); color:var(--text-2);}
+.ca-bar .cb-track{height:28px; border-radius:6px; background:var(--panel-2); overflow:hidden; border:1px solid var(--border); transition:.2s;}
+.ca-bar .cb-fill{height:100%; border-radius:6px; background:linear-gradient(90deg,var(--red),var(--red-bright)); width:0%; transition:width .6s ease; display:flex; align-items:center; padding-left:10px; font-size:10px; color:#fff; font-family:var(--font-mono); white-space:nowrap;}
+.ca-bar.flag .cb-fill{background:linear-gradient(90deg,#9a6a00,var(--amber));}
+.ca-bar.drill:hover .cb-track{border-color:var(--red); box-shadow:0 0 0 3px var(--red-dim);}
+.ca-bar .cb-tag{font-size:10px; padding:2px 8px; border-radius:20px; background:var(--amber-dim); color:var(--amber); margin-left:8px;}
+.ca-bar .cb-hint{font-size:10px; color:var(--text-3); margin-left:8px;}
+.ca-insight{margin-top:18px; padding:14px 16px; border-radius:var(--radius-sm); font-size:13.5px; background:var(--panel); border:1px solid var(--border); color:var(--text-2); line-height:1.7;}
+.ca-insight strong{color:var(--text-1);}
+.ca-insight.alert{border-color:rgba(232,163,61,.45); background:var(--amber-dim);}
+.ca-insight.found{border-color:rgba(62,194,143,.45); background:var(--green-dim);}
+
+/* BYOL decision machine */
+.byol-q{margin-bottom:18px;}
+.byol-q .bq-label{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); margin-bottom:8px; font-weight:700;}
+.byol-compare{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px;}
+@media(max-width:700px){.byol-compare{grid-template-columns:1fr;}}
+.byol-opt{border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:16px; background:var(--panel); transition:.3s; position:relative;}
+.byol-opt.winner{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim);}
+.byol-opt .bo-name{font-weight:700; font-size:13px;}
+.byol-opt .bo-cost{font-family:var(--font-display); font-size:24px; margin:8px 0 2px; transition:.3s;}
+.byol-opt .bo-note{font-size:11.5px; color:var(--text-3); line-height:1.55;}
+.byol-opt .bo-badge{position:absolute; top:-10px; right:12px; font-size:10px; font-weight:700; background:var(--green); color:#fff; padding:3px 10px; border-radius:20px; display:none;}
+.byol-opt.winner .bo-badge{display:block; animation:popIn .3s ease;}
+.byol-opt .bo-bar{height:10px; border-radius:6px; background:var(--panel-2); overflow:hidden; margin:10px 0 8px; border:1px solid var(--border);}
+.byol-opt .bo-fill{height:100%; transition:width .5s ease; border-radius:6px;}
+.byol-verdict{margin-top:16px; padding:14px 16px; border-radius:var(--radius-sm); font-size:13.5px; background:var(--panel); border:1px solid var(--border); line-height:1.7; color:var(--text-2);}
+.byol-verdict strong{color:var(--text-1);}
+.pie-legend{display:flex; flex-direction:column; gap:6px; font-size:12px; margin-top:10px;}
+.pie-legend span.sw{width:10px; height:10px; display:inline-block; border-radius:3px; margin-right:6px;}
+
+/* budget wizard */
+.wizard-steps{display:flex; gap:6px; margin-bottom:20px;}
+.wizard-steps div{flex:1; height:4px; border-radius:4px; background:var(--panel-2);}
+.wizard-steps div.done{background:var(--red-bright);}
+.wizard-panel{display:none;}
+.wizard-panel.active{display:block;}
+.field-row{margin-bottom:14px;}
+.field-row label{display:block; font-size:12px; color:var(--text-3); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em;}
+.budget-gauge{height:14px; border-radius:8px; background:var(--panel-2); overflow:hidden; margin:10px 0;}
+.budget-gauge-fill{height:100%; background:linear-gradient(90deg,var(--green),var(--amber),var(--red)); width:0%; transition:width .6s ease;}
+.mini-input{background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:6px 10px; font-size:12.5px; font-family:var(--font-body);}
+.alert-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+.alert-pill{font-size:11px; font-weight:700; padding:4px 12px; border-radius:20px; background:var(--panel-2); color:var(--text-3); border:1px solid var(--border); transition:.25s;}
+.alert-pill.fired{background:var(--red-dim); color:var(--red-bright); border-color:rgba(199,70,52,.4);}
+
+/* cost analysis drill-down */
+.ca-insight{margin-top:14px; padding:12px 14px; border-radius:8px; font-size:13px; border:1px solid var(--border); background:var(--panel); color:var(--text-2); transition:.3s;}
+.ca-insight.anomaly{background:var(--amber-dim); border-color:rgba(232,163,61,.4); color:var(--text-1);}
+.ca-insight strong{color:var(--text-1);}
+
+/* BYOL calculator */
+.byol-calc{display:grid; grid-template-columns:280px 1fr; gap:22px;}
+@media (max-width:820px){.byol-calc{grid-template-columns:1fr;}}
+.byol-controls label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); margin:14px 0 6px;}
+.byol-controls input[type=range]{width:100%; accent-color:var(--red);}
+.byol-controls .cval{font-family:var(--font-mono); color:var(--red-bright); font-weight:700; font-size:13px;}
+.byol-own-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:16px; padding:11px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--panel);}
+.byol-bars{display:flex; flex-direction:column; gap:16px;}
+.byol-bar-block .bb-head{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;}
+.byol-bar-block .bb-head b{font-family:var(--font-display);}
+.byol-bar{height:30px; border-radius:8px; background:var(--panel-2); overflow:hidden; display:flex; border:1px solid var(--border);}
+.byol-bar .seg{height:100%; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-family:var(--font-mono); color:#fff; white-space:nowrap; overflow:hidden; transition:width .5s ease;}
+.byol-bar .seg-infra{background:linear-gradient(90deg,#3d6fd1,var(--blue));}
+.byol-bar .seg-lic{background:linear-gradient(90deg,var(--red),var(--red-bright));}
+.byol-savings{margin-top:4px; padding:13px 16px; border-radius:var(--radius-sm); font-size:13.5px; background:var(--green-dim); border:1px solid rgba(62,194,143,.35); color:var(--green); transition:.3s;}
+.byol-savings.na{background:var(--amber-dim); border-color:rgba(232,163,61,.35); color:var(--amber);}
+.byol-legend{display:flex; gap:16px; font-size:11.5px; color:var(--text-3); margin-top:2px;}
+.byol-legend i{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:-1px;}
+
+/* marketplace */
+.mp-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;}
+.mp-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; cursor:pointer; transition:.2s; text-align:center;}
+.mp-card:hover{border-color:var(--red); transform:translateY(-3px);}
+.mp-card .mp-ic{font-size:26px; margin-bottom:8px;}
+.mp-deploy-status{margin-top:14px; font-size:13px; display:none; padding:10px; border-radius:8px; background:var(--green-dim); color:var(--green);}
+
+/* right sizing */
+.rs-shape{display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; cursor:pointer; font-size:13px; gap:10px; flex-wrap:wrap;}
+.rs-shape.selected{border-color:var(--red); background:var(--red-dim);}
+.rs-savings{background:var(--green-dim); border:1px solid rgba(62,194,143,.35); color:var(--green); border-radius:var(--radius-sm); padding:14px; margin-top:14px; display:none;}
+.rs-savings.show{display:block;}
+
+/* pyramid */
+.pyramid{display:flex; flex-direction:column; align-items:center; gap:4px; margin:20px 0;}
+.pyr-tier{padding:14px; text-align:center; border-radius:8px; border:1px solid var(--border-strong); background:var(--panel); font-size:12.5px; transition:.2s; cursor:pointer;}
+.pyr-tier:hover,.pyr-tier.active{border-color:var(--red); color:var(--red-bright);}
+.pyr-detail{background:var(--panel); border-radius:var(--radius-sm); padding:14px; margin-top:10px; font-size:13px; color:var(--text-2); min-height:50px; border:1px solid var(--border);}
+
+/* policy editor */
+.policy-editor{background:#0c0d10; border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:16px; font-family:var(--font-mono); font-size:13.5px;}
+html[data-theme="light"] .policy-editor{background:#1b1d22;}
+.policy-editor textarea{width:100%; min-height:60px; background:transparent; border:none; outline:none; color:#e8e8ea; font-family:var(--font-mono); font-size:13.5px; resize:vertical; line-height:1.7;}
+.policy-verdict{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:12.5px; font-family:var(--font-body); display:none;}
+.policy-verdict.ok{display:block; background:var(--green-dim); color:var(--green);}
+.policy-verdict.bad{display:block; background:var(--red-dim); color:var(--red-bright);}
+
+/* org tree */
+.tree{font-size:13.5px;}
+.tree ul{list-style:none; margin-left:22px; border-left:1px dashed var(--border-strong); padding-left:18px;}
+.tree li{margin:6px 0; position:relative;}
+.tree .node{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px; cursor:pointer; transition:.15s;}
+.tree .node:hover{background:var(--panel-2);}
+.tree .node .ic{font-size:13px;}
+.tree .node.root{color:var(--red-bright); font-weight:700;}
+
+/* compliance */
+.compliance-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+.compliance-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; text-align:center; font-size:12.5px; cursor:pointer; transition:.2s;}
+.compliance-card:hover,.compliance-card.active{border-color:var(--blue); color:var(--blue);}
+
+/* case study */
+.case-req{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px; cursor:pointer; transition:.2s; flex-wrap:wrap;}
+.case-req:hover{border-color:var(--border-strong);}
+.case-req .cr-sol{font-size:12px; color:var(--green); display:none; width:100%; padding-top:8px; border-top:1px dashed var(--border);}
+.case-req.solved{border-color:rgba(62,194,143,.4);}
+.case-req.solved .cr-sol{display:block;}
+
+/* flashcards */
+.flash-wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:800px){.flash-wrap{grid-template-columns:1fr 1fr;}}
+@media (max-width:520px){.flash-wrap{grid-template-columns:1fr;}}
+.flashcard{perspective:1000px; height:130px; cursor:pointer;}
+.flashcard .fc-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm); border:1px solid var(--border-strong); padding:14px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13px;}
+.fc-front{background:var(--panel);}
+.fc-back{background:var(--red-dim); color:var(--red-bright); transform:rotateY(180deg); font-weight:600;}
+
+/* quiz */
+.quiz-q{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px 20px; margin-bottom:14px;}
+.quiz-q .qtext{font-size:14.5px; font-weight:600; margin-bottom:12px;}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; border:1px solid var(--border); cursor:pointer; font-size:13.5px; color:var(--text-2); transition:.15s;}
+.quiz-opt:hover{border-color:var(--border-strong); background:var(--panel-2);}
+.quiz-opt.correct{border-color:var(--green); background:var(--green-dim); color:var(--green);}
+.quiz-opt.incorrect{border-color:var(--red); background:var(--red-dim); color:var(--red-bright);}
+.quiz-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.quiz-q.answered .quiz-explain{display:block;}
+
+/* badge / cert */
+.badge-circle{width:150px; height:150px; border-radius:50%; margin:0 auto 20px; position:relative; background:conic-gradient(var(--red-bright) 0deg, var(--red) var(--pct,0deg), var(--panel-2) var(--pct,0deg)); display:flex; align-items:center; justify-content:center; transition:background 1s ease;}
+.badge-circle::before{content:""; position:absolute; inset:10px; border-radius:50%; background:var(--void);}
+.badge-circle span{position:relative; font-family:var(--font-display); font-size:28px; font-weight:700;}
+.cert-frame{max-width:640px; margin:0 auto; border:2px solid var(--red); border-radius:var(--radius); padding:40px; text-align:center; background:linear-gradient(160deg,var(--panel),var(--panel-2)); position:relative; overflow:hidden;}
+.cert-frame::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(45deg, rgba(199,70,52,0.04) 0 12px, transparent 12px 24px); pointer-events:none;}
+.cert-frame h3{font-family:var(--font-display); font-size:22px; margin:14px 0 4px;}
+.cert-name{font-size:24px; font-family:var(--font-display); color:var(--red-bright); margin:16px 0; border-bottom:1px solid var(--border-strong); display:inline-block; padding-bottom:6px; min-width:260px;}
+
+.center{text-align:center;}
+.mt-lg{margin-top:36px;}
+.small{font-size:12px; color:var(--text-3);}
+footer{text-align:center; padding:50px 20px; color:var(--text-3); font-size:12.5px; border-top:1px solid var(--border); margin-top:60px;}
+@keyframes popIn{from{opacity:0; transform:scale(.7);} to{opacity:1; transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="progress-bar"></div>
+<div id="topbar">
+  <button id="sidebar-toggle" title="Toggle sidebar">☰</button>
+  <div class="brand"><span class="dot"></span> OCI Security &amp; Governance · Day 2</div>
+  <div id="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" type="text" placeholder="Search security, cost, governance topics…" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div id="score-chip">Quiz score: <b id="score-chip-val">0/0</b></div>
+  <button id="theme-toggle" title="Toggle theme">🌙</button>
+</div>
+
+<div id="shell">
+  <nav id="sidebar">
+    <div class="nav-group"><div class="nav-head">Module 1 · Security Fundamentals</div>
+      <a class="nav-link" href="#sec-cia"><span class="num">01</span>CIA Triad</a>
+      <a class="nav-link" href="#sec-defense"><span class="num">02</span>Defense in Depth</a>
+      <a class="nav-link" href="#sec-zerotrust"><span class="num">03</span>Zero Trust</a>
+      <a class="nav-link" href="#sec-sharedresp"><span class="num">04</span>Shared Responsibility</a>
+      <a class="nav-link" href="#sec-tools"><span class="num">05</span>Security Tool Ecosystem</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 2 · Cloud Guard</div>
+      <a class="nav-link" href="#sec-cloudguard"><span class="num">06</span>Cloud Guard Architecture</a>
+      <a class="nav-link" href="#sec-detectors"><span class="num">07</span>Detector Recipes</a>
+      <a class="nav-link" href="#sec-responders"><span class="num">08</span>Responder Recipes</a>
+      <a class="nav-link" href="#sec-lifecycle"><span class="num">09</span>Problem Lifecycle</a>
+      <a class="nav-link" href="#sec-seczones"><span class="num">10</span>Security Zones</a>
+      <a class="nav-link" href="#sec-secadvisor"><span class="num">11</span>Security Advisor</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 3 · Cost Management</div>
+      <a class="nav-link" href="#sec-billing"><span class="num">12</span>Billing Dashboard</a>
+      <a class="nav-link" href="#sec-budgets"><span class="num">13</span>Budgets</a>
+      <a class="nav-link" href="#sec-costanalysis"><span class="num">14</span>Cost Analysis</a>
+      <a class="nav-link" href="#sec-byol"><span class="num">15</span>BYOL vs License Included</a>
+      <a class="nav-link" href="#sec-marketplace"><span class="num">16</span>OCI Marketplace</a>
+      <a class="nav-link" href="#sec-rightsizing"><span class="num">17</span>Right Sizing</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 4 · Governance</div>
+      <a class="nav-link" href="#sec-governance"><span class="num">18</span>Governance Pyramid</a>
+      <a class="nav-link" href="#sec-cladvisor"><span class="num">19</span>Cloud Advisor</a>
+      <a class="nav-link" href="#sec-orgmgmt"><span class="num">20</span>Organization Management</a>
+      <a class="nav-link" href="#sec-compliance"><span class="num">21</span>Compliance</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Wrap-Up</div>
+      <a class="nav-link" href="#sec-casestudy"><span class="num">22</span>Case Study</a>
+      <a class="nav-link" href="#sec-cheatsheet"><span class="num">23</span>Cheat Sheets</a>
+      <a class="nav-link" href="#sec-flashcards"><span class="num">24</span>Flash Cards</a>
+      <a class="nav-link" href="#sec-quiz"><span class="num">25</span>Certification Quiz</a>
+      <a class="nav-link" href="#sec-cert"><span class="num">26</span>Certificate Preview</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="hero">
+      <span class="eyebrow">● Oracle Cloud Infrastructure — Security &amp; Governance Track</span>
+      <h1>Day 2: Secure it,<br>govern it, <span class="accent">afford it.</span></h1>
+      <p class="lede">CIA Triad, Defense in Depth, Zero Trust, Cloud Guard, Security Zones, budgets and governance — with live simulators standing in for a real tenancy.</p>
+      <div class="hero-stats">
+        <div class="hstat"><b>26</b><span>Interactive sections</span></div>
+        <div class="hstat"><b>10</b><span>Certification MCQs</span></div>
+        <div class="hstat"><b>12</b><span>Live simulators</span></div>
+        <div class="hstat"><b id="hero-progress">0%</b><span>Your progress</span></div>
+      </div>
+      <div class="cta-row">
+        <a href="#sec-cia" class="btn btn-primary">Start learning →</a>
+        <a href="#sec-quiz" class="btn btn-ghost">Jump to certification quiz</a>
+      </div>
+    </section>
+
+    <div class="container">
+
+<!-- 01 CIA TRIAD -->
+<section class="chapter reveal" id="sec-cia">
+  <div class="chapter-kicker"><span class="idx">01</span><span class="track">Security Fundamentals</span></div>
+  <h2>The CIA Triad</h2>
+  <p class="dek">The foundation of information security. Every control ultimately protects one of three properties — click a corner to explore it.</p>
+  <div class="cia-wrap"><div class="cia-triangle">
+    <svg viewBox="0 0 340 300"><polygon points="170,20 20,270 320,270" fill="none" stroke="var(--border-strong)" stroke-width="2"/></svg>
+    <div class="cia-node confidentiality" data-k="confidentiality"><h4>🔒 Confidentiality</h4><p style="font-size:11px; color:var(--text-3);">Only authorized parties see the data</p></div>
+    <div class="cia-node integrity" data-k="integrity"><h4>✅ Integrity</h4><p style="font-size:11px; color:var(--text-3);">Data is accurate &amp; unaltered</p></div>
+    <div class="cia-node availability" data-k="availability"><h4>⚡ Availability</h4><p style="font-size:11px; color:var(--text-3);">Systems are up when needed</p></div>
+  </div></div>
+  <div class="cia-detail" id="cia-detail">Click Confidentiality, Integrity, or Availability above to see examples, OCI services and the analogy.</div>
+  <h3>Real-world example — Internet Banking</h3>
+  <table class="cmp">
+    <tr><th>Security goal</th><th>Banking example</th></tr>
+    <tr><td>Confidentiality</td><td>Password protected accounts</td></tr>
+    <tr><td>Integrity</td><td>Transactions cannot be modified</td></tr>
+    <tr><td>Availability</td><td>24×7 banking</td></tr>
+  </table>
+  <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Every security requirement on the exam maps back to C, I, or A — if you can't decide which control to apply, ask which of the three properties is at risk.</div></div>
+</section>
+
+<!-- 02 DEFENSE IN DEPTH -->
+<section class="chapter reveal" id="sec-defense">
+  <div class="chapter-kicker"><span class="idx">02</span><span class="track">Security Fundamentals</span></div>
+  <h2>Defense in Depth</h2>
+  <p class="dek">One security control is never enough. An attacker must fight through EVERY layer to reach your data — you only need ONE layer to hold. Switch layers ON/OFF, then launch the attack and watch how far it gets.</p>
+  <div class="panel">
+    <div class="did-wrap">
+      <div>
+        <div class="did-stack" id="did-stack">
+          <div class="did-endpoint danger" id="did-attacker">🗡️ ATTACKER — starts here (Internet)</div>
+          <div class="did-conn">↓</div>
+          <div id="did-layers"></div>
+          <div class="did-conn">↓</div>
+          <div class="did-endpoint" id="did-treasure">💎 YOUR DATA — the target</div>
+        </div>
+        <div class="did-verdict" id="did-verdict"></div>
+      </div>
+      <div>
+        <div class="did-log" id="did-log"><span class="l-info">— Attack log —<br>Toggle layers ON/OFF, then press Launch attack.<br>Tip: switch OFF the first 3 layers and see what saves you.</span></div>
+      </div>
+    </div>
+    <div class="center mt-lg">
+      <button class="chip-btn active" id="did-attack">🗡 Launch attack</button>
+      <button class="chip-btn" id="did-reset">↺ Reset (all ON)</button>
+      <button class="chip-btn" id="did-alloff">Switch everything OFF</button>
+    </div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏰</div><div><b>Castle Analogy</b>Moat → Walls → Gate → Guards → King. Each OCI layer above is labelled with its castle equivalent — even if the moat is crossed, the walls remain. The king (your data) is only lost when <em>every</em> defense fails.</div></div>
+  <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Common Trap</b>Defense in depth doesn't mean "add more tools" — it means <em>independent</em> controls at different layers, so a single misconfiguration (e.g. a public bucket) isn't the only thing standing between an attacker and your data.</div></div>
+</section>
+
+<!-- 03 ZERO TRUST -->
+<section class="chapter reveal" id="sec-zerotrust">
+  <div class="chapter-kicker"><span class="idx">03</span><span class="track">Security Fundamentals</span></div>
+  <h2>Zero Trust</h2>
+  <p class="dek">"Trust nobody. Verify everyone. Every time." Like airport security — even VIPs show a passport and get their bags scanned.</p>
+  <div class="panel">
+    <div class="zt-flow" id="zt-flow"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="zt-play">▶ Walk through a request</button></div>
+    <p class="small center mt-lg" id="zt-msg">Click play to step through Zero Trust evaluation for a single access request.</p>
+  </div>
+  <div class="grid grid-2 mt-lg">
+    <div class="card"><h4>🏰 Traditional (perimeter) model</h4><p>Inside network → trusted. One VPN login unlocks broad access; one breach means free movement everywhere.</p></div>
+    <div class="card"><h4>🛡 Zero Trust model</h4><p>Every request re-verifies identity, device posture, and risk — regardless of network location, every time. OCI: IAM authentication, MFA, Identity Domains, Dynamic Groups, Policies.</p></div>
+  </div>
+</section>
+
+<!-- 04 SHARED RESPONSIBILITY -->
+<section class="chapter reveal" id="sec-sharedresp">
+  <div class="chapter-kicker"><span class="idx">04</span><span class="track">Security Fundamentals</span></div>
+  <h2>Shared Responsibility — Security Lens</h2>
+  <p class="dek">Oracle secures the cloud; you secure what you deploy. Switch the service model and watch the responsibility boundary line physically move through the stack.</p>
+  <div class="panel">
+    <div class="cost-filters" id="sr-model-btns">
+      <button class="chip-btn active" data-model="iaas">IaaS — you rent infrastructure</button>
+      <button class="chip-btn" data-model="paas">PaaS — you rent a platform</button>
+      <button class="chip-btn" data-model="saas">SaaS — you rent software</button>
+    </div>
+    <div class="sr-tower" id="sr-tower"></div>
+    <div class="sr-legend">
+      <span><span class="who who-you">CUSTOMER</span> you configure &amp; secure it</span>
+      <span><span class="who who-shared">SHARED</span> both hold a piece</span>
+      <span><span class="who who-oracle">ORACLE</span> Oracle runs &amp; secures it</span>
+    </div>
+    <div class="sr-takeaway" id="sr-takeaway"></div>
+  </div>
+
+  <h3>🎯 Incident Drill — who's responsible?</h3>
+  <p>Real exam questions look exactly like this: an incident happens, you name the responsible party. Answer all five.</p>
+  <div id="sr-game">
+    <div class="sr-scen" data-ans="customer">
+      <div class="sc-q">1. Your database password was weak and got brute-forced. Data was stolen.</div>
+      <div class="sc-opts"><button class="chip-btn" data-pick="oracle">Oracle</button><button class="chip-btn" data-pick="customer">Customer</button><button class="chip-btn" data-pick="depends">It depends</button></div>
+      <div class="sc-explain">💥 <strong>Customer.</strong> Credentials, users and IAM policies are always yours — Oracle cannot pick your passwords. This is THE classic exam trap.</div>
+    </div>
+    <div class="sr-scen" data-ans="oracle">
+      <div class="sc-q">2. A power failure takes down a data center hall in an Availability Domain.</div>
+      <div class="sc-opts"><button class="chip-btn" data-pick="oracle">Oracle</button><button class="chip-btn" data-pick="customer">Customer</button><button class="chip-btn" data-pick="depends">It depends</button></div>
+      <div class="sc-explain">🏢 <strong>Oracle.</strong> Physical security, power, cooling and hardware are always Oracle's side. (But architecting <em>across</em> ADs so the failure doesn't hurt you — that's on you.)</div>
+    </div>
+    <div class="sr-scen" data-ans="customer">
+      <div class="sc-q">3. A storage bucket was configured public; customer records leaked.</div>
+      <div class="sc-opts"><button class="chip-btn" data-pick="oracle">Oracle</button><button class="chip-btn" data-pick="customer">Customer</button><button class="chip-btn" data-pick="depends">It depends</button></div>
+      <div class="sc-explain">🪣 <strong>Customer.</strong> Resource configuration and data protection are customer-side. (Day-2 tools that would have saved you: Security Zones to block it, Cloud Guard to catch it.)</div>
+    </div>
+    <div class="sr-scen" data-ans="oracle">
+      <div class="sc-q">4. A vulnerability in the hypervisor itself is exploited.</div>
+      <div class="sc-opts"><button class="chip-btn" data-pick="oracle">Oracle</button><button class="chip-btn" data-pick="customer">Customer</button><button class="chip-btn" data-pick="depends">It depends</button></div>
+      <div class="sc-explain">⚙️ <strong>Oracle.</strong> The virtualization layer belongs to Oracle in every service model — customers never touch the hypervisor.</div>
+    </div>
+    <div class="sr-scen" data-ans="depends">
+      <div class="sc-q">5. An unpatched operating system vulnerability is exploited.</div>
+      <div class="sc-opts"><button class="chip-btn" data-pick="oracle">Oracle</button><button class="chip-btn" data-pick="customer">Customer</button><button class="chip-btn" data-pick="depends">It depends</button></div>
+      <div class="sc-explain">🖥 <strong>It depends on the service model.</strong> IaaS: <em>you</em> patch the OS → customer. PaaS/SaaS: Oracle runs the OS → Oracle. This is why the boundary line above moves!</div>
+    </div>
+    <p class="small" id="sr-game-score">0 / 5 answered.</p>
+  </div>
+  <div class="callout callout-trap"><div class="ic">💥</div><div><b>Exam Trap</b>Whatever the model, four things NEVER leave the customer's side: <strong>your data, your users, your IAM policies, your configuration choices.</strong></div></div>
+</section>
+
+<!-- 05 SECURITY TOOL ECOSYSTEM -->
+<section class="chapter reveal" id="sec-tools">
+  <div class="chapter-kicker"><span class="idx">05</span><span class="track">Security Fundamentals</span></div>
+  <h2>Security Tool Ecosystem</h2>
+  <p class="dek">OCI-native security services, mapped to the "hospital security" analogy. Click any tool.</p>
+  <div class="tool-grid" id="tool-grid">
+    <div class="tool-chip native" data-t="iam">🛂 IAM</div>
+    <div class="tool-chip native" data-t="vault">🔐 Vault</div>
+    <div class="tool-chip native" data-t="waf">🛡 WAF</div>
+    <div class="tool-chip native" data-t="cg">🚨 Cloud Guard</div>
+    <div class="tool-chip native" data-t="sz">🚧 Security Zones</div>
+    <div class="tool-chip native" data-t="audit">🎥 Audit</div>
+    <div class="tool-chip native" data-t="logging">📜 Logging</div>
+    <div class="tool-chip native" data-t="mon">📊 Monitoring</div>
+  </div>
+  <div class="tool-detail" id="tool-detail">Click a tool above to see its purpose and hospital-security analogy.</div>
+</section>
+
+<!-- 06 CLOUD GUARD ARCHITECTURE -->
+<section class="chapter reveal" id="sec-cloudguard">
+  <div class="chapter-kicker"><span class="idx">06</span><span class="track">Cloud Guard</span></div>
+  <h2>Cloud Guard Architecture</h2>
+  <p class="dek">Cloud Guard continuously monitors OCI resources for security risks — like a security camera system: camera → detect intruder → raise alarm → call police.</p>
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="problem-pipeline" id="cg-arch-pipeline"></div>
+    <div class="center"><button class="chip-btn active" id="cg-arch-play">▶ Animate the pipeline</button></div>
+  </div>
+  <div class="grid grid-4">
+    <div class="card"><h4>🎯 Targets</h4><p>The compartments/resources being monitored.</p></div>
+    <div class="card"><h4>🧪 Detector Recipes</h4><p>Rules that detect problems — public buckets, open security lists.</p></div>
+    <div class="card"><h4>🤖 Responder Recipes</h4><p>Automatic fixes — remove public IP, notify administrator.</p></div>
+    <div class="card"><h4>📋 Managed Lists</h4><p>Reusable IP lists, CIDR blocks, allowed networks.</p></div>
+  </div>
+  <div class="panel mt-lg">
+    <div class="cg-toggle-row">
+      <div><strong>Enable Cloud Guard on tenancy</strong><p class="small" style="margin:0;">Applies default detector &amp; responder recipes to the root compartment.</p></div>
+      <label class="switch"><input type="checkbox" id="cg-enable-toggle"><span class="slider"></span></label>
+    </div>
+    <p class="small" id="cg-enable-msg">Cloud Guard is currently <strong>disabled</strong>.</p>
+  </div>
+</section>
+
+<!-- 07 DETECTORS -->
+<section class="chapter reveal" id="sec-detectors">
+  <div class="chapter-kicker"><span class="idx">07</span><span class="track">Cloud Guard</span></div>
+  <h2>Detector Recipes</h2>
+  <p class="dek">Three detector families. Turn each on to see the class of problem it catches.</p>
+  <div class="panel">
+    <div class="detector-row"><span><strong>Configuration Detector</strong> — finds public Object Storage, weak IAM policies</span><label class="switch"><input type="checkbox" class="det-toggle" data-det="config"><span class="slider"></span></label></div>
+    <div class="detector-row"><span><strong>Activity Detector</strong> — finds suspicious logins, API abuse</span><label class="switch"><input type="checkbox" class="det-toggle" data-det="activity"><span class="slider"></span></label></div>
+    <div class="detector-row"><span><strong>Threat Detector</strong> — finds malware, brute-force attempts</span><label class="switch"><input type="checkbox" class="det-toggle" data-det="threat"><span class="slider"></span></label></div>
+    <p class="small mt-lg" id="detector-msg">Enable a detector to see an example finding.</p>
+  </div>
+</section>
+
+<!-- 08 RESPONDERS -->
+<section class="chapter reveal" id="sec-responders">
+  <div class="chapter-kicker"><span class="idx">08</span><span class="track">Cloud Guard</span></div>
+  <h2>Responder Recipes</h2>
+  <p class="dek">A problem was detected: a storage bucket was made public. Pick the automated response and preview its effect.</p>
+  <div class="grid grid-4" id="responder-cards">
+    <div class="responder-card" data-r="notify"><h4>🔔 Notify</h4><p style="font-size:12px; color:var(--text-3);">Alert only, no change</p></div>
+    <div class="responder-card" data-r="remove"><h4>🔒 Remove Public Access</h4><p style="font-size:12px; color:var(--text-3);">Close the exposure</p></div>
+    <div class="responder-card" data-r="removeip"><h4>🚫 Remove Public IP</h4><p style="font-size:12px; color:var(--text-3);">Strip external exposure</p></div>
+    <div class="responder-card" data-r="disable"><h4>⛔ Disable User</h4><p style="font-size:12px; color:var(--text-3);">Suspend the identity</p></div>
+  </div>
+  <p class="small mt-lg" id="responder-msg">Select a responder action to preview its effect on the public bucket.</p>
+</section>
+
+<!-- 09 PROBLEM LIFECYCLE -->
+<section class="chapter reveal" id="sec-lifecycle">
+  <div class="chapter-kicker"><span class="idx">09</span><span class="track">Cloud Guard</span></div>
+  <h2>Problem Lifecycle</h2>
+  <p class="dek">Every Cloud Guard finding moves through the same pipeline: Open → Investigating → Resolved → Closed. Press play to animate it.</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="lifecycle-pipeline"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="lifecycle-play">▶ Animate lifecycle</button></div>
+  </div>
+</section>
+
+<!-- 10 SECURITY ZONES -->
+<section class="chapter reveal" id="sec-seczones">
+  <div class="chapter-kicker"><span class="idx">10</span><span class="track">Cloud Guard</span></div>
+  <h2>Security Zones</h2>
+  <p class="dek">Security Zones prevent insecure resources from ever being created — like a school lab where students cannot enter without shoes. The rule prevents the accident.</p>
+  <div class="sz-console">
+    <div class="cg-toggle-row" style="margin-bottom:14px;">
+      <div><strong>Security Zone: "prod-zone"</strong><p class="small" style="margin:0;">Recipe: Maximum Security</p></div>
+      <label class="switch"><input type="checkbox" id="sz-enable" checked><span class="slider"></span></label>
+    </div>
+    <p class="small">Try these actions inside the Security Zone compartment:</p>
+    <div class="sz-attempt-row">
+      <button class="chip-btn" data-sz="bucket">Create public bucket</button>
+      <button class="chip-btn" data-sz="unenc">Create unencrypted volume</button>
+      <button class="chip-btn" data-sz="disenc">Disable encryption</button>
+    </div>
+    <div class="sz-result" id="sz-result"></div>
+  </div>
+  <div class="callout callout-warn"><div class="ic">⚠️</div><div><b>Exam Warning</b>Security Zones <em>prevent</em> non-compliant actions at request time; Cloud Guard <em>detects and responds</em> after the fact. Complementary, not interchangeable.</div></div>
+</section>
+
+<!-- 11 SECURITY ADVISOR -->
+<section class="chapter reveal" id="sec-secadvisor">
+  <div class="chapter-kicker"><span class="idx">11</span><span class="track">Cloud Guard</span></div>
+  <h2>Security Advisor</h2>
+  <p class="dek">A running security score based on unresolved recommendations. Fix issues and watch the score climb.</p>
+  <div class="panel">
+    <div class="score-ring-wrap">
+      <div class="score-ring" id="advisor-ring" style="--score:55;"><span id="advisor-score-val">55</span></div>
+      <div style="flex:1; min-width:220px;">
+        <div class="rec-row" data-fix="mfa"><span><span class="priority-pill priority-high">High</span> Enable MFA for all admin users</span><button class="chip-btn active fix-btn">Fix</button></div>
+        <div class="rec-row" data-fix="publicbucket"><span><span class="priority-pill priority-high">High</span> Remove public access from bucket</span><button class="chip-btn active fix-btn">Fix</button></div>
+        <div class="rec-row" data-fix="oldkeys"><span><span class="priority-pill priority-med">Medium</span> Rotate keys older than 90 days</span><button class="chip-btn active fix-btn">Fix</button></div>
+        <div class="rec-row" data-fix="encvol"><span><span class="priority-pill priority-low">Low</span> Encrypt unencrypted volumes</span><button class="chip-btn active fix-btn">Fix</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 BILLING DASHBOARD -->
+<section class="chapter reveal" id="sec-billing">
+  <div class="chapter-kicker"><span class="idx">12</span><span class="track">Cost Management</span></div>
+  <h2>Billing Dashboard</h2>
+  <p class="dek">Total cost, per-service cost, usage and monthly billing — the month at a glance.</p>
+  <div class="bill-stats">
+    <div class="bill-stat"><div class="label">Month to date</div><div class="val">₹22,000</div><div class="delta up">▲ 9% vs last month</div></div>
+    <div class="bill-stat"><div class="label">Largest service</div><div class="val">Compute</div><div class="delta up">₹12,000 · 55%</div></div>
+    <div class="bill-stat"><div class="label">Daily average</div><div class="val">₹733</div><div class="delta down">▼ 3% this week</div></div>
+    <div class="bill-stat"><div class="label">Budget used</div><div class="val">44%</div><div class="delta down">of ₹50,000</div></div>
+  </div>
+  <div class="grid grid-2 mt-lg">
+    <div class="panel"><h4 style="margin-bottom:10px;">Daily spend trend</h4><canvas id="costTrendChart" width="400" height="200"></canvas></div>
+    <div class="panel"><h4 style="margin-bottom:10px;">Spend by service</h4><canvas id="costPieChart" width="260" height="200"></canvas><div class="pie-legend" id="pie-legend"></div></div>
+  </div>
+</section>
+
+<!-- 13 BUDGETS -->
+<section class="chapter reveal" id="sec-budgets">
+  <div class="chapter-kicker"><span class="idx">13</span><span class="track">Cost Management</span></div>
+  <h2>Create a Budget</h2>
+  <p class="dek">Budgets avoid surprise bills — like parents capping groceries at ₹20,000 and getting an alert beyond it. Walk the 3-step wizard, then stress-test your thresholds.</p>
+  <div class="panel">
+    <div class="wizard-steps"><div class="done" id="wz-bar-1"></div><div id="wz-bar-2"></div><div id="wz-bar-3"></div></div>
+    <div class="wizard-panel active" id="wz-1">
+      <div class="field-row"><label>Budget amount (₹/month)</label><input type="range" id="wz-amount" min="10000" max="200000" step="5000" value="50000" style="width:100%; accent-color:var(--red);"><p class="small">Amount: <strong id="wz-amount-val">₹50,000</strong></p></div>
+      <div class="field-row"><label>Scope</label><select class="mini-input" id="wz-scope"><option>Entire tenancy</option><option>Compartment: Production</option><option>Compartment: Development</option></select></div>
+      <button class="chip-btn active" id="wz-next-1">Next →</button>
+    </div>
+    <div class="wizard-panel" id="wz-2">
+      <div class="field-row"><label>Alert thresholds (% of budget)</label><p class="small">Standard alerts fire at <strong>50% · 80% · 100%</strong> of budget.</p>
+        <div class="alert-row"><span class="alert-pill fired">50%</span><span class="alert-pill fired">80%</span><span class="alert-pill fired">100%</span></div>
+      </div>
+      <div class="field-row"><label>Recipients</label><input type="text" class="mini-input" id="wz-recipients" placeholder="finance-team@company.com" style="width:100%;"></div>
+      <button class="chip-btn" id="wz-back-2">← Back</button> <button class="chip-btn active" id="wz-next-2">Next →</button>
+    </div>
+    <div class="wizard-panel" id="wz-3">
+      <p><strong>Review &amp; simulate:</strong></p>
+      <p class="small" id="wz-summary"></p>
+      <div class="field-row" style="margin-top:14px;"><label>Simulated spend</label><input type="range" id="wz-spend" min="0" max="120" step="1" value="20" style="width:100%; accent-color:var(--red);"></div>
+      <div class="budget-gauge"><div class="budget-gauge-fill" id="wz-gauge"></div></div>
+      <div class="alert-row"><span class="alert-pill" id="wz-al50">🔔 50%</span><span class="alert-pill" id="wz-al80">🔔 80%</span><span class="alert-pill" id="wz-al100">🚨 100%</span></div>
+      <p class="small" id="wz-status" style="margin-top:10px;"></p>
+      <button class="chip-btn" id="wz-back-3">← Back</button> <button class="chip-btn active" id="wz-create">✓ Create Budget</button>
+    </div>
+  </div>
+</section>
+
+<!-- 14 COST ANALYSIS -->
+<section class="chapter reveal" id="sec-costanalysis">
+  <div class="chapter-kicker"><span class="idx">14</span><span class="track">Cost Management</span></div>
+  <h2>Cost Analysis — Where Did the Money Go?</h2>
+  <p class="dek">Imagine your home electricity bill suddenly <strong>doubles</strong>. What do you do? You check room by room… and find the AC running in an empty room. <strong>Cost Analysis is exactly that — for your cloud bill.</strong> Follow the 4 steps below.</p>
+  <div class="panel">
+    <div class="ca-steps" id="ca-steps"></div>
+    <div class="ca-question" id="ca-question"></div>
+    <p class="ca-sub" id="ca-sub"></p>
+    <div class="ca-bars" id="ca-bars"></div>
+    <div class="ca-insight" id="ca-insight"></div>
+    <div class="ca-next-wrap"><button class="chip-btn active" id="ca-next"></button></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏷</div><div><b>Tag Payoff</b>This drill-down only works because of Day-1 tagging strategy: defined tags like <span class="mono">Finance.CostCenter</span> and <span class="mono">Operations.Environment</span> on every resource are what let Cost Analysis slice spend by department, project or environment instantly.</div></div>
+  <div class="callout callout-q"><div class="ic">❓</div><div><b>Interview Question</b>"Spend jumped 40% this month — walk me through your investigation." Answer shape: Billing Dashboard (how much?) → Cost Analysis grouped by tag/compartment (where?) → drill to the resource (what?) → right-size or terminate (fix) → Budget alert + quota (prevent recurrence).</div></div>
+</section>
+
+<!-- 15 BYOL -->
+<section class="chapter reveal" id="sec-byol">
+  <div class="chapter-kicker"><span class="idx">15</span><span class="track">Cost Management</span></div>
+  <h2>BYOL vs License Included — Decision Machine</h2>
+  <p class="dek">Think of it like a car with a driving licence: <strong>License Included</strong> = the rental company provides a licensed driver (easy, costs more). <strong>BYOL</strong> = you already hold a licence, so you just rent the car (cheaper). Answer two questions and let the machine decide.</p>
+  <div class="panel">
+    <div class="byol-q">
+      <div class="bq-label">1 · Do you already own the license (with active support)?</div>
+      <div class="cost-filters" id="byol-own-btns">
+        <button class="chip-btn active" data-own="yes">✅ Yes — we own licenses (e.g. Windows / Oracle DB)</button>
+        <button class="chip-btn" data-own="no">❌ No — starting fresh</button>
+      </div>
+    </div>
+    <div class="byol-q">
+      <div class="bq-label">2 · Workload size — <span id="byol-size-val">8</span> OCPUs</div>
+      <input type="range" id="byol-size" min="2" max="32" step="2" value="8" style="width:100%; accent-color:var(--red);">
+    </div>
+    <div class="byol-compare">
+      <div class="byol-opt" id="byol-opt-li">
+        <span class="bo-badge">✓ RECOMMENDED</span>
+        <div class="bo-name">📦 License Included</div>
+        <div class="bo-cost" id="byol-li-cost">—</div>
+        <div class="bo-bar"><div class="bo-fill" id="byol-li-fill" style="background:linear-gradient(90deg,var(--blue),#7db2ff);"></div></div>
+        <div class="bo-note">Oracle's license bundled into the hourly rate. Nothing to prove, nothing to audit — just start. Best for <strong>new customers</strong>.</div>
+      </div>
+      <div class="byol-opt" id="byol-opt-byol">
+        <span class="bo-badge">✓ RECOMMENDED</span>
+        <div class="bo-name">🎫 BYOL — Bring Your Own License</div>
+        <div class="bo-cost" id="byol-byol-cost">—</div>
+        <div class="bo-bar"><div class="bo-fill" id="byol-byol-fill" style="background:linear-gradient(90deg,var(--red),var(--red-bright));"></div></div>
+        <div class="bo-note" id="byol-byol-note">You pay only for infrastructure; your existing license covers the software. Best for <strong>existing customers</strong>.</div>
+      </div>
+    </div>
+    <div class="byol-verdict" id="byol-verdict"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>The two triggers to memorize: "already own licenses with active support" → <strong>BYOL, lower cost</strong>. "new customer / simplest setup" → <strong>License Included</strong>. Never recommend BYOL to someone who'd have to buy a license first.</div></div>
+</section>
+
+<!-- 16 MARKETPLACE -->
+<section class="chapter reveal" id="sec-marketplace">
+  <div class="chapter-kicker"><span class="idx">16</span><span class="track">Cost Management</span></div>
+  <h2>OCI Marketplace</h2>
+  <p class="dek">Firewalls, databases, security appliances, monitoring tools — deployed in minutes. Click a listing to simulate deployment.</p>
+  <div class="cost-filters" id="mp-cat-btns">
+    <button class="chip-btn active" data-cat="all">All</button>
+    <button class="chip-btn" data-cat="sec">Security</button>
+    <button class="chip-btn" data-cat="db">Databases</button>
+    <button class="chip-btn" data-cat="mon">Monitoring</button>
+  </div>
+  <div class="mp-grid" id="mp-grid"></div>
+  <div class="mp-deploy-status" id="mp-deploy-status"></div>
+</section>
+
+<!-- 17 RIGHT SIZING -->
+<section class="chapter reveal" id="sec-rightsizing">
+  <div class="chapter-kicker"><span class="idx">17</span><span class="track">Cost Management</span></div>
+  <h2>Right Sizing</h2>
+  <p class="dek">A 32-OCPU VM using 4 OCPUs is a 60-seat bus carrying 5 passengers. Select a running VM to see the recommendation.</p>
+  <div class="panel">
+    <div class="rs-shape" data-rs="over"><span><strong>web-vm-prod-01</strong> — 32 OCPUs provisioned — avg usage 4 OCPUs (12%)</span><span class="small">Currently running</span></div>
+    <div class="rs-shape" data-rs="ok"><span><strong>app-vm-prod-02</strong> — 8 OCPUs provisioned — avg usage 6 OCPUs (75%)</span><span class="small">Currently running</span></div>
+    <div class="rs-shape" data-rs="under"><span><strong>batch-vm-nightly</strong> — 2 OCPUs provisioned — avg usage 1.9 OCPUs (96%)</span><span class="small">Currently running</span></div>
+    <div class="rs-savings" id="rs-savings"></div>
+  </div>
+</section>
+
+<!-- 18 GOVERNANCE PYRAMID -->
+<section class="chapter reveal" id="sec-governance">
+  <div class="chapter-kicker"><span class="idx">18</span><span class="track">Governance</span></div>
+  <h2>Governance Pyramid</h2>
+  <p class="dek">Governance ensures OCI resources follow organizational rules and standards. Click each tier, top to bottom.</p>
+  <div class="pyramid" id="gov-pyramid">
+    <div class="pyr-tier" data-g="org" style="width:200px;">Organization</div>
+    <div class="pyr-tier" data-g="policies" style="width:280px;">Policies</div>
+    <div class="pyr-tier" data-g="compartments" style="width:360px;">Compartments</div>
+    <div class="pyr-tier" data-g="budgets" style="width:440px;">Budgets</div>
+    <div class="pyr-tier" data-g="security" style="width:520px;">Security</div>
+    <div class="pyr-tier" data-g="resources" style="width:600px;">Resources</div>
+  </div>
+  <div class="pyr-detail" id="gov-detail">Click a tier above for its definition.</div>
+</section>
+
+<!-- 19 CLOUD ADVISOR -->
+<section class="chapter reveal" id="sec-cladvisor">
+  <div class="chapter-kicker"><span class="idx">19</span><span class="track">Governance</span></div>
+  <h2>Cloud Advisor</h2>
+  <p class="dek">Recommendations across four pillars: cost, performance, security, high availability. Fix issues to raise the score.</p>
+  <div class="panel">
+    <div class="score-ring-wrap">
+      <div class="score-ring" id="cladvisor-ring" style="--score:62;"><span id="cladvisor-score-val">62</span></div>
+      <div style="flex:1; min-width:220px;">
+        <div class="rec-row" data-cafix="cost"><span><span class="priority-pill priority-med">Cost</span> Terminate 3 idle compute instances</span><button class="chip-btn active ca-fix-btn">Fix</button></div>
+        <div class="rec-row" data-cafix="perf"><span><span class="priority-pill priority-low">Performance</span> Move DB to higher-IOPS volume tier</span><button class="chip-btn active ca-fix-btn">Fix</button></div>
+        <div class="rec-row" data-cafix="avail"><span><span class="priority-pill priority-high">Availability</span> Spread web tier across ADs/FDs</span><button class="chip-btn active ca-fix-btn">Fix</button></div>
+        <div class="rec-row" data-cafix="sec"><span><span class="priority-pill priority-high">Security</span> Enable MFA for admin group</span><button class="chip-btn active ca-fix-btn">Fix</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 21 ORG MANAGEMENT -->
+<section class="chapter reveal" id="sec-orgmgmt">
+  <div class="chapter-kicker"><span class="idx">20</span><span class="track">Governance</span></div>
+  <h2>Organization Management</h2>
+  <p class="dek">Manage multiple OCI tenancies from a parent — centralized billing and governance.</p>
+  <div class="panel">
+    <div class="tree org-tree">
+      <ul style="margin-left:0; border-left:none; padding-left:0;">
+        <li><div class="node root"><span class="ic">🏛</span> Head Office (Billing root)</div>
+          <ul>
+            <li><div class="node"><span class="ic">🏢</span> Child Tenancy — India</div></li>
+            <li><div class="node"><span class="ic">🏢</span> Child Tenancy — USA</div></li>
+            <li><div class="node"><span class="ic">🏢</span> Child Tenancy — Japan</div></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Child tenancies keep IAM fully isolated between regions/departments while consolidating invoices and governance at the parent level.</div></div>
+</section>
+
+<!-- 22 COMPLIANCE -->
+<section class="chapter reveal" id="sec-compliance">
+  <div class="chapter-kicker"><span class="idx">21</span><span class="track">Governance</span></div>
+  <h2>Compliance</h2>
+  <p class="dek">Like a restaurant following food-safety regulations, cloud providers prove they follow standards. Click a framework.</p>
+  <div class="compliance-grid" id="compliance-grid">
+    <div class="compliance-card" data-c="iso">ISO 27001</div>
+    <div class="compliance-card" data-c="soc1">SOC 1</div>
+    <div class="compliance-card" data-c="soc2">SOC 2</div>
+    <div class="compliance-card" data-c="pci">PCI DSS</div>
+    <div class="compliance-card" data-c="hipaa">HIPAA</div>
+  </div>
+  <div class="cia-detail mt-lg" id="compliance-detail">Click a framework above.</div>
+</section>
+
+<!-- 23 CASE STUDY -->
+<section class="chapter reveal" id="sec-casestudy">
+  <div class="chapter-kicker"><span class="idx">22</span><span class="track">Wrap-Up</span></div>
+  <h2>Case Study — E-Commerce on OCI</h2>
+  <p class="dek">An online retailer hosts its website on OCI. Click each requirement to reveal the OCI solution.</p>
+  <div class="panel" id="case-list">
+    <div class="case-req" data-cs="1"><span>🔒 Customer data must remain confidential</span><span class="small">click to solve</span><span class="cr-sol">✓ <strong>IAM + Vault</strong> → Confidentiality</span></div>
+    <div class="case-req" data-cs="2"><span>✍️ Orders must not be modified by attackers</span><span class="small">click to solve</span><span class="cr-sol">✓ <strong>Audit + Versioning</strong> → Integrity</span></div>
+    <div class="case-req" data-cs="3"><span>⚡ Website must stay available during festive sales</span><span class="small">click to solve</span><span class="cr-sol">✓ <strong>Load Balancer + Auto Scaling</strong> → Availability</span></div>
+    <div class="case-req" data-cs="4"><span>🚨 Detect misconfigurations automatically</span><span class="small">click to solve</span><span class="cr-sol">✓ <strong>Cloud Guard</strong> → Detect threats</span></div>
+    <div class="case-req" data-cs="5"><span>🚧 Prevent public storage buckets</span><span class="small">click to solve</span><span class="cr-sol">✓ <strong>Security Zones</strong> → Prevent insecure deployments</span></div>
+    <div class="case-req" data-cs="6"><span>💰 Keep monthly cloud spend under budget</span><span class="small">click to solve</span><span class="cr-sol">✓ <strong>Budgets + Cost Analysis + Cloud Advisor</strong> → Cost control &amp; optimization</span></div>
+    <p class="small center mt-lg" id="case-msg">0 / 6 requirements solved.</p>
+  </div>
+</section>
+
+<!-- 24 CHEAT SHEETS -->
+<section class="chapter reveal" id="sec-cheatsheet">
+  <div class="chapter-kicker"><span class="idx">23</span><span class="track">Wrap-Up</span></div>
+  <h2>Cheat Sheets</h2>
+  <div class="grid grid-2">
+    <div class="card"><h4>Security</h4><ul style="margin-left:16px;"><li>CIA = Confidentiality, Integrity, Availability</li><li>Defense in Depth = layered, independent controls</li><li>Zero Trust = never trust, always verify</li><li>Shared Responsibility = Oracle secures the cloud; you secure what you deploy</li></ul></div>
+    <div class="card"><h4>Cloud Guard</h4><ul style="margin-left:16px;"><li>Pipeline: Resources → Targets → Detectors → Problems → Responders → Notifications</li><li>Lifecycle: Open → Investigating → Resolved → Closed</li><li>Zones block; Guard detects + responds; Advisor recommends</li></ul></div>
+    <div class="card"><h4>Cost Management</h4><ul style="margin-left:16px;"><li>Budgets alert at 50/80/100% — they don't hard-stop spend</li><li>BYOL saves money if you already hold licenses</li><li>Right-size: match OCPUs to actual usage</li></ul></div>
+    <div class="card"><h4>Governance</h4><ul style="margin-left:16px;"><li>Limits = Oracle ceiling (support request to raise)</li><li>Quotas = self-imposed cap per compartment</li><li>Organization Mgmt links tenancies for billing, not IAM</li><li>Compliance: ISO 27001 · SOC 1/2 · PCI DSS · HIPAA</li></ul></div>
+  </div>
+</section>
+
+<!-- 25 FLASHCARDS -->
+<section class="chapter reveal" id="sec-flashcards">
+  <div class="chapter-kicker"><span class="idx">24</span><span class="track">Wrap-Up</span></div>
+  <h2>Flash Cards</h2>
+  <p class="dek">Click a card to flip it.</p>
+  <div class="flash-wrap" id="flash-wrap"></div>
+</section>
+
+<!-- 26 QUIZ -->
+<section class="chapter reveal" id="sec-quiz">
+  <div class="chapter-kicker"><span class="idx">25</span><span class="track">Wrap-Up</span></div>
+  <h2>Certification Readiness Quiz</h2>
+  <p class="dek">10 scenario-style questions covering everything from today.</p>
+  <div id="quiz-wrap"></div>
+  <div class="panel center mt-lg"><p>Your score: <b id="quiz-final-score" style="color:var(--red-bright); font-family:var(--font-display); font-size:20px;">0 / 10</b></p></div>
+</section>
+
+<!-- 27 CERTIFICATE -->
+<section class="chapter reveal" id="sec-cert">
+  <div class="chapter-kicker"><span class="idx">26</span><span class="track">Wrap-Up</span></div>
+  <h2>Completion &amp; Certificate Preview</h2>
+  <div class="center" style="padding:20px 0 40px;">
+    <div class="badge-circle" id="badge-circle"><span id="badge-pct">0%</span></div>
+    <h3 id="badge-title">Keep going</h3>
+    <p class="small" id="badge-sub">Scroll through every section and finish the quiz to fill the ring.</p>
+  </div>
+  <div class="cert-frame">
+    <p class="small">ORACLE CLOUD INFRASTRUCTURE · 1Z0-1067-26</p>
+    <h3>Certificate of Completion</h3>
+    <p class="small">This certifies that</p>
+    <div class="cert-name" id="cert-name-display">Your Name</div>
+    <p class="small">has completed <strong>Day 2: Security, Governance &amp; Cost Management</strong></p>
+    <p class="small mt-lg">Score: <span id="cert-score-display">0/10</span> · Date: <span id="cert-date-display"></span></p>
+    <div class="mt-lg"><input type="text" class="mini-input" id="cert-name-input" placeholder="Type your name…"></div>
+  </div>
+</section>
+
+    </div>
+  </main>
+</div>
+<footer>OCI Security, Governance &amp; Cost Management — Day 2 · Interactive Learning Platform · Single self-contained HTML file · No external dependencies</footer>
+
+<script>
+const state = { quizScore:0, quizAnswered:0, quizTotal:10 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  initParticles(); initProgressBar(); initSidebar(); initSearch(); initTheme(); initReveal();
+  initCIA(); initDefense(); initZeroTrust(); initSharedResp(); initTools();
+  initCgArch(); initCloudGuardToggle(); initDetectors(); initResponders(); initLifecycle();
+  initSecurityZones(); initSecurityAdvisor(); initBillingDashboard(); initBudgetWizard();
+  initCostAnalysis(); initBYOL(); initMarketplace(); initRightSizing(); initGovPyramid();
+  initCloudAdvisor(); initCompliance(); initCaseStudy();
+  initFlashcards(); initQuiz(); initCert(); updateBadge();
+});
+
+/* ---------- ambient ---------- */
+function initParticles(){
+  const c = document.getElementById('particles'); const ctx = c.getContext('2d');
+  let w,h,particles=[];
+  function resize(){ w=c.width=window.innerWidth; h=c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const N = Math.min(60, Math.floor(window.innerWidth/24));
+  for(let i=0;i<N;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+0.4,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15});
+  (function tick(){
+    ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(199,70,52,0.5)';
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=w; if(p.x>w)p.x=0; if(p.y<0)p.y=h; if(p.y>h)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+    requestAnimationFrame(tick);
+  })();
+}
+function initProgressBar(){
+  const bar = document.getElementById('progress-bar'); const heroProgress = document.getElementById('hero-progress');
+  window.addEventListener('scroll', () => {
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH>0 ? (window.scrollY/docH)*100 : 0;
+    bar.style.width = pct+'%'; if(heroProgress) heroProgress.textContent = Math.round(pct)+'%';
+    window.__scrollPct = pct; updateBadge(); highlightActiveNav();
+  }, {passive:true});
+}
+function highlightActiveNav(){
+  let current=null;
+  document.querySelectorAll('section.chapter').forEach(sec=>{ if(sec.getBoundingClientRect().top<160) current=sec.id; });
+  document.querySelectorAll('#sidebar a.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+}
+function initSidebar(){ const sb=document.getElementById('sidebar'); document.getElementById('sidebar-toggle').addEventListener('click', ()=>sb.classList.toggle('collapsed')); }
+function initSearch(){
+  const input=document.getElementById('search'); const results=document.getElementById('search-results'); const index=[];
+  document.querySelectorAll('section.chapter').forEach(sec=>{
+    const title = sec.querySelector('h2')?.textContent || sec.id;
+    sec.querySelectorAll('h3').forEach(h3=>index.push({label:h3.textContent, cat:title, href:'#'+sec.id}));
+    index.push({label:title, cat:'Section', href:'#'+sec.id});
+  });
+  input.addEventListener('input', ()=>{
+    const q=input.value.trim().toLowerCase(); if(!q){results.style.display='none'; return;}
+    const matches=index.filter(i=>i.label.toLowerCase().includes(q)).slice(0,8);
+    results.innerHTML = matches.map(m=>'<a href="'+m.href+'"><span class="sr-cat">'+m.cat+'</span>'+m.label+'</a>').join('') || '<a style="cursor:default;">No results</a>';
+    results.style.display='block';
+  });
+  document.addEventListener('click', e=>{ if(!document.getElementById('search-wrap').contains(e.target)) results.style.display='none'; });
+  results.addEventListener('click', ()=>setTimeout(()=>{results.style.display='none'; input.value='';},10));
+}
+function initTheme(){
+  const btn=document.getElementById('theme-toggle');
+  btn.addEventListener('click', ()=>{ const html=document.documentElement; const isDark=html.getAttribute('data-theme')!=='light'; html.setAttribute('data-theme', isDark?'light':'dark'); btn.textContent=isDark?'☀️':'🌙'; });
+}
+function initReveal(){
+  const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}), {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+}
+
+/* ---------- 01 CIA ---------- */
+function initCIA(){
+  const nodes = document.querySelectorAll('.cia-node'); if(!nodes.length) return;
+  const detail = document.getElementById('cia-detail');
+  const info = {
+    confidentiality: '<strong>🔒 Confidentiality — only authorized users access data.</strong><br>Examples: banking passwords, Aadhaar details, medical reports. Only HR should view salary records.<br><strong>OCI:</strong> IAM Policies · Compartments · Encryption · Vault.<br><em>Analogy: your bedroom — only you have the key.</em><div class="cia-examples"><span>IAM Policies</span><span>Compartments</span><span>Encryption</span><span>Vault</span></div>',
+    integrity: '<strong>✅ Integrity — data is never modified by unauthorized users.</strong><br>Example: a mark sheet must not change unexpectedly; a cheque altered ₹10,000 → ₹90,000 is broken integrity.<br><strong>OCI:</strong> Object Versioning · Checksums · Audit Logs · Database Backups.<br><em>Analogy: a signed cheque.</em><div class="cia-examples"><span>Object Versioning</span><span>Checksums</span><span>Audit Logs</span><span>DB Backups</span></div>',
+    availability: '<strong>⚡ Availability — systems are always accessible.</strong><br>Example: Amazon during Big Billion Days; 24×7 internet banking.<br><strong>OCI:</strong> Load Balancer · Auto Scaling · Multiple Availability Domains.<br><em>Analogy: a hospital never closes — patients need treatment anytime.</em><div class="cia-examples"><span>Load Balancer</span><span>Auto Scaling</span><span>Multiple ADs</span></div>'
+  };
+  nodes.forEach(n=>{
+    n.addEventListener('click', ()=>{
+      nodes.forEach(x=>x.classList.remove('active'));
+      n.classList.add('active');
+      detail.innerHTML = info[n.dataset.k];
+    });
+  });
+}
+
+/* ---------- 02 defense-in-depth attack simulator ---------- */
+function initDefense(){
+  const wrap = document.getElementById('did-layers'); if(!wrap) return;
+  const layers = [
+    ['🌊','Firewall','Castle Moat — first barrier at the network edge'],
+    ['🧱','WAF','Castle Walls — blocks web attacks (SQLi, XSS)'],
+    ['🚪','IAM','Castle Gate — only the right identities pass'],
+    ['💂','Security Groups','Castle Guards — NSGs & Security Lists check every packet'],
+    ['🖥','Operating System','Inner Keep — patched & hardened OS'],
+    ['📦','Application','Throne Room Door — secure code & config'],
+    ['🔐','Database Encryption','King\'s Vault — even stolen data is unreadable']
+  ];
+  let on = layers.map(()=>true);
+  let running = false;
+  const log = document.getElementById('did-log');
+  const verdict = document.getElementById('did-verdict');
+
+  function render(){
+    wrap.innerHTML = layers.map((l,i)=>
+      '<div class="did-layer '+(on[i]?'on':'off')+'" id="did-l'+i+'">'+
+      '<span class="dl-ico">'+l[0]+'</span>'+
+      '<span class="dl-body"><span class="dl-name">'+l[1]+'</span><br><span class="dl-castle">'+l[2]+'</span></span>'+
+      '<span class="dl-status">'+(on[i]?'● PROTECTING':'○ OFF')+'</span>'+
+      '<label class="switch"><input type="checkbox" data-i="'+i+'" '+(on[i]?'checked':'')+'><span class="slider"></span></label>'+
+      '</div>' + (i<layers.length-1 ? '<div class="did-conn">↓</div>' : '')
+    ).join('');
+  }
+  function addLog(html, cls){
+    const line = document.createElement('div');
+    line.className = cls || 'l-info'; line.innerHTML = html;
+    log.appendChild(line); log.scrollTop = log.scrollHeight;
+  }
+  function clearStates(){
+    verdict.className='did-verdict';
+    document.getElementById('did-treasure').classList.remove('treasure-hit','danger');
+    layers.forEach((_,i)=>{ const el=document.getElementById('did-l'+i); el.classList.remove('attacking','breached','held'); });
+  }
+
+  wrap.addEventListener('change', e=>{
+    if(e.target.dataset.i===undefined || running) { if(running) e.preventDefault(); return; }
+    on[parseInt(e.target.dataset.i)] = e.target.checked;
+    render(); clearStates();
+  });
+
+  document.getElementById('did-reset').addEventListener('click', ()=>{
+    if(running) return;
+    on = layers.map(()=>true); render(); clearStates();
+    log.innerHTML=''; addLog('— All 7 layers restored to ON. Launch the attack. —','l-info');
+  });
+  document.getElementById('did-alloff').addEventListener('click', ()=>{
+    if(running) return;
+    on = layers.map(()=>false); render(); clearStates();
+    log.innerHTML=''; addLog('— Every layer switched OFF. This is what "no defense in depth" looks like. Launch the attack… —','l-warn');
+  });
+
+  document.getElementById('did-attack').addEventListener('click', ()=>{
+    if(running) return;
+    running = true;
+    render(); clearStates();
+    log.innerHTML='';
+    addLog('🗡 Attack launched from the Internet…','l-warn');
+    let i = 0;
+    const step = ()=>{
+      if(i >= layers.length){
+        // reached the data — total breach
+        const t = document.getElementById('did-treasure');
+        t.classList.add('danger','treasure-hit');
+        addLog('💥 BREACH! Every layer was OFF — the attacker reached YOUR DATA.','l-pass');
+        verdict.className='did-verdict bad';
+        verdict.innerHTML='💥 <strong>Total breach.</strong> Zero layers held. This is why a single control (or none) is never enough — restore your layers!';
+        running = false;
+        return;
+      }
+      const el = document.getElementById('did-l'+i);
+      el.classList.add('attacking');
+      setTimeout(()=>{
+        el.classList.remove('attacking');
+        if(!on[i]){
+          el.classList.add('breached');
+          el.querySelector('.dl-status').textContent = '💥 BYPASSED';
+          addLog('→ '+layers[i][1]+' is OFF — attacker passes straight through.','l-pass');
+          i++; step();
+        } else {
+          el.classList.add('held');
+          el.querySelector('.dl-status').textContent = '🛡 BLOCKED';
+          addLog('🛡 '+layers[i][1]+' is ON — <b>ATTACK STOPPED HERE.</b>','l-block');
+          const bypassed = i;
+          verdict.className='did-verdict ok';
+          verdict.innerHTML = bypassed===0
+            ? '🛡 <strong>Stopped at the very first layer.</strong> Full defense in depth — the attacker never got past the moat.'
+            : '🛡 <strong>Stopped at "'+layers[i][1]+'"</strong> after bypassing '+bypassed+' OFF layer'+(bypassed===1?'':'s')+'. One intact layer saved everything — that is defense in depth.';
+          addLog('— Attack over. '+bypassed+' layer(s) bypassed, data safe. —','l-info');
+          running = false;
+        }
+      }, 650);
+    };
+    setTimeout(step, 500);
+  });
+
+  render();
+}
+
+/* ---------- 03 zero trust ---------- */
+function initZeroTrust(){
+  const flow = document.getElementById('zt-flow'); if(!flow) return;
+  const nodes = ['User','Authentication','Authorization','Device Validation','Risk Analysis','Access Granted'];
+  flow.innerHTML = nodes.map((n,i)=> (i>0?'<span class="zt-arrow">→</span>':'') + '<div class="zt-node" data-i="'+i+'">'+n+'</div>').join('');
+  const msg = document.getElementById('zt-msg');
+  document.getElementById('zt-play').addEventListener('click', ()=>{
+    const els = flow.querySelectorAll('.zt-node'); els.forEach(e=>e.classList.remove('active'));
+    nodes.forEach((n,i)=> setTimeout(()=>{
+      els[i].classList.add('active');
+      msg.textContent = 'Evaluating: '+n+'… nothing is trusted by default, even if this step passed before.';
+      if(i===nodes.length-1) msg.textContent='✓ Access granted — for this single request only; the next request re-evaluates everything. OCI: IAM + MFA + Identity Domains + Dynamic Groups + Policies.';
+    }, i*500));
+  });
+}
+
+/* ---------- 04 shared responsibility ---------- */
+function initSharedResp(){
+  const tower = document.getElementById('sr-tower'); if(!tower) return;
+  // layers top→bottom; owner per model + one-line "why"
+  const layers = [
+    ['📄','Data',                {iaas:'you',    paas:'you',    saas:'you'},    'You decide what it is, who sees it, how it\'s classified'],
+    ['🧩','Applications',        {iaas:'you',    paas:'you',    saas:'oracle'}, 'Your code & config — until SaaS, where the app IS the product'],
+    ['👥','Users & IAM Policies',{iaas:'you',    paas:'you',    saas:'you'},    'Accounts, passwords, MFA, policies — ALWAYS yours'],
+    ['🖥','Operating System',    {iaas:'you',    paas:'oracle', saas:'oracle'}, 'IaaS: you patch it · PaaS/SaaS: Oracle runs it'],
+    ['⚙️','Virtualization',      {iaas:'oracle', paas:'oracle', saas:'oracle'}, 'The hypervisor is never yours to touch'],
+    ['🔌','Hardware / Servers',  {iaas:'oracle', paas:'oracle', saas:'oracle'}, 'Racks, disks, NICs — Oracle\'s metal'],
+    ['🏢','Physical Security',   {iaas:'oracle', paas:'oracle', saas:'oracle'}, 'Guards, gates, power, cooling — Oracle\'s building']
+  ];
+  const takeaways = {
+    iaas: '<strong>IaaS:</strong> the boundary sits LOW — you own everything from the OS up. Most freedom, most security work. Weak OS patching or bad passwords here are <em>your</em> incidents.',
+    paas: '<strong>PaaS:</strong> the boundary moves UP — Oracle takes the OS and runtime. You focus on application, data, users. You can no longer mis-patch an OS… but you can still misconfigure IAM.',
+    saas: '<strong>SaaS:</strong> the boundary is at the TOP — Oracle runs nearly everything. Yet data, users and access policies STILL belong to you. There is no model where security is 100% Oracle\'s job.'
+  };
+  function render(model){
+    let html = '';
+    let boundaryPlaced = false;
+    layers.forEach(([ico,name,owner,why])=>{
+      const who = owner[model];
+      // insert boundary line before first oracle-owned layer
+      if(!boundaryPlaced && who==='oracle'){
+        html += '<div class="sr-boundary"><span class="b-left">▲ Customer secures</span><span>— responsibility boundary —</span><span class="b-right">Oracle secures ▼</span></div>';
+        boundaryPlaced = true;
+      }
+      const side = who==='you' ? 'side-you' : who==='oracle' ? 'side-oracle' : 'side-shared';
+      const label = who==='you' ? 'CUSTOMER' : who==='oracle' ? 'ORACLE' : 'SHARED';
+      html += '<div class="sr-row '+side+'"><span class="sr-ico">'+ico+'</span><span class="sr-name">'+name+'</span><span class="sr-why">'+why+'</span><span class="who who-'+who+'">'+label+'</span></div>';
+    });
+    tower.innerHTML = html;
+    document.getElementById('sr-takeaway').innerHTML = takeaways[model];
+  }
+  document.querySelectorAll('#sr-model-btns .chip-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#sr-model-btns .chip-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); render(btn.dataset.model);
+    });
+  });
+  render('iaas');
+
+  // incident drill game
+  const game = document.getElementById('sr-game');
+  if(game){
+    game.addEventListener('click', e=>{
+      const btn = e.target.closest('.chip-btn[data-pick]'); if(!btn) return;
+      const scen = btn.closest('.sr-scen'); if(scen.classList.contains('answered')) return;
+      scen.classList.add('answered');
+      const correct = scen.dataset.ans;
+      scen.querySelectorAll('.chip-btn').forEach(b=>{
+        b.disabled = true;
+        if(b.dataset.pick===correct) b.classList.add('right');
+        else if(b===btn) b.classList.add('wrong');
+      });
+      const done = game.querySelectorAll('.sr-scen.answered').length;
+      const right = game.querySelectorAll('.sr-scen .chip-btn.right.wrong').length; // never both
+      const correctCount = [...game.querySelectorAll('.sr-scen.answered')].filter(s=>{
+        const picked = s.querySelector('.chip-btn.wrong');
+        return !picked; // no wrong mark = answered correctly
+      }).length;
+      const scoreEl = document.getElementById('sr-game-score');
+      scoreEl.textContent = done+' / 5 answered · '+correctCount+' correct.';
+      if(done===5){
+        scoreEl.textContent += correctCount===5 ? ' 🏆 Perfect — you own the Shared Responsibility question on the exam.' : ' Review the explanations above — these exact scenarios appear on the exam.';
+      }
+    });
+  }
+}
+
+/* ---------- 05 tools ---------- */
+function initTools(){
+  const grid = document.getElementById('tool-grid'); if(!grid) return;
+  const detail = document.getElementById('tool-detail');
+  const info = {
+    iam:'🛂 <strong>IAM — Identity Management.</strong> Who are you and what may you do? Hospital analogy: the <em>security guard</em> checking IDs at the door.',
+    vault:'🔐 <strong>Vault — Key Management.</strong> Central storage for encryption keys and secrets. Analogy: the <em>safe locker</em>.',
+    waf:'🛡 <strong>WAF — Web Protection.</strong> Filters malicious web traffic (SQLi, XSS, bots) before it reaches the app.',
+    cg:'🚨 <strong>Cloud Guard — Threat Detection.</strong> Continuously monitors and can auto-respond. Analogy: the <em>alarm system</em>.',
+    sz:'🚧 <strong>Security Zones — Prevent Misconfiguration.</strong> Insecure resources are blocked at creation time.',
+    audit:'🎥 <strong>Audit — Activity Logs.</strong> Records every API call. Analogy: <em>CCTV</em>.',
+    logging:'📜 <strong>Logging — Logs.</strong> Collects service, custom and audit logs in one place.',
+    mon:'📊 <strong>Monitoring — Metrics.</strong> Tracks metrics and powers alarms. You can\'t secure what you can\'t see.'
+  };
+  grid.addEventListener('click', e=>{
+    const chip = e.target.closest('.tool-chip'); if(!chip) return;
+    detail.innerHTML = info[chip.dataset.t];
+  });
+}
+
+/* ---------- 06 cloud guard arch ---------- */
+function initCgArch(){
+  const wrap = document.getElementById('cg-arch-pipeline'); if(!wrap) return;
+  const steps = ['OCI Resources','Targets','Detector Recipes','Problems','Responder Recipes','Notifications'];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s+'</div>').join('');
+  document.getElementById('cg-arch-play').addEventListener('click', ()=>{
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit'));
+    steps.forEach((s,i)=> setTimeout(()=> els[i].classList.add('lit'), i*400));
+  });
+}
+function initCloudGuardToggle(){
+  const t = document.getElementById('cg-enable-toggle'); if(!t) return;
+  const msg = document.getElementById('cg-enable-msg');
+  t.addEventListener('change', ()=>{
+    msg.innerHTML = t.checked ? 'Cloud Guard is currently <strong style="color:var(--green);">enabled</strong> — default detector &amp; responder recipes are now attached to the root compartment.' : 'Cloud Guard is currently <strong>disabled</strong>.';
+  });
+}
+
+/* ---------- 07 detectors ---------- */
+function initDetectors(){
+  const toggles = document.querySelectorAll('.det-toggle'); if(!toggles.length) return;
+  const msg = document.getElementById('detector-msg');
+  const findings = {
+    config: '⚙️ Configuration finding: "Object Storage bucket <span class="mono">bkt-invoices</span> is publicly readable" / "IAM policy grants manage to all-users".',
+    activity: '👁 Activity finding: "User j.doe called 40 IAM APIs in 2 minutes from a new country" — suspicious login / API abuse.',
+    threat: '🦠 Threat finding: "Brute-force SSH attempts from a known malicious IP" / "malware signature detected".'
+  };
+  let active = [];
+  toggles.forEach(t=>{
+    t.addEventListener('change', ()=>{
+      if(t.checked) active.push(findings[t.dataset.det]); else active = active.filter(f=>f!==findings[t.dataset.det]);
+      msg.innerHTML = active.length ? active.join('<br>') : 'Enable a detector to see an example finding.';
+    });
+  });
+}
+
+/* ---------- 08 responders ---------- */
+function initResponders(){
+  const cards = document.querySelectorAll('.responder-card'); if(!cards.length) return;
+  const msg = document.getElementById('responder-msg');
+  const effect = {
+    notify: '🔔 Notify: an alert goes to the security team topic/email. The bucket stays public — human follow-up required. Fast to enable, but exposure continues until someone acts.',
+    remove: '🔒 Remove Public Access: the bucket is flipped back to private automatically — seconds of exposure instead of days. Then the security team is notified. This is the classic auto-remediation.',
+    removeip: '🚫 Remove Public IP: applies to compute/LB resources — strips the public IP so nothing is directly reachable from the internet.',
+    disable: '⛔ Disable User: the identity that made the bucket public is suspended while the change is investigated.'
+  };
+  cards.forEach(c=>{
+    c.addEventListener('click', ()=>{
+      cards.forEach(x=>x.classList.remove('selected')); c.classList.add('selected');
+      msg.textContent = effect[c.dataset.r].replace(/<[^>]*>/g,'');
+      msg.innerHTML = effect[c.dataset.r];
+    });
+  });
+}
+
+/* ---------- 09 lifecycle ---------- */
+function initLifecycle(){
+  const wrap = document.getElementById('lifecycle-pipeline'); if(!wrap) return;
+  const steps = ['Problem Detected','Open','Investigating','Resolved','Closed'];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s+'</div>').join('');
+  document.getElementById('lifecycle-play').addEventListener('click', ()=>{
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit'));
+    steps.forEach((s,i)=> setTimeout(()=> els[i].classList.add('lit'), i*400));
+  });
+}
+
+/* ---------- 10 security zones ---------- */
+function initSecurityZones(){
+  const buttons = document.querySelectorAll('[data-sz]'); if(!buttons.length) return;
+  const enableToggle = document.getElementById('sz-enable');
+  const result = document.getElementById('sz-result');
+  const reasons = {
+    bucket: 'Public buckets are prohibited in a Maximum Security Zone — data must never be internet-readable.',
+    unenc: 'Unencrypted volumes are prohibited — all storage must be encrypted at rest.',
+    disenc: 'Disabling encryption is prohibited — encryption cannot be turned off inside the zone.'
+  };
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(enableToggle.checked){
+        result.className='sz-result blocked';
+        result.innerHTML = '🚫 <strong>Request blocked at creation time.</strong> '+reasons[btn.dataset.sz]+' The insecure resource never existed — zero exposure window.';
+      } else {
+        result.className='sz-result allowed';
+        result.textContent = '⚠ Allowed — the Security Zone is disabled, so this compartment behaves like a normal one. Cloud Guard would have to detect this after the fact.';
+      }
+    });
+  });
+}
+
+/* ---------- 11 security advisor ---------- */
+function initSecurityAdvisor(){
+  const rows = document.querySelectorAll('#sec-secadvisor .rec-row'); if(!rows.length) return;
+  const ring = document.getElementById('advisor-ring'); const valEl = document.getElementById('advisor-score-val');
+  let score = 55;
+  rows.forEach(row=>{
+    row.querySelector('.fix-btn').addEventListener('click', function(){
+      if(row.classList.contains('fixed')) return;
+      row.classList.add('fixed'); this.textContent='Fixed ✓'; this.disabled = true;
+      score = Math.min(100, score + 11);
+      ring.style.setProperty('--score', score); valEl.textContent = score;
+    });
+  });
+}
+
+/* ---------- 12 billing ---------- */
+function initBillingDashboard(){
+  const trendCanvas = document.getElementById('costTrendChart'); if(!trendCanvas) return;
+  const tctx = trendCanvas.getContext('2d');
+  const days = Array.from({length:14}, (_,i)=> 550 + Math.round(Math.sin(i/2)*120) + Math.round(Math.random()*80) + i*14);
+  function drawTrend(){
+    const w = trendCanvas.width = trendCanvas.clientWidth || 400, h = trendCanvas.height = 200;
+    tctx.clearRect(0,0,w,h);
+    const max = Math.max(...days);
+    tctx.beginPath();
+    days.forEach((d,i)=>{
+      const x = (i/(days.length-1))*(w-20)+10;
+      const y = h-20-(d/max)*(h-40);
+      if(i===0) tctx.moveTo(x,y); else tctx.lineTo(x,y);
+    });
+    tctx.strokeStyle = '#ff5a3c'; tctx.lineWidth = 2; tctx.stroke();
+    const grad = tctx.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0,'rgba(199,70,52,0.3)'); grad.addColorStop(1,'rgba(199,70,52,0)');
+    tctx.lineTo(w-10,h-20); tctx.lineTo(10,h-20); tctx.closePath(); tctx.fillStyle = grad; tctx.fill();
+  }
+  drawTrend(); window.addEventListener('resize', drawTrend);
+
+  const pieCanvas = document.getElementById('costPieChart'); const pctx = pieCanvas.getContext('2d');
+  const services = [['Compute',12000,'#ff5a3c'],['Database',5000,'#4f8cff'],['Storage',3000,'#e8a33d'],['Networking',2000,'#3ec28f']];
+  const w = pieCanvas.width = 200, h = pieCanvas.height = 200;
+  const total = services.reduce((a,s)=>a+s[1],0);
+  let start = -Math.PI/2;
+  services.forEach(([name,val,color])=>{
+    const angle = (val/total)*Math.PI*2;
+    pctx.beginPath(); pctx.moveTo(w/2,h/2); pctx.arc(w/2,h/2,90,start,start+angle); pctx.closePath();
+    pctx.fillStyle = color; pctx.fill();
+    start += angle;
+  });
+  document.getElementById('pie-legend').innerHTML = services.map(([name,val,color])=>'<div><span class="sw" style="background:'+color+'"></span>'+name+' — ₹'+val.toLocaleString('en-IN')+'</div>').join('') + '<div style="margin-top:4px;"><strong>Total — ₹'+total.toLocaleString('en-IN')+'</strong></div>';
+}
+
+/* ---------- 13 budget wizard ---------- */
+function initBudgetWizard(){
+  const amount = document.getElementById('wz-amount'); if(!amount) return;
+  const inr = n => '₹' + parseInt(n).toLocaleString('en-IN');
+  amount.addEventListener('input', ()=> document.getElementById('wz-amount-val').textContent = inr(amount.value));
+  function goto(n){
+    document.querySelectorAll('.wizard-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('wz-'+n).classList.add('active');
+    for(let i=1;i<=3;i++) document.getElementById('wz-bar-'+i).classList.toggle('done', i<=n);
+    if(n===3){
+      const scope = document.getElementById('wz-scope').value;
+      const recipients = document.getElementById('wz-recipients').value || 'no recipients set';
+      document.getElementById('wz-summary').innerHTML = 'Budget: <strong>'+inr(amount.value)+'/mo</strong> on <strong>'+scope+'</strong>, alerts at <strong>50% · 80% · 100%</strong> to <strong>'+recipients+'</strong>.';
+      simulateSpend();
+    }
+  }
+  document.getElementById('wz-next-1').addEventListener('click', ()=>goto(2));
+  document.getElementById('wz-back-2').addEventListener('click', ()=>goto(1));
+  document.getElementById('wz-next-2').addEventListener('click', ()=>goto(3));
+  document.getElementById('wz-back-3').addEventListener('click', ()=>goto(2));
+  document.getElementById('wz-create').addEventListener('click', function(){
+    this.textContent = '✓ Budget Created'; this.disabled = true;
+  });
+  const spendSlider = document.getElementById('wz-spend');
+  function simulateSpend(){
+    const pct = parseInt(spendSlider.value);
+    document.getElementById('wz-gauge').style.width = Math.min(100,pct)+'%';
+    document.getElementById('wz-al50').classList.toggle('fired', pct>=50);
+    document.getElementById('wz-al80').classList.toggle('fired', pct>=80);
+    document.getElementById('wz-al100').classList.toggle('fired', pct>=100);
+    const spendAmt = Math.round(parseInt(amount.value) * pct / 100);
+    const status = document.getElementById('wz-status');
+    if(pct<50) status.innerHTML = 'Spend: '+ '₹'+spendAmt.toLocaleString('en-IN') +' ('+pct+'%) — healthy, no alerts.';
+    else if(pct<80) status.innerHTML = '🔔 50% alert fired — spend at '+pct+'%. Keep watching.';
+    else if(pct<100) status.innerHTML = '🔔🔔 50% and 80% alerts fired — '+pct+'%. Investigate before month-end.';
+    else status.innerHTML = '<strong style="color:var(--red-bright);">🚨 Budget exceeded ('+pct+'%) — all alerts fired.</strong> Note: budgets alert, they don\'t hard-stop spend.';
+  }
+  spendSlider.addEventListener('input', simulateSpend);
+}
+
+/* ---------- 14 cost analysis guided story ---------- */
+function initCostAnalysis(){
+  const bars = document.getElementById('ca-bars'); if(!bars) return;
+  const inr = n => '₹' + n.toLocaleString('en-IN');
+  const steps = [
+    {
+      q: '😱 Step 1 — The bill arrived… and it\'s BIGGER.',
+      sub: 'Last month the cloud bill was ₹57,000. This month it\'s ₹75,000. That\'s ₹18,000 extra — but the bill alone doesn\'t tell you WHY. Just like an electricity bill doesn\'t say which room used the power.',
+      items: [
+        {name:'🗓 Last month\'s bill', val:57000},
+        {name:'🗓 This month\'s bill', val:75000, tag:'⚠ +₹18,000', flag:true}
+      ],
+      insight: 'One number went up. To find out <strong>why</strong>, we do what you\'d do at home: check room by room. In the cloud, the "rooms" are <strong>departments</strong>.',
+      cls: 'alert',
+      btn: '🔍 Check room by room — split the bill by department'
+    },
+    {
+      q: '🚪 Step 2 — Which "room" is using the money?',
+      sub: 'Cost Analysis groups the same ₹75,000 by department (thanks to Day-1 tags). Now compare the three bars — one of them doesn\'t look right.',
+      items: [
+        {name:'Department A', val:20000},
+        {name:'Department B', val:40000, tag:'⚠ biggest spender', flag:true},
+        {name:'Department C', val:15000}
+      ],
+      insight: 'Department B spends <strong>₹40,000 — more than A and C combined</strong>. Found the room. Now let\'s see what\'s switched on inside it.',
+      cls: 'alert',
+      btn: '🔍 Look inside Department B'
+    },
+    {
+      q: '🔌 Step 3 — What is Department B paying for?',
+      sub: 'Same trick, one level deeper: split Department B\'s ₹40,000 by service. Think of services as the appliances in the room — servers, storage, database.',
+      items: [
+        {name:'🖥 Compute (servers)', val:28000, tag:'⚠ 70% of the bill', flag:true},
+        {name:'💾 Storage', val:8000},
+        {name:'🗄 Database', val:4000}
+      ],
+      insight: '<strong>₹28,000 — 70% — is going to servers.</strong> A healthy department doesn\'t look like this. One more step: which servers exactly?',
+      cls: 'alert',
+      btn: '🔍 Show me the servers'
+    },
+    {
+      q: '💡 Step 4 — Found it: the AC running in an empty room!',
+      sub: 'Here are Department B\'s servers. Look at the biggest bar — those 12 servers belong to a project that ENDED last quarter. Nobody switched them off. They\'ve been running 24×7, doing nothing, at 3% CPU.',
+      items: [
+        {name:'😴 12 forgotten servers — project already finished', val:18000, tag:'💸 THE LEAK', flag:true},
+        {name:'✅ Production website servers', val:7000},
+        {name:'✅ Build & test servers', val:3000}
+      ],
+      insight: '<strong>Mystery solved:</strong> the ₹18,000 jump = 12 forgotten servers. <strong>Fix:</strong> terminate them → bill returns to normal. <strong>Prevent it next time:</strong> a Budget alert (Part 13) would have warned early, and Cloud Advisor (Part 19) flags idle servers automatically. That whole journey — bill → department → service → resource → action — <em>is</em> Cost Analysis.',
+      cls: 'found',
+      btn: '↺ Replay the investigation'
+    }
+  ];
+  let step = 0;
+  function render(){
+    const s = steps[step];
+    // progress dots
+    document.getElementById('ca-steps').innerHTML = steps.map((_,i)=>
+      (i>0?'<div class="cas-line'+(i<=step?' done':'')+'"></div>':'')+
+      '<div class="cas'+(i===step?' now':i<step?' done':'')+'">'+(i<step?'✓':(i+1))+'</div>'
+    ).join('');
+    document.getElementById('ca-question').textContent = s.q;
+    document.getElementById('ca-sub').textContent = s.sub;
+    const max = Math.max(...s.items.map(x=>x.val));
+    bars.innerHTML = s.items.map(it=>
+      '<div class="ca-bar'+(it.flag?' flag':'')+'">'+
+      '<div class="cb-head"><span class="cb-name">'+it.name+
+      (it.tag?'<span class="cb-tag">'+it.tag+'</span>':'')+
+      '</span><span class="cb-val">'+inr(it.val)+'</span></div>'+
+      '<div class="cb-track"><div class="cb-fill" style="width:0%" data-w="'+Math.round(it.val/max*100)+'"></div></div></div>'
+    ).join('');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      bars.querySelectorAll('.cb-fill').forEach(f=>f.style.width = f.dataset.w+'%');
+    }));
+    const insight = document.getElementById('ca-insight');
+    insight.className = 'ca-insight '+s.cls;
+    insight.innerHTML = s.insight;
+    document.getElementById('ca-next').textContent = s.btn;
+  }
+  document.getElementById('ca-next').addEventListener('click', ()=>{
+    step = (step + 1) % steps.length;
+    render();
+  });
+  render();
+}
+
+/* ---------- 15 BYOL decision machine ---------- */
+function initBYOL(){
+  const sizeSlider = document.getElementById('byol-size'); if(!sizeSlider) return;
+  const RATE_INFRA = 1500;    // ₹/OCPU/mo infrastructure only (BYOL price)
+  const RATE_LICENSE = 1500;  // ₹/OCPU/mo Oracle's bundled license uplift
+  const RATE_BUY = 2200;      // ₹/OCPU/mo effective cost of buying a new license yourself
+  const inr = n => '₹' + n.toLocaleString('en-IN');
+  let own = 'yes';
+  function render(){
+    const ocpu = parseInt(sizeSlider.value);
+    document.getElementById('byol-size-val').textContent = ocpu;
+    const li = ocpu * (RATE_INFRA + RATE_LICENSE);
+    const byol = own==='yes' ? ocpu * RATE_INFRA : ocpu * (RATE_INFRA + RATE_BUY);
+    document.getElementById('byol-li-cost').textContent = inr(li) + '/mo';
+    document.getElementById('byol-byol-cost').textContent = inr(byol) + '/mo';
+    document.getElementById('byol-byol-note').innerHTML = own==='yes'
+      ? 'You pay only for infrastructure — your existing license covers the software. Best for <strong>existing customers</strong>.'
+      : '⚠ You\'d have to <strong>buy a new license first</strong> (added below), which erases the saving. BYOL only wins when the license already exists.';
+    const max = Math.max(li, byol);
+    document.getElementById('byol-li-fill').style.width = Math.round(li/max*100)+'%';
+    document.getElementById('byol-byol-fill').style.width = Math.round(byol/max*100)+'%';
+    const liWins = li <= byol;
+    document.getElementById('byol-opt-li').classList.toggle('winner', liWins);
+    document.getElementById('byol-opt-byol').classList.toggle('winner', !liWins);
+    const verdict = document.getElementById('byol-verdict');
+    if(!liWins){
+      verdict.innerHTML = '🎫 <strong>Recommendation: BYOL.</strong> You already hold the license, so you skip Oracle\'s license charge and save <strong>'+inr(li-byol)+'/month</strong> ('+inr((li-byol)*12)+'/year) on this '+ocpu+'-OCPU workload. Classic case: "Already own a Windows license? Use BYOL."';
+    } else {
+      verdict.innerHTML = '📦 <strong>Recommendation: License Included.</strong> With no existing license, buying one just to "bring it" costs <strong>'+inr(byol-li)+'/month more</strong> than letting Oracle bundle it. Easier setup, cheaper — the right answer for new customers.';
+    }
+  }
+  document.querySelectorAll('#byol-own-btns .chip-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#byol-own-btns .chip-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); own = btn.dataset.own; render();
+    });
+  });
+  sizeSlider.addEventListener('input', render);
+  render();
+}
+
+/* ---------- 16 marketplace ---------- */
+function initMarketplace(){
+  const grid = document.getElementById('mp-grid'); if(!grid) return;
+  const listings = [
+    ['🧱','Palo Alto Firewall','sec'],['🛡 ','Fortinet FortiGate','sec'],['🔍','Qualys Scanner','sec'],
+    ['🗄','MongoDB','db'],['🐘','PostgreSQL','db'],['📈','Datadog','mon'],['📊','Splunk','mon'],['🔔','Grafana','mon']
+  ];
+  const status = document.getElementById('mp-deploy-status');
+  function render(cat){
+    grid.innerHTML = listings.filter(l=>cat==='all'||l[2]===cat).map((l,i)=>'<div class="mp-card" data-name="'+l[1]+'"><div class="mp-ic">'+l[0]+'</div><div>'+l[1]+'</div></div>').join('');
+  }
+  grid.addEventListener('click', e=>{
+    const card = e.target.closest('.mp-card'); if(!card) return;
+    status.style.display='block';
+    status.textContent = '⏳ Deploying '+card.dataset.name+'…';
+    setTimeout(()=>{ status.textContent = '✅ '+card.dataset.name+' deployed in minutes — no manual build required. That\'s the Marketplace value.'; }, 900);
+  });
+  document.querySelectorAll('#mp-cat-btns .chip-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#mp-cat-btns .chip-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); render(btn.dataset.cat);
+    });
+  });
+  render('all');
+}
+
+/* ---------- 17 right sizing ---------- */
+function initRightSizing(){
+  const shapes = document.querySelectorAll('.rs-shape'); if(!shapes.length) return;
+  const savings = document.getElementById('rs-savings');
+  const verdicts = {
+    over: '🚌 <strong>Over-provisioned — the 60-seat-bus problem.</strong> 32 OCPUs provisioned, only 4 used (12%). Recommendation: resize to <strong>8 OCPUs</strong> (2× headroom) and save ≈ <strong>₹36,000/month</strong>.',
+    ok: '✅ <strong>Well-sized.</strong> 8 OCPUs at 75% utilization — healthy headroom for spikes. No action needed.',
+    under: '📈 <strong>Running hot.</strong> 96% utilization — this VM is throttling its workload. Scale <strong>up</strong> or add Auto Scaling before peak load hits.'
+  };
+  shapes.forEach(s=>{
+    s.addEventListener('click', ()=>{
+      shapes.forEach(x=>x.classList.remove('selected')); s.classList.add('selected');
+      savings.classList.add('show'); savings.innerHTML = verdicts[s.dataset.rs];
+    });
+  });
+}
+
+/* ---------- 18 governance pyramid ---------- */
+function initGovPyramid(){
+  const tiers = document.querySelectorAll('.pyr-tier'); if(!tiers.length) return;
+  const detail = document.getElementById('gov-detail');
+  const info = {
+    org: '<strong>Organization</strong> — the top: Organization Management governs multiple tenancies (Head Office → India, USA, Japan) with centralized billing and governance.',
+    policies: '<strong>Policies</strong> — IAM and governance policies encode who may do what, where, and how resources must be configured.',
+    compartments: '<strong>Compartments</strong> — the governance boundaries: access scoping, cost attribution and quota enforcement all hang off compartments.',
+    budgets: '<strong>Budgets</strong> — financial guardrails per compartment or tag, with 50/80/100% alerts.',
+    security: '<strong>Security</strong> — Cloud Guard, Security Zones and IAM enforce the rules continuously and automatically.',
+    resources: '<strong>Resources</strong> — every VM, bucket and database inherits the governance above it: right compartment, tagged, within quota, within budget, secured.'
+  };
+  tiers.forEach(t=>{
+    t.addEventListener('click', ()=>{
+      tiers.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+      detail.innerHTML = info[t.dataset.g];
+    });
+  });
+}
+
+/* ---------- 19 cloud advisor ---------- */
+function initCloudAdvisor(){
+  const rows = document.querySelectorAll('#sec-cladvisor .rec-row'); if(!rows.length) return;
+  const ring = document.getElementById('cladvisor-ring'); const valEl = document.getElementById('cladvisor-score-val');
+  let score = 62;
+  rows.forEach(row=>{
+    row.querySelector('.ca-fix-btn').addEventListener('click', function(){
+      if(row.classList.contains('fixed')) return;
+      row.classList.add('fixed'); this.textContent='Fixed ✓'; this.disabled = true;
+      score = Math.min(100, score + 9);
+      ring.style.setProperty('--score', score); valEl.textContent = score;
+    });
+  });
+}
+
+/* ---------- 22 compliance ---------- */
+function initCompliance(){
+  const cards = document.querySelectorAll('.compliance-card'); if(!cards.length) return;
+  const detail = document.getElementById('compliance-detail');
+  const info = {
+    iso: '<strong>ISO 27001</strong> — international standard for information security management systems (ISMS). The broad "we run security properly" certification.',
+    soc1: '<strong>SOC 1</strong> — service organization controls relevant to <em>financial reporting</em>.',
+    soc2: '<strong>SOC 2</strong> — controls for security, availability, processing integrity, confidentiality and privacy.',
+    pci: '<strong>PCI DSS</strong> — mandatory for handling payment card data (card numbers, transactions).',
+    hipaa: '<strong>HIPAA</strong> — U.S. healthcare data protection (supported workloads on OCI).'
+  };
+  cards.forEach(c=>{
+    c.addEventListener('click', ()=>{
+      cards.forEach(x=>x.classList.remove('active')); c.classList.add('active');
+      detail.innerHTML = info[c.dataset.c] + '<br><em style="color:var(--text-3);">Analogy: a restaurant following food-safety regulations — the provider proves it follows the rules.</em>';
+    });
+  });
+}
+
+/* ---------- 23 case study ---------- */
+function initCaseStudy(){
+  const reqs = document.querySelectorAll('.case-req'); if(!reqs.length) return;
+  const msg = document.getElementById('case-msg');
+  function update(){
+    const solved = document.querySelectorAll('.case-req.solved').length;
+    msg.textContent = solved+' / '+reqs.length+' requirements solved.';
+    if(solved===reqs.length) msg.textContent = '🏆 All 6 requirements solved — that\'s the whole Day-2 toolkit applied to one company.';
+  }
+  reqs.forEach(r=>r.addEventListener('click', ()=>{ r.classList.add('solved'); update(); }));
+}
+
+/* ---------- 25 flashcards ---------- */
+function initFlashcards(){
+  const wrap = document.getElementById('flash-wrap'); if(!wrap) return;
+  const cards = [
+    ['CIA Triad?','Confidentiality · Integrity · Availability'],
+    ['Defense in Depth?','Multiple independent security layers'],
+    ['Zero Trust motto?','Never trust, always verify — every time'],
+    ['Cloud Guard pipeline?','Resources → Targets → Detectors → Problems → Responders → Notifications'],
+    ['Security Zones vs Cloud Guard?','Zones prevent at creation; Guard detects & responds after'],
+    ['Budget alerts?','50% · 80% · 100% — alert, not hard-stop'],
+    ['BYOL?','Bring your own license → lower cost for existing customers'],
+    ['Limits vs Quotas?','Limits: Oracle ceiling · Quotas: admin cap per compartment'],
+    ['Weak DB password breach — whose fault?','Customer\'s — shared responsibility']
+  ];
+  wrap.innerHTML = cards.map(c=>'<div class="flashcard"><div class="fc-inner"><div class="fc-face fc-front">'+c[0]+'</div><div class="fc-face fc-back">'+c[1]+'</div></div></div>').join('');
+  wrap.addEventListener('click', e=>{
+    const fc = e.target.closest('.flashcard'); if(fc) fc.classList.toggle('flipped');
+  });
+}
+
+/* ---------- 26 quiz ---------- */
+function initQuiz(){
+  const wrap = document.getElementById('quiz-wrap'); if(!wrap) return;
+  const Q = [
+    ['A cheque amount is altered from ₹10,000 to ₹90,000. Which CIA property is broken?',['Confidentiality','Integrity','Availability'],1,'Unauthorized modification of data = Integrity. OCI defends with versioning, checksums, audit logs, backups.'],
+    ['An attacker bypasses the firewall but is stopped by IAM and database encryption. Which principle is at work?',['Zero Trust','Defense in Depth','Least Privilege'],1,'Multiple independent layers — one layer failing doesn\'t compromise the system.'],
+    ['What is the core principle of Zero Trust?',['Trust internal network traffic','Never trust, always verify','Verify only external users'],1,'Nobody is automatically trusted — every request is verified, every time, even VIPs.'],
+    ['Your database password is weak and gets brute-forced. Who is responsible?',['Oracle','The customer','Shared 50/50'],1,'Credentials, users and IAM policies are always customer-side in the Shared Responsibility Model.'],
+    ['Which Cloud Guard component contains the rules that detect a public bucket?',['Responder Recipe','Detector Recipe','Managed List'],1,'Detector Recipes detect; Responder Recipes fix; Managed Lists are reusable IP/CIDR lists.'],
+    ['Which service BLOCKS creation of a public bucket before it exists?',['Cloud Guard','Security Zones','Security Advisor'],1,'Security Zones prevent at creation time. Cloud Guard detects after. Advisor only recommends.'],
+    ['Budget ₹50,000 with 50/80/100% alerts. Spend hits ₹42,000. Which alerts fired?',['Only 50%','50% and 80%','All three'],1,'₹42,000 = 84% — the 50% and 80% alerts fired; 100% hasn\'t.'],
+    ['A VM has 32 OCPUs but uses 4. What is the right action?',['Add more OCPUs','Right-size down (e.g. to 8)','Delete the VM'],1,'The 60-seat-bus problem: resize to match workload (with headroom) and save money.'],
+    ['Who sets Service Limits vs Compartment Quotas?',['Both by Oracle','Oracle sets limits; admins set quotas','Both by admins'],1,'Limits are Oracle\'s ceilings (request increases); quotas are your own caps per compartment.'],
+    ['Which standard applies to payment card data?',['HIPAA','PCI DSS','ISO 27001'],1,'PCI DSS governs card data. HIPAA = healthcare; ISO 27001 = general ISMS.']
+  ];
+  state.quizTotal = Q.length;
+  wrap.innerHTML = Q.map((q,qi)=>
+    '<div class="quiz-q" data-qi="'+qi+'"><div class="qtext">'+(qi+1)+'. '+q[0]+'</div><div class="quiz-opts">'+
+    q[1].map((o,oi)=>'<div class="quiz-opt" data-oi="'+oi+'">'+String.fromCharCode(65+oi)+'. '+o+'</div>').join('')+
+    '</div><div class="quiz-explain">'+q[3]+'</div></div>'
+  ).join('');
+  wrap.addEventListener('click', e=>{
+    const opt = e.target.closest('.quiz-opt'); if(!opt) return;
+    const qEl = opt.closest('.quiz-q'); if(qEl.classList.contains('answered')) return;
+    qEl.classList.add('answered');
+    const qi = parseInt(qEl.dataset.qi), oi = parseInt(opt.dataset.oi);
+    const correct = Q[qi][2];
+    qEl.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+      if(i===correct) o.classList.add('correct');
+      else if(i===oi) o.classList.add('incorrect');
+    });
+    state.quizAnswered++;
+    if(oi===correct) state.quizScore++;
+    document.getElementById('score-chip-val').textContent = state.quizScore+'/'+state.quizAnswered;
+    document.getElementById('quiz-final-score').textContent = state.quizScore+' / '+state.quizTotal;
+    document.getElementById('cert-score-display').textContent = state.quizScore+'/'+state.quizTotal;
+    updateBadge();
+  });
+}
+
+/* ---------- 27 badge + cert ---------- */
+function updateBadge(){
+  const scroll = window.__scrollPct || 0;
+  const quiz = state.quizTotal ? (state.quizAnswered/state.quizTotal)*100 : 0;
+  const pct = Math.round(scroll*0.5 + quiz*0.5);
+  const circle = document.getElementById('badge-circle'); if(!circle) return;
+  circle.style.setProperty('--pct', (pct*3.6)+'deg');
+  document.getElementById('badge-pct').textContent = pct+'%';
+  const title = document.getElementById('badge-title');
+  if(pct>=90) title.textContent='🏆 Day 2 mastered!';
+  else if(pct>=60) title.textContent='Almost there';
+  else title.textContent='Keep going';
+}
+function initCert(){
+  document.getElementById('cert-date-display').textContent = new Date().toLocaleDateString('en-IN', {year:'numeric', month:'long', day:'numeric'});
+  const input = document.getElementById('cert-name-input');
+  input.addEventListener('input', ()=>{
+    document.getElementById('cert-name-display').textContent = input.value || 'Your Name';
+  });
+}
+</script>
+</body>
+</html>
