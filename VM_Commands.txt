@@ -1,0 +1,8 @@
+ssh -V
+mkdir C:\OCIKeys
+cd C:\OCIKeys
+
+
+ssh-keygen
+
+ssh -i oraclekey ubuntu@PublicIP
