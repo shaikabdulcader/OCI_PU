@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Linux, Networking &amp; CLI/SDK — Day 3 | Interactive Learning Platform</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   Palette: void black base, Oracle red signal, cool blue for
+   network/data concepts, amber for warnings/exam-tips.
+   Type: Space Grotesk-style geometric display (system stack),
+   Inter-style body (system stack), JetBrains-style mono for
+   code/terminal (system stack) — no external fonts/CDNs.
+   ============================================================ */
+:root{
+  --void:#08090b;
+  --panel:#101217;
+  --panel-2:#15171e;
+  --panel-glass: rgba(21,23,30,0.6);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text-1:#eef0f3;
+  --text-2:#a7acb8;
+  --text-3:#6b7180;
+  --red:#c74634;
+  --red-bright:#ff5a3c;
+  --red-dim: rgba(199,70,52,0.15);
+  --blue:#4f8cff;
+  --blue-dim: rgba(79,140,255,0.15);
+  --amber:#e8a33d;
+  --amber-dim: rgba(232,163,61,0.15);
+  --green:#3ec28f;
+  --green-dim: rgba(62,194,143,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: "Space Grotesk","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-body: "Inter","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.35);
+}
+html[data-theme="light"]{
+  --void:#f3f2ee;
+  --panel:#ffffff;
+  --panel-2:#f7f6f2;
+  --panel-glass: rgba(255,255,255,0.7);
+  --border: rgba(10,10,10,0.08);
+  --border-strong: rgba(10,10,10,0.16);
+  --text-1:#15171c;
+  --text-2:#4b4f58;
+  --text-3:#83879160;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void);
+  color:var(--text-1);
+  font-family:var(--font-body);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 500px at 15% -5%, rgba(199,70,52,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(79,140,255,0.10), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 100%, rgba(199,70,52,0.08), transparent 60%);
+}
+h1,h2,h3,h4{font-family:var(--font-display); letter-spacing:-0.02em; font-weight:700; color:var(--text-1);}
+code, .mono{font-family:var(--font-mono);}
+a{color:inherit;}
+::selection{background:var(--red); color:#fff;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:10px;}
+
+/* ---------- particles / ambient bg ---------- */
+#particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+
+/* ---------- progress bar ---------- */
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg,var(--red),var(--red-bright));
+  z-index:9999; box-shadow:0 0 12px var(--red-bright);
+  transition:width .1s linear;
+}
+
+/* ---------- top bar ---------- */
+#topbar{
+  position:fixed; top:0; left:0; right:0; z-index:900;
+  height:60px; display:flex; align-items:center; gap:14px;
+  padding:0 18px; margin-top:3px;
+  background:var(--panel-glass); backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:15px; white-space:nowrap;}
+#topbar .brand .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,var(--red),var(--red-bright)); box-shadow:0 0 14px var(--red-bright);}
+#sidebar-toggle{
+  background:transparent; border:1px solid var(--border); color:var(--text-2);
+  width:36px; height:36px; border-radius:var(--radius-sm); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center; transition:.2s;
+}
+#sidebar-toggle:hover{border-color:var(--border-strong); color:var(--text-1);}
+#search-wrap{position:relative; flex:1; max-width:420px;}
+#search{
+  width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text-1);
+  padding:8px 14px 8px 34px; border-radius:999px; font-size:13px; font-family:var(--font-body);
+  outline:none; transition:.2s;
+}
+#search:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-dim);}
+#search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-3);}
+#search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--panel);
+  border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:var(--shadow-lg);
+  max-height:320px; overflow-y:auto; display:none; z-index:50;
+}
+#search-results a{display:block; padding:9px 14px; font-size:13px; color:var(--text-2); border-bottom:1px solid var(--border);}
+#search-results a:hover{background:var(--panel-2); color:var(--text-1);}
+#search-results .sr-cat{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--red-bright); display:block; margin-bottom:2px;}
+
+.topbar-spacer{flex:1;}
+#theme-toggle{
+  background:var(--panel); border:1px solid var(--border); color:var(--text-2);
+  width:36px; height:36px; border-radius:999px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:.2s; font-size:15px;
+}
+#theme-toggle:hover{border-color:var(--red); color:var(--red-bright);}
+#score-chip{
+  display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border);
+  padding:6px 12px; border-radius:999px; font-size:12px; color:var(--text-2); white-space:nowrap;
+}
+#score-chip b{color:var(--red-bright); font-family:var(--font-display);}
+
+/* ---------- layout ---------- */
+#shell{display:flex; padding-top:63px; position:relative; z-index:1;}
+#sidebar{
+  width:270px; flex-shrink:0; height:calc(100vh - 63px); position:sticky; top:63px;
+  overflow-y:auto; border-right:1px solid var(--border); padding:18px 10px 60px;
+  transition:margin-left .3s ease, opacity .3s ease;
+}
+#sidebar.collapsed{margin-left:-270px; opacity:0;}
+#sidebar .nav-group{margin-bottom:4px;}
+#sidebar .nav-head{
+  font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3);
+  padding:14px 12px 6px; font-weight:700;
+}
+#sidebar a.nav-link{
+  display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:var(--radius-sm);
+  font-size:13.5px; color:var(--text-2); text-decoration:none; transition:.15s; border-left:2px solid transparent;
+}
+#sidebar a.nav-link:hover{background:var(--panel); color:var(--text-1);}
+#sidebar a.nav-link.active{background:var(--red-dim); color:var(--red-bright); border-left-color:var(--red-bright); font-weight:600;}
+#sidebar a.nav-link .num{font-family:var(--font-mono); font-size:10px; color:var(--text-3); width:18px;}
+
+main{flex:1; min-width:0; padding:0 0 100px;}
+.container{max-width:980px; margin:0 auto; padding:0 32px;}
+
+/* ---------- hero ---------- */
+#hero{position:relative; padding:100px 32px 70px; overflow:hidden; text-align:left;}
+#hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red-bright); background:var(--red-dim); border:1px solid rgba(199,70,52,0.3);
+  padding:6px 14px; border-radius:999px; margin-bottom:22px; font-weight:600;
+}
+#hero h1{font-size:clamp(2.4rem,5vw,4.2rem); line-height:1.02; max-width:820px;}
+#hero h1 .accent{background:linear-gradient(135deg,var(--red),var(--red-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+#hero p.lede{max-width:620px; font-size:17px; color:var(--text-2); margin-top:22px;}
+#hero .hero-stats{display:flex; gap:34px; margin-top:40px; flex-wrap:wrap;}
+#hero .hstat b{font-family:var(--font-display); font-size:26px; display:block;}
+#hero .hstat span{font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;}
+#hero .cta-row{display:flex; gap:14px; margin-top:38px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:14px; padding:12px 22px; border-radius:999px;
+  border:1px solid var(--border-strong); cursor:pointer; transition:.2s; display:inline-flex; align-items:center; gap:8px;
+}
+.btn-primary{background:linear-gradient(135deg,var(--red),var(--red-bright)); color:#fff; border:none; box-shadow:0 8px 24px rgba(199,70,52,0.35);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px rgba(199,70,52,0.45);}
+.btn-ghost{background:var(--panel); color:var(--text-1);}
+.btn-ghost:hover{border-color:var(--red); color:var(--red-bright);}
+
+/* orbiting node animation in hero */
+#hero-orbit{position:absolute; right:-60px; top:40px; width:420px; height:420px; opacity:.9; pointer-events:none;}
+@media (max-width:1100px){#hero-orbit{display:none;}}
+
+/* ---------- sections ---------- */
+section.chapter{padding:70px 0 10px; border-top:1px solid var(--border); scroll-margin-top:80px;}
+section.chapter:first-of-type{border-top:none;}
+.chapter-kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.chapter-kicker .idx{
+  font-family:var(--font-mono); font-size:12px; color:var(--red-bright); background:var(--red-dim);
+  padding:4px 10px; border-radius:6px; border:1px solid rgba(199,70,52,.3);
+}
+.chapter-kicker .track{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3);}
+.chapter h2{font-size:clamp(1.6rem,3vw,2.3rem); margin-bottom:6px;}
+.chapter .dek{color:var(--text-2); font-size:15.5px; max-width:680px; margin-bottom:30px;}
+.chapter h3{font-size:1.15rem; margin:34px 0 14px;}
+.chapter p{color:var(--text-2); font-size:15px; margin-bottom:14px; max-width:720px;}
+.chapter ul, .chapter ol{color:var(--text-2); font-size:15px; margin:0 0 16px 20px;}
+.chapter li{margin-bottom:6px;}
+.chapter strong{color:var(--text-1);}
+
+/* scroll reveal */
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+/* ---------- cards / panels ---------- */
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border); border-radius:var(--radius); padding:24px;
+  box-shadow:var(--shadow-sm); position:relative;
+}
+.panel-glow{position:relative; overflow:hidden;}
+.panel-glow::before{
+  content:""; position:absolute; inset:-2px; z-index:-1; border-radius:inherit;
+  background:conic-gradient(from 180deg, var(--red), transparent 30%, var(--blue), transparent 70%, var(--red));
+  opacity:0; transition:opacity .4s;
+}
+.panel-glow:hover::before{opacity:.5;}
+.panel-glow > .panel-inner{background:var(--panel); border-radius:calc(var(--radius) - 1px); height:100%; padding:22px;}
+
+.grid{display:grid; gap:16px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:800px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:18px; transition:.25s; cursor:default;
+}
+.card:hover{border-color:var(--border-strong); transform:translateY(-3px); box-shadow:var(--shadow-sm);}
+.card h4{font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.card p{font-size:13.5px; margin:0; color:var(--text-2);}
+.card .tag{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--red-bright); background:var(--red-dim); padding:3px 8px; border-radius:6px; margin-bottom:8px; display:inline-block;}
+
+/* ---------- callouts ---------- */
+.callout{border-radius:var(--radius-sm); padding:14px 16px; margin:16px 0; border:1px solid; font-size:14px; display:flex; gap:12px; align-items:flex-start;}
+.callout .ic{font-size:16px; flex-shrink:0; margin-top:1px;}
+.callout-tip{background:var(--green-dim); border-color:rgba(62,194,143,.35); color:var(--text-1);}
+.callout-warn{background:var(--amber-dim); border-color:rgba(232,163,61,.35); color:var(--text-1);}
+.callout-trap{background:var(--red-dim); border-color:rgba(199,70,52,.35); color:var(--text-1);}
+.callout-q{background:var(--blue-dim); border-color:rgba(79,140,255,.35); color:var(--text-1);}
+.callout b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+
+/* ---------- tables ---------- */
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; margin:18px 0;}
+table.cmp th{text-align:left; color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--border-strong);}
+table.cmp td{padding:12px; border-bottom:1px solid var(--border); color:var(--text-2);}
+table.cmp tr:hover td{background:var(--panel);}
+table.cmp td:first-child, table.cmp th:first-child{color:var(--text-1); font-weight:600;}
+
+/* ---------- buttons small ---------- */
+.chip-btn{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text-2); font-size:12.5px;
+  padding:7px 14px; border-radius:999px; cursor:pointer; transition:.2s; font-family:var(--font-body); font-weight:600;
+}
+.chip-btn:hover{border-color:var(--red); color:var(--red-bright);}
+.chip-btn.active{background:var(--red); color:#fff; border-color:var(--red);}
+.chip-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+/* end of part1 */
+</style>
+<style>
+.vm-sim{display:grid; grid-template-columns:280px 1fr; gap:20px;}
+@media (max-width:800px){.vm-sim{grid-template-columns:1fr;}}
+.vm-controls{display:flex; flex-direction:column; gap:10px;}
+.vm-controls label{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); margin-top:6px;}
+.vm-controls input[type=range]{width:100%; accent-color:var(--red);}
+.host-box{border:1px dashed var(--border-strong); border-radius:var(--radius-sm); padding:16px; position:relative; background:repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 10px, transparent 10px 20px);}
+.host-meter{display:flex; justify-content:space-between; font-size:11px; color:var(--text-3); margin-bottom:6px;}
+.meter-bar{height:8px; border-radius:6px; background:var(--panel-2); overflow:hidden; margin-bottom:14px;}
+.meter-fill{height:100%; border-radius:6px; transition:width .4s ease; background:linear-gradient(90deg,var(--blue),#7db2ff);}
+.meter-fill.cpu{background:linear-gradient(90deg,var(--red),var(--red-bright));}
+.vm-list{display:flex; flex-wrap:wrap; gap:10px; min-height:60px;}
+.vm-card{width:110px; background:var(--panel); border:1px solid var(--border-strong); border-radius:10px; padding:10px; font-size:11px; animation:popIn .3s ease; position:relative;}
+.vm-card .vm-name{font-family:var(--font-mono); color:var(--blue); font-weight:700; margin-bottom:4px;}
+.vm-card .vm-x{position:absolute; top:6px; right:8px; cursor:pointer; color:var(--text-3);}
+.vm-card .vm-x:hover{color:var(--red-bright);}
+@keyframes popIn{from{opacity:0; transform:scale(.7);} to{opacity:1; transform:scale(1);}}
+.layer-stack{display:flex; flex-direction:column; gap:6px;}
+.layer-row{display:grid; grid-template-columns:130px 1fr; gap:0; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border);}
+.layer-label{background:var(--panel-2); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:13px;}
+.layer-cells{display:grid; grid-template-columns:repeat(6,1fr);}
+.layer-cell{padding:12px 6px; text-align:center; font-size:11px; border-left:1px solid var(--border); transition:.2s; cursor:default;}
+.layer-cell.you{background:var(--red-dim); color:var(--red-bright); font-weight:700;}
+.layer-cell.oracle{background:var(--blue-dim); color:var(--blue); font-weight:700;}
+.layer-cell:hover{filter:brightness(1.3);}
+.layer-legend{display:flex; gap:18px; margin-top:12px; font-size:12px; color:var(--text-2);}
+.legend-dot{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px;}
+.resp-track{position:relative; height:10px; border-radius:6px; background:linear-gradient(90deg,var(--blue) 0%,var(--blue) var(--split,50%), var(--red) var(--split,50%), var(--red) 100%); margin:30px 0 10px;}
+.resp-handle{position:absolute; top:50%; left:var(--split,50%); transform:translate(-50%,-50%); width:26px; height:26px; border-radius:50%; background:#fff; border:3px solid var(--void); cursor:grab; box-shadow:0 0 0 4px rgba(255,255,255,0.15);}
+.resp-labels{display:flex; justify-content:space-between; font-size:12px; color:var(--text-2); margin-bottom:4px;}
+.resp-layers{display:flex; flex-direction:column; gap:8px; margin-top:20px;}
+.resp-layer-row{display:flex; align-items:center; gap:12px; font-size:13px;}
+.resp-layer-row .name{width:150px; flex-shrink:0; color:var(--text-1); font-weight:600;}
+.resp-layer-row .who{font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px;}
+.who-oracle{background:var(--blue-dim); color:var(--blue);}
+.who-you{background:var(--red-dim); color:var(--red-bright);}
+.who-shared{background:var(--amber-dim); color:var(--amber);}
+.map-wrap{display:grid; grid-template-columns:1fr 260px; gap:20px;}
+@media (max-width:800px){.map-wrap{grid-template-columns:1fr;}}
+.region-dot{cursor:pointer; transition:.2s;}
+.region-dot circle{transition:.2s;}
+.region-info{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; font-size:13px; min-height:180px;}
+.region-info h4{font-size:14px; color:var(--red-bright); margin-bottom:8px;}
+.region-info .placeholder{color:var(--text-3); font-style:italic;}
+.ad-buildings{display:flex; gap:16px; justify-content:center; margin:20px 0; flex-wrap:wrap;}
+.building{width:120px; text-align:center; padding:16px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel); transition:.4s;}
+.building .roof{font-size:26px; margin-bottom:6px;}
+.building .b-name{font-family:var(--font-mono); font-size:12px; margin-bottom:4px;}
+.building .b-status{font-size:11px; padding:3px 8px; border-radius:6px; display:inline-block;}
+.b-status.ok{background:var(--green-dim); color:var(--green);}
+.b-status.down{background:var(--red-dim); color:var(--red-bright);}
+.building.failed{opacity:.4; filter:grayscale(1); transform:translateY(4px);}
+.building.shaking{animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.fd-rack{display:flex; gap:14px; justify-content:center; margin:20px 0; flex-wrap:wrap;}
+.rack{width:150px; border:1px solid var(--border-strong); border-radius:8px; padding:8px; background:var(--panel);}
+.rack .rack-head{font-family:var(--font-mono); font-size:11px; text-align:center; color:var(--text-3); margin-bottom:6px;}
+.rack-slot{height:20px; border-radius:4px; background:var(--panel-2); margin-bottom:4px; font-size:9px; display:flex; align-items:center; justify-content:center; color:var(--text-3); border:1px solid var(--border);}
+.rack-slot.filled{background:var(--blue-dim); color:var(--blue); border-color:rgba(79,140,255,.4); font-weight:700;}
+.rack.dead{opacity:.35;}
+.rack.dead .rack-slot.filled{background:var(--red-dim); color:var(--red-bright);}
+.calc-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+@media (max-width:800px){.calc-grid{grid-template-columns:1fr;}}
+.calc-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+.calc-row label{font-size:13px; color:var(--text-2);}
+.calc-row output{font-family:var(--font-mono); color:var(--red-bright); font-weight:700; font-size:13px;}
+canvas#capexChart{width:100%; height:220px;}
+.cost-total{display:flex; justify-content:space-between; padding-top:14px; border-top:1px solid var(--border); margin-top:6px;}
+.cost-total b{font-family:var(--font-display); font-size:20px;}
+.policy-editor{background:#0c0d10; border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:16px; font-family:var(--font-mono); font-size:13.5px;}
+.policy-editor textarea{width:100%; min-height:80px; background:transparent; border:none; outline:none; color:#e8e8ea; font-family:var(--font-mono); font-size:13.5px; resize:vertical; line-height:1.7;}
+.policy-verdict{margin-top:10px; padding:10px 12px; border-radius:8px; font-size:12.5px; font-family:var(--font-body); display:none;}
+.policy-verdict.ok{display:block; background:var(--green-dim); color:var(--green);}
+.policy-verdict.bad{display:block; background:var(--red-dim); color:var(--red-bright);}
+.console-sim{border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:var(--panel);}
+.console-tb{display:flex; align-items:center; gap:10px; background:var(--panel-2); padding:10px 14px; border-bottom:1px solid var(--border);}
+.console-tb .dots span{width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:5px;}
+.console-body{display:flex; min-height:320px;}
+.console-nav{width:170px; border-right:1px solid var(--border); padding:12px 8px; flex-shrink:0;}
+.console-nav div{padding:8px 10px; font-size:12.5px; border-radius:6px; cursor:pointer; color:var(--text-2); margin-bottom:2px;}
+.console-nav div.active{background:var(--red-dim); color:var(--red-bright); font-weight:700;}
+.console-main{flex:1; padding:16px;}
+.console-toolbar{display:flex; gap:8px; margin-bottom:14px;}
+.console-table{width:100%; font-size:12.5px; border-collapse:collapse;}
+.console-table th{text-align:left; font-size:10px; text-transform:uppercase; color:var(--text-3); padding:6px 8px; border-bottom:1px solid var(--border-strong);}
+.console-table td{padding:8px; border-bottom:1px solid var(--border); color:var(--text-2);}
+.console-table tr:hover td{background:var(--panel-2);}
+.status-pill{font-size:10px; padding:2px 8px; border-radius:20px;}
+.status-pill.active{background:var(--green-dim); color:var(--green);}
+.status-pill.deleted{background:var(--red-dim); color:var(--red-bright);}
+.mini-input{background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:6px 10px; font-size:12.5px; font-family:var(--font-body);}
+.terminal{background:#0a0b0d; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden;}
+.terminal-tb{background:#16171c; padding:8px 14px; font-size:11px; color:var(--text-3); font-family:var(--font-mono); border-bottom:1px solid var(--border);}
+#term-out{padding:16px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; height:280px; overflow-y:auto; white-space:pre-wrap;}
+#term-out .cmdline{color:#7db2ff;}
+#term-out .cmdline::before{content:"$ "; color:var(--red-bright);}
+.term-input-row{display:flex; align-items:center; gap:8px; padding:10px 16px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:12.5px;}
+.term-input-row span{color:var(--red-bright);}
+#term-input{flex:1; background:transparent; border:none; outline:none; color:#e8e8ea; font-family:var(--font-mono); font-size:12.5px;}
+.tree{font-size:13.5px;}
+.tree ul{list-style:none; margin-left:22px; border-left:1px dashed var(--border-strong); padding-left:18px;}
+.tree li{margin:6px 0; position:relative;}
+.tree .node{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px; cursor:pointer; transition:.15s;}
+.tree .node:hover{background:var(--panel-2);}
+.tree .node .ic{font-size:13px;}
+.tree .node.root{color:var(--red-bright); font-weight:700;}
+.flash-wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:800px){.flash-wrap{grid-template-columns:1fr 1fr;}}
+@media (max-width:520px){.flash-wrap{grid-template-columns:1fr;}}
+.flashcard{perspective:1000px; height:130px; cursor:pointer;}
+.flashcard .fc-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm); border:1px solid var(--border-strong); padding:14px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13px;}
+.fc-front{background:var(--panel);}
+.fc-back{background:var(--red-dim); color:var(--red-bright); transform:rotateY(180deg); font-weight:600;}
+.quiz-q{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px 20px; margin-bottom:14px;}
+.quiz-q .qtext{font-size:14.5px; font-weight:600; margin-bottom:12px;}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; border:1px solid var(--border); cursor:pointer; font-size:13.5px; color:var(--text-2); transition:.15s;}
+.quiz-opt:hover{border-color:var(--border-strong); background:var(--panel-2);}
+.quiz-opt input{accent-color:var(--red);}
+.quiz-opt.correct{border-color:var(--green); background:var(--green-dim); color:var(--green);}
+.quiz-opt.incorrect{border-color:var(--red); background:var(--red-dim); color:var(--red-bright);}
+.quiz-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.quiz-q.answered .quiz-explain{display:block;}
+#badge-wrap{text-align:center; padding:60px 20px;}
+.badge-circle{width:150px; height:150px; border-radius:50%; margin:0 auto 20px; position:relative; background:conic-gradient(var(--red-bright) 0deg, var(--red) var(--pct,0deg), var(--panel-2) var(--pct,0deg)); display:flex; align-items:center; justify-content:center; transition:background 1s ease;}
+.badge-circle::before{content:""; position:absolute; inset:10px; border-radius:50%; background:var(--void);}
+.badge-circle span{position:relative; font-family:var(--font-display); font-size:28px; font-weight:700;}
+.center{text-align:center;}
+.mt-lg{margin-top:36px;}
+.small{font-size:12px; color:var(--text-3);}
+footer{text-align:center; padding:50px 20px; color:var(--text-3); font-size:12.5px; border-top:1px solid var(--border); margin-top:60px;}
+.toc-jump{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
+</style><style>
+/* ============================================================
+   DAY 3 — ADDITIONAL WIDGET STYLES
+   (Linux architecture layers, kernel/shell terminal, filesystem
+   tree, permission matrix + chmod sliders, process manager,
+   OSI/packet animation, subnet calculator, DNS/DHCP/NAT/TLS
+   animations, cloud shell, CLI config editor)
+   ============================================================ */
+
+/* --- linux architecture layers --- */
+.arch-stack{display:flex; flex-direction:column; gap:8px; max-width:520px; margin:0 auto;}
+.arch-layer{padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel); text-align:center; cursor:pointer; transition:.2s; font-weight:700; font-size:13px;}
+.arch-layer:hover, .arch-layer.active{border-color:var(--red); background:var(--red-dim); color:var(--red-bright); transform:scale(1.02);}
+.arch-detail{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; margin-top:16px; font-size:13.5px; color:var(--text-2); min-height:60px;}
+
+/* --- filesystem tree --- */
+.fs-tree{font-size:13.5px;}
+.fs-node{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:6px; cursor:pointer; transition:.15s;}
+.fs-node:hover{background:var(--panel-2);}
+.fs-detail{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-top:12px; font-size:13px; color:var(--text-2); min-height:44px;}
+
+/* --- permission matrix / chmod --- */
+.perm-grid{display:grid; grid-template-columns:80px repeat(3,1fr); gap:1px; background:var(--border); border-radius:8px; overflow:hidden; margin:14px 0;}
+.perm-grid > div{background:var(--panel); padding:10px; text-align:center; font-size:12px;}
+.perm-grid .ph{background:var(--panel-2); font-weight:700; color:var(--text-3); text-transform:uppercase; font-size:10px; letter-spacing:.05em;}
+.perm-toggle{width:20px; height:20px; border-radius:5px; border:1px solid var(--border-strong); background:var(--panel-2); cursor:pointer; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:11px;}
+.perm-toggle.on{background:var(--red); border-color:var(--red); color:#fff;}
+.chmod-output{font-family:var(--font-mono); background:#0c0d10; border:1px solid var(--border-strong); border-radius:8px; padding:14px; margin-top:12px; color:var(--green); font-size:14px;}
+.octal-badges{display:flex; gap:10px; margin-top:10px;}
+.octal-badge{background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:8px 14px; font-family:var(--font-mono); font-size:13px;}
+
+/* --- process manager --- */
+.proc-table{width:100%; font-size:12.5px; border-collapse:collapse;}
+.proc-table th{text-align:left; font-size:10px; text-transform:uppercase; color:var(--text-3); padding:6px 8px; border-bottom:1px solid var(--border-strong);}
+.proc-table td{padding:8px; border-bottom:1px solid var(--border); color:var(--text-2); font-family:var(--font-mono);}
+.proc-state{font-size:10px; padding:2px 8px; border-radius:20px;}
+.proc-state.running{background:var(--green-dim); color:var(--green);}
+.proc-state.stopped{background:var(--amber-dim); color:var(--amber);}
+.proc-state.zombie{background:var(--red-dim); color:var(--red-bright);}
+.service-row{display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px;}
+.service-actions{display:flex; gap:6px;}
+
+/* --- OSI / TCP-IP layers --- */
+.osi-stack{display:flex; flex-direction:column-reverse; gap:5px; max-width:460px; margin:0 auto;}
+.osi-layer{padding:12px; text-align:center; border-radius:8px; border:1px solid var(--border-strong); background:var(--panel); font-size:12.5px; cursor:pointer; transition:.2s;}
+.osi-layer:hover, .osi-layer.active{border-color:var(--blue); background:var(--blue-dim); color:var(--blue);}
+.osi-tcpip-compare{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;}
+
+/* --- packet visualizer --- */
+.packet-path{position:relative; height:90px; margin:20px 0;}
+.packet-path .node{position:absolute; top:30px; width:70px; text-align:center; font-size:11px; color:var(--text-3);}
+.packet-path .line{position:absolute; top:44px; left:0; right:0; height:2px; background:var(--border-strong);}
+.packet-dot{position:absolute; top:38px; width:14px; height:14px; border-radius:50%; background:var(--red-bright); box-shadow:0 0 12px var(--red-bright); transition:left 1s linear;}
+
+/* --- IP / CIDR calculator --- */
+.ip-octets{display:flex; gap:8px; align-items:center; font-family:var(--font-mono); font-size:20px; justify-content:center; margin:14px 0;}
+.ip-octets input{width:60px; text-align:center; background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:8px; font-family:var(--font-mono); font-size:18px;}
+.cidr-slider{width:100%; accent-color:var(--red);}
+.ip-result-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px;}
+.ip-result-item{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:10px 14px; font-size:12.5px;}
+.ip-result-item b{display:block; font-family:var(--font-mono); color:var(--blue); font-size:14px; margin-top:2px;}
+
+/* --- DNS/DHCP/NAT/TLS animations --- */
+.flow-steps{display:flex; align-items:center; gap:6px; overflow-x:auto; padding:10px 0; flex-wrap:wrap;}
+.flow-step{flex-shrink:0; min-width:100px; text-align:center; padding:12px 8px; border-radius:8px; background:var(--panel); border:1px solid var(--border); font-size:11.5px; transition:.3s;}
+.flow-step.lit{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim); color:var(--red-bright);}
+.flow-arrow{color:var(--text-3); flex-shrink:0;}
+.nat-table{width:100%; font-size:12px; border-collapse:collapse; margin-top:10px;}
+.nat-table th{text-align:left; color:var(--text-3); font-size:10px; text-transform:uppercase; padding:6px;}
+.nat-table td{padding:6px; border-bottom:1px solid var(--border); font-family:var(--font-mono); color:var(--text-2);}
+
+/* --- cloud shell --- */
+.cloudshell{border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#0a0b0d;}
+.cloudshell-tb{background:#16171c; padding:8px 14px; font-size:11px; color:var(--text-3); font-family:var(--font-mono); border-bottom:1px solid var(--border); display:flex; justify-content:space-between;}
+.cloudshell-tb .cs-actions span{margin-left:10px; cursor:pointer;}
+
+/* --- config file editor --- */
+.config-editor{background:#0c0d10; border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:16px; font-family:var(--font-mono); font-size:13px; color:#c9d1d9; line-height:1.8;}
+.config-editor .ck{color:#7db2ff;} .config-editor .cv{color:#8fe0b8;} .config-editor .cc{color:var(--text-3);}
+
+/* --- REST client --- */
+.rest-client{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px;}
+.rest-url-row{display:flex; gap:8px; margin-bottom:14px;}
+.rest-method{padding:8px 14px; border-radius:6px; font-weight:700; font-size:12px; font-family:var(--font-mono); border:1px solid var(--border-strong); background:var(--panel-2); cursor:pointer;}
+.rest-method.active-get{background:var(--green-dim); color:var(--green); border-color:var(--green);}
+.rest-method.active-post{background:var(--blue-dim); color:var(--blue); border-color:var(--blue);}
+.rest-method.active-delete{background:var(--red-dim); color:var(--red-bright); border-color:var(--red);}
+.rest-response{background:#0c0d10; border-radius:8px; padding:14px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; white-space:pre-wrap; margin-top:10px; min-height:60px;}
+.status-code-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px;}
+.status-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; text-align:center; cursor:pointer; transition:.2s;}
+.status-card:hover{border-color:var(--red);}
+.status-card .code{font-family:var(--font-display); font-size:20px; font-weight:700;}
+.status-2xx .code{color:var(--green);} .status-3xx .code{color:var(--blue);} .status-4xx .code{color:var(--amber);} .status-5xx .code{color:var(--red-bright);}
+
+/* --- comparison decision matrix --- */
+.decision-matrix{width:100%; border-collapse:collapse; font-size:13px;}
+.decision-matrix th, .decision-matrix td{padding:10px; border:1px solid var(--border); text-align:center;}
+.decision-matrix th{background:var(--panel-2); color:var(--text-1);}
+.decision-matrix td:first-child{text-align:left; font-weight:600; color:var(--text-1);}
+</style>
+</head>
+<body>
+HTMLEOF
+wc -l head.html<canvas id="particles"></canvas>
+<div id="progress-bar"></div>
+<div id="topbar">
+  <button id="sidebar-toggle" title="Toggle sidebar">☰</button>
+  <div class="brand"><span class="dot"></span> OCI Linux, Networking &amp; CLI/SDK · Day 3</div>
+  <div id="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" type="text" placeholder="Search Linux, networking, CLI topics…" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div id="score-chip">Quiz score: <b id="score-chip-val">0/0</b></div>
+  <button id="theme-toggle" title="Toggle theme">🌙</button>
+</div>
+<div id="shell">
+  <nav id="sidebar">
+    <div class="nav-group"><div class="nav-head">Module 1 · Linux Architecture</div>
+      <a class="nav-link" href="#sec-linuxarch"><span class="num">01</span>Architecture &amp; Kernel</a>
+      <a class="nav-link" href="#sec-shellterm"><span class="num">02</span>Shell Terminal Lab</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 2 · Filesystem</div>
+      <a class="nav-link" href="#sec-filesystem"><span class="num">03</span>Filesystem Explorer</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 3 · Users &amp; Permissions</div>
+      <a class="nav-link" href="#sec-users"><span class="num">04</span>Users &amp; Groups</a>
+      <a class="nav-link" href="#sec-permissions"><span class="num">05</span>Permissions, Octal &amp; chmod</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 4 · Processes &amp; Services</div>
+      <a class="nav-link" href="#sec-processes"><span class="num">06</span>Processes &amp; systemd</a>
+      <a class="nav-link" href="#sec-packages"><span class="num">07</span>Package Managers &amp; Cron</a>
+      <a class="nav-link" href="#sec-logs"><span class="num">08</span>Logs &amp; Env Variables</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 5 · Networking</div>
+      <a class="nav-link" href="#sec-osi"><span class="num">09</span>OSI vs TCP/IP</a>
+      <a class="nav-link" href="#sec-packetviz"><span class="num">10</span>Packet Visualizer</a>
+      <a class="nav-link" href="#sec-ipv4"><span class="num">11</span>IPv4, CIDR &amp; Subnetting</a>
+      <a class="nav-link" href="#sec-arprouting"><span class="num">12</span>ARP, Routing &amp; Switching</a>
+      <a class="nav-link" href="#sec-dnsdhcpnat"><span class="num">13</span>DNS, DHCP &amp; NAT</a>
+      <a class="nav-link" href="#sec-tlsssh"><span class="num">14</span>TLS/SSL, HTTPS &amp; SSH</a>
+      <a class="nav-link" href="#sec-tcpudp"><span class="num">15</span>TCP vs UDP, Firewalls &amp; LB</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 6 · Cloud Shell &amp; CLI</div>
+      <a class="nav-link" href="#sec-cloudshell"><span class="num">16</span>OCI Cloud Shell</a>
+      <a class="nav-link" href="#sec-cliauth"><span class="num">17</span>CLI Config &amp; Authentication</a>
+      <a class="nav-link" href="#sec-clisim"><span class="num">18</span>CLI Command Simulator</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 7 · REST &amp; SDK</div>
+      <a class="nav-link" href="#sec-restapi"><span class="num">19</span>REST API &amp; Status Codes</a>
+      <a class="nav-link" href="#sec-sdk"><span class="num">20</span>SDK, Signing &amp; Comparison</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 8 · Hands-On Lab</div>
+      <a class="nav-link" href="#sec-console3"><span class="num">21</span>Console Simulator</a>
+      <a class="nav-link" href="#sec-terminal3"><span class="num">22</span>Linux + CLI Terminal</a>
+      <a class="nav-link" href="#sec-troubleshoot3"><span class="num">23</span>Troubleshooting Lab</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Wrap-Up</div>
+      <a class="nav-link" href="#sec-cheatsheet3"><span class="num">24</span>Cheat Sheets</a>
+      <a class="nav-link" href="#sec-flashcards3"><span class="num">25</span>Flash Cards</a>
+      <a class="nav-link" href="#sec-quiz3"><span class="num">26</span>Certification Quiz</a>
+      <a class="nav-link" href="#sec-cert3"><span class="num">27</span>Certificate Preview</a>
+    </div>
+  </nav>
+  <main>
+    <section id="hero">
+      <span class="eyebrow">● Oracle Cloud Infrastructure — Linux, Networking &amp; CLI Track</span>
+      <h1>Day 3: Inside the box,<br>across the <span class="accent">wire.</span></h1>
+      <p class="lede">Linux internals, permissions, processes, full networking fundamentals, OCI Cloud Shell, CLI, REST APIs and SDKs — with a real-feeling terminal instead of static diagrams.</p>
+      <div class="hero-stats">
+        <div class="hstat"><b>30</b><span>Interactive sections</span></div>
+        <div class="hstat"><b id="hero-quiz-count">20</b><span>Certification MCQs</span></div>
+        <div class="hstat"><b>10</b><span>Live simulators</span></div>
+        <div class="hstat"><b id="hero-progress">0%</b><span>Your progress</span></div>
+      </div>
+      <div class="cta-row">
+        <a href="#sec-linuxarch" class="btn btn-primary">Start learning →</a>
+        <a href="#sec-quiz3" class="btn btn-ghost">Jump to certification quiz</a>
+      </div>
+    </section>
+    <div class="container">
+<!-- 01 LINUX ARCHITECTURE -->
+<section class="chapter reveal" id="sec-linuxarch">
+  <div class="chapter-kicker"><span class="idx">01</span><span class="track">Linux Architecture</span></div>
+  <h2>Linux Architecture &amp; Kernel</h2>
+  <p class="dek">Linux began in 1991 as Linus Torvalds' hobby kernel, paired with GNU userland tools to form a complete OS. Oracle Linux, Ubuntu, RHEL, CentOS, and Debian are all distributions built around this same kernel.</p>
+  <p>Click each layer, bottom to top, to see what it does.</p>
+  <div class="arch-stack" id="arch-stack">
+    <div class="arch-layer" data-l="hardware">Hardware</div>
+    <div class="arch-layer" data-l="kernel">Kernel</div>
+    <div class="arch-layer" data-l="shell">Shell</div>
+    <div class="arch-layer" data-l="applications">Applications</div>
+    <div class="arch-layer" data-l="user">User</div>
+  </div>
+  <div class="arch-detail" id="arch-detail">Click a layer above to see its role, from Hardware at the bottom to the User at the top.</div>
+  <h3>What the kernel actually manages</h3>
+  <div class="grid grid-4">
+    <div class="card"><h4>⏱ Process Scheduling</h4><p>Decides which process runs on which CPU core, and for how long.</p></div>
+    <div class="card"><h4>🧠 Memory Management</h4><p>Allocates and isolates RAM between processes via virtual memory.</p></div>
+    <div class="card"><h4>📁 File System</h4><p>Presents devices and storage as a unified directory tree.</p></div>
+    <div class="card"><h4>🌐 Networking &amp; Drivers</h4><p>Handles the network stack and talks to hardware via drivers, servicing system calls and interrupts from user space.</p></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Oracle Linux is built to be a drop-in, ABI-compatible alternative to RHEL, and offers the free Unbreakable Enterprise Kernel (UEK) — a common exam distinction point vs stock RHEL/CentOS.</div></div>
+</section>
+
+<!-- 02 SHELL TERMINAL LAB -->
+<section class="chapter reveal" id="sec-shellterm">
+  <div class="chapter-kicker"><span class="idx">02</span><span class="track">Linux Architecture</span></div>
+  <h2>Shell Terminal Lab</h2>
+  <p class="dek">The shell is your interface to the kernel. Try real commands below — this is a genuine simulated filesystem, not scripted text.</p>
+  <div class="terminal">
+    <div class="terminal-tb">bash — oracle-linux-9 — simulator</div>
+    <div id="shell-out"></div>
+    <div class="term-input-row"><span id="shell-prompt-span">[user@oci ~]$</span><input id="shell-input" type="text" autocomplete="off"></div>
+  </div>
+  <p class="small mt-lg">Try: <span class="mono">pwd, ls, ls -la, cd docs, mkdir project, touch notes.txt, cat notes.txt, rm notes.txt, mv, cp, whoami, hostname, date, echo hello, history, clear</span></p>
+</section>
+
+<!-- 03 FILESYSTEM EXPLORER -->
+<section class="chapter reveal" id="sec-filesystem">
+  <div class="chapter-kicker"><span class="idx">03</span><span class="track">Filesystem</span></div>
+  <h2>Filesystem Hierarchy Standard</h2>
+  <p class="dek">Every Linux distribution organizes itself under this same tree, rooted at <span class="mono">/</span>. Click a folder for what belongs there.</p>
+  <div class="panel">
+    <div class="fs-tree" id="fs-tree"></div>
+    <div class="fs-detail" id="fs-detail">Click a directory above.</div>
+  </div>
+</section>
+
+<!-- 05 USERS & GROUPS -->
+<section class="chapter reveal" id="sec-users">
+  <div class="chapter-kicker"><span class="idx">04</span><span class="track">Users &amp; Permissions</span></div>
+  <h2>Users &amp; Groups</h2>
+  <p class="dek">Every process runs as a UID/GID. root (UID 0) bypasses permission checks entirely — sudo grants temporary root-equivalent access.</p>
+  <div class="grid grid-4">
+    <div class="card"><h4>UID / GID</h4><p>Numeric identifiers for a user and its primary group.</p></div>
+    <div class="card"><h4>Home Directory</h4><p>Default working directory, usually <span class="mono">/home/&lt;user&gt;</span>.</p></div>
+    <div class="card"><h4>Login Shell</h4><p>The program started on login, typically <span class="mono">/bin/bash</span>.</p></div>
+    <div class="card"><h4>sudo</h4><p>Grants a normal user temporary elevated privileges, logged and auditable — safer than sharing the root password.</p></div>
+  </div>
+  <h3>Linux user manager</h3>
+  <div class="console-sim">
+    <div class="console-tb"><div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="small mono">/etc/passwd — user management</span></div>
+    <div class="console-main" style="padding:16px;">
+      <div class="console-toolbar">
+        <input class="mini-input" id="lu-new-name" placeholder="new username" style="flex:1;">
+        <button class="chip-btn active" id="lu-add-btn">＋ Create User</button>
+      </div>
+      <table class="console-table"><thead><tr><th>User</th><th>UID</th><th>Group</th><th>Home</th><th>Status</th><th></th></tr></thead><tbody id="lu-tbody"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- 06 PERMISSIONS, OCTAL & CHMOD -->
+<section class="chapter reveal" id="sec-permissions">
+  <div class="chapter-kicker"><span class="idx">05</span><span class="track">Users &amp; Permissions</span></div>
+  <h2>Permissions, Octal &amp; chmod Visualizer</h2>
+  <p class="dek">Toggle read/write/execute for owner, group, and others — the octal and chmod command update live.</p>
+  <div class="panel">
+    <div class="perm-grid" id="perm-grid">
+      <div class="ph"></div><div class="ph">Read</div><div class="ph">Write</div><div class="ph">Execute</div>
+    </div>
+    <div class="chmod-output" id="chmod-output"># chmod 644 notes.txt</div>
+    <div class="octal-badges">
+      <div class="octal-badge">Owner: <span id="oct-owner">6</span></div>
+      <div class="octal-badge">Group: <span id="oct-group">4</span></div>
+      <div class="octal-badge">Others: <span id="oct-others">4</span></div>
+    </div>
+    <p class="small mt-lg" id="perm-symbolic">Symbolic: <span class="mono">-rw-r--r--</span></p>
+  </div>
+  <table class="cmp mt-lg">
+    <tr><th>Octal</th><th>Symbolic</th><th>Common use</th></tr>
+    <tr><td>400</td><td>-r--------</td><td>Read-only, owner only — private keys</td></tr>
+    <tr><td>600</td><td>-rw-------</td><td>Owner read/write only — SSH private keys, secrets</td></tr>
+    <tr><td>644</td><td>-rw-r--r--</td><td>Standard file — owner edits, others read</td></tr>
+    <tr><td>700</td><td>drwx------</td><td>Private directory, owner only</td></tr>
+    <tr><td>755</td><td>drwxr-xr-x</td><td>Standard directory / executable script</td></tr>
+    <tr><td>777</td><td>drwxrwxrwx</td><td>⚠ Everyone can read, write, execute — almost never correct</td></tr>
+  </table>
+</section>
+
+<!-- 08 PROCESSES & SYSTEMD -->
+<section class="chapter reveal" id="sec-processes">
+  <div class="chapter-kicker"><span class="idx">06</span><span class="track">Processes &amp; Services</span></div>
+  <h2>Processes &amp; systemd</h2>
+  <p class="dek">Every running program is a process with a PID and a parent PPID. systemd manages long-running services.</p>
+  <div class="grid grid-4">
+    <div class="card"><h4>Foreground</h4><p>Occupies the terminal, blocking further input until it exits.</p></div>
+    <div class="card"><h4>Background</h4><p>Runs detached from the terminal, launched with a trailing <span class="mono">&amp;</span>.</p></div>
+    <div class="card"><h4>Zombie</h4><p>Finished but not yet reaped by its parent — still holds a PID entry.</p></div>
+    <div class="card"><h4>Daemon</h4><p>A background service with no controlling terminal, usually started at boot.</p></div>
+  </div>
+  <h3>Process manager</h3>
+  <div class="panel">
+    <button class="chip-btn active" id="proc-spawn">▶ Run new process</button>
+    <table class="proc-table mt-lg"><thead><tr><th>PID</th><th>PPID</th><th>Command</th><th>State</th><th>CPU%</th><th></th></tr></thead><tbody id="proc-tbody"></tbody></table>
+  </div>
+  <h3>systemd service dashboard</h3>
+  <div class="panel" id="systemd-panel"></div>
+</section>
+
+<!-- 09 PACKAGE MANAGERS & CRON -->
+<section class="chapter reveal" id="sec-packages">
+  <div class="chapter-kicker"><span class="idx">07</span><span class="track">Processes &amp; Services</span></div>
+  <h2>Package Managers &amp; Cron</h2>
+  <p class="dek">Oracle Linux / RHEL / CentOS use <span class="mono">yum</span>/<span class="mono">dnf</span>; Debian/Ubuntu use <span class="mono">apt</span>.</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" data-pm="dnf">dnf (Oracle Linux/RHEL)</button>
+      <button class="chip-btn" data-pm="apt">apt (Ubuntu/Debian)</button>
+    </div>
+    <div style="display:flex; gap:8px; margin:12px 0; flex-wrap:wrap;">
+      <input class="mini-input" id="pkg-name" placeholder="package name, e.g. nginx" style="flex:1;">
+      <button class="chip-btn active" data-action="install">Install</button>
+      <button class="chip-btn" data-action="update">Update</button>
+      <button class="chip-btn" data-action="remove">Remove</button>
+    </div>
+    <div class="terminal" style="max-width:100%;"><div id="pkg-out" style="padding:14px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; min-height:60px; white-space:pre-wrap;"></div></div>
+  </div>
+  <h3>Cron scheduler</h3>
+  <div class="panel">
+    <p class="mono" style="color:var(--blue);">*/15 * * * * /opt/scripts/backup.sh</p>
+    <p class="small">minute · hour · day-of-month · month · day-of-week</p>
+    <div style="display:flex; gap:8px; margin:12px 0; flex-wrap:wrap;">
+      <input class="mini-input" id="cron-input" value="*/15 * * * *" style="flex:1; font-family:var(--font-mono);">
+      <button class="chip-btn active" id="cron-preview">Preview next 5 runs</button>
+    </div>
+    <div class="flow-steps" id="cron-timeline"></div>
+  </div>
+</section>
+
+<!-- 10 LOGS & ENV VARIABLES -->
+<section class="chapter reveal" id="sec-logs">
+  <div class="chapter-kicker"><span class="idx">08</span><span class="track">Processes &amp; Services</span></div>
+  <h2>Log Files &amp; Environment Variables</h2>
+  <p class="dek">Live troubleshooting starts with logs, and every shell session carries environment context.</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" data-logcmd="journalctl -u nginx">journalctl -u nginx</button>
+      <button class="chip-btn" data-logcmd="tail -f /var/log/messages">tail -f /var/log/messages</button>
+      <button class="chip-btn" data-logcmd="grep ERROR /var/log/app.log">grep ERROR /var/log/app.log</button>
+    </div>
+    <div class="terminal" style="max-width:100%;"><div id="log-out" style="padding:14px; font-family:var(--font-mono); font-size:12px; color:#c9f7d8; min-height:100px; white-space:pre-wrap;"></div></div>
+  </div>
+  <h3>Environment variables</h3>
+  <table class="cmp">
+    <tr><th>Variable</th><th>Example value</th><th>Purpose</th></tr>
+    <tr><td class="mono">PATH</td><td class="mono" id="env-path">/usr/local/bin:/usr/bin:/bin</td><td>Directories searched for executables</td></tr>
+    <tr><td class="mono">HOME</td><td class="mono">/home/opc</td><td>Current user's home directory</td></tr>
+    <tr><td class="mono">USER</td><td class="mono">opc</td><td>Currently logged-in username</td></tr>
+    <tr><td class="mono">SHELL</td><td class="mono">/bin/bash</td><td>Default login shell</td></tr>
+  </table>
+  <div style="display:flex; gap:8px; margin-top:10px;">
+    <input class="mini-input" id="env-append" placeholder="/opt/myapp/bin" style="flex:1;">
+    <button class="chip-btn active" id="env-append-btn">Append to PATH</button>
+  </div>
+</section>
+
+<!-- 12 OSI vs TCP/IP -->
+<section class="chapter reveal" id="sec-osi">
+  <div class="chapter-kicker"><span class="idx">09</span><span class="track">Networking</span></div>
+  <h2>OSI Model vs TCP/IP Model</h2>
+  <p class="dek">Click each OSI layer, bottom to top, to see what happens there.</p>
+  <div class="osi-stack" id="osi-stack">
+    <div class="osi-layer" data-o="physical">1 · Physical</div>
+    <div class="osi-layer" data-o="datalink">2 · Data Link</div>
+    <div class="osi-layer" data-o="network">3 · Network</div>
+    <div class="osi-layer" data-o="transport">4 · Transport</div>
+    <div class="osi-layer" data-o="session">5 · Session</div>
+    <div class="osi-layer" data-o="presentation">6 · Presentation</div>
+    <div class="osi-layer" data-o="application">7 · Application</div>
+  </div>
+  <div class="arch-detail" id="osi-detail">Click a layer above, starting from Physical.</div>
+  <div class="osi-tcpip-compare">
+    <div class="card"><h4>OSI (7 layers)</h4><p>Conceptual, granular — used for teaching and troubleshooting terminology ("Layer 3 issue", "Layer 7 firewall").</p></div>
+    <div class="card"><h4>TCP/IP (4 layers)</h4><p>Application · Transport · Internet · Network Access — what's actually implemented in real stacks, including the internet.</p></div>
+  </div>
+</section>
+
+<!-- 13 PACKET VISUALIZER -->
+<section class="chapter reveal" id="sec-packetviz">
+  <div class="chapter-kicker"><span class="idx">10</span><span class="track">Networking</span></div>
+  <h2>Packet Visualizer</h2>
+  <p class="dek">Watch a request travel from client to server and back.</p>
+  <div class="panel">
+    <div class="packet-path" id="packet-path">
+      <div class="line"></div>
+      <div class="node" style="left:0%;">💻 Client</div>
+      <div class="node" style="left:23%;">🔀 Switch</div>
+      <div class="node" style="left:46%;">📡 Router</div>
+      <div class="node" style="left:69%;">🌐 Internet</div>
+      <div class="node" style="left:88%;">🖥 Server</div>
+      <div class="packet-dot" id="packet-dot" style="left:0%;"></div>
+    </div>
+    <div class="center"><button class="chip-btn active" id="packet-play">▶ Send request</button></div>
+    <p class="small center mt-lg" id="packet-msg">Click play to send a packet from client to server and watch the return path.</p>
+  </div>
+</section>
+
+<!-- 14 IPv4, CIDR & SUBNETTING -->
+<section class="chapter reveal" id="sec-ipv4">
+  <div class="chapter-kicker"><span class="idx">11</span><span class="track">Networking</span></div>
+  <h2>IPv4 Addressing, CIDR &amp; Subnetting</h2>
+  <p class="dek">Enter an IP and prefix length — every derived value updates live.</p>
+  <div class="panel">
+    <div class="ip-octets">
+      <input type="number" min="0" max="255" value="10" id="ip-o1"><span>.</span>
+      <input type="number" min="0" max="255" value="0" id="ip-o2"><span>.</span>
+      <input type="number" min="0" max="255" value="1" id="ip-o3"><span>.</span>
+      <input type="number" min="0" max="255" value="0" id="ip-o4">
+      <span>/</span><input type="number" min="1" max="32" value="24" id="ip-prefix" style="width:50px;">
+    </div>
+    <input type="range" min="8" max="30" value="24" id="ip-prefix-slider" class="cidr-slider">
+    <div class="ip-result-grid" id="ip-results"></div>
+    <p class="small mt-lg" id="ip-class-info"></p>
+  </div>
+  <table class="cmp mt-lg">
+    <tr><th>Range</th><th>Type</th></tr>
+    <tr><td>10.0.0.0 – 10.255.255.255</td><td>Private (RFC 1918)</td></tr>
+    <tr><td>172.16.0.0 – 172.31.255.255</td><td>Private (RFC 1918)</td></tr>
+    <tr><td>192.168.0.0 – 192.168.255.255</td><td>Private (RFC 1918)</td></tr>
+    <tr><td>127.0.0.0/8</td><td>Loopback</td></tr>
+    <tr><td>224.0.0.0 – 239.255.255.255</td><td>Multicast</td></tr>
+  </table>
+</section>
+
+<!-- 15 ARP, ROUTING & SWITCHING -->
+<section class="chapter reveal" id="sec-arprouting">
+  <div class="chapter-kicker"><span class="idx">12</span><span class="track">Networking</span></div>
+  <h2>ARP, Routing &amp; Switching</h2>
+  <p class="dek">Three mechanisms that get a packet from A to B on a local and routed network.</p>
+  <div class="grid grid-3">
+    <div class="card"><h4>🔍 ARP</h4><p>Resolves an IP address to a MAC address on the local segment before a frame can be sent.</p><button class="chip-btn active mt-lg" id="arp-run">Resolve 10.0.1.5</button><p class="small mt-lg" id="arp-result"></p></div>
+    <div class="card"><h4>📡 Routing</h4><p>A router forwards packets between networks using its routing table.</p>
+      <table class="console-table mt-lg"><tr><th>Destination</th><th>Next Hop</th></tr><tr><td>10.0.1.0/24</td><td>local</td></tr><tr><td>0.0.0.0/0</td><td>10.0.0.1 (default)</td></tr></table>
+    </div>
+    <div class="card"><h4>🔀 Switching</h4><p>A switch forwards frames within a segment using a learned MAC address table.</p>
+      <table class="console-table mt-lg" id="mac-table"></table>
+    </div>
+  </div>
+</section>
+
+<!-- 16 DNS, DHCP & NAT -->
+<section class="chapter reveal" id="sec-dnsdhcpnat">
+  <div class="chapter-kicker"><span class="idx">13</span><span class="track">Networking</span></div>
+  <h2>DNS, DHCP &amp; NAT</h2>
+  <h3>DNS resolution</h3>
+  <div class="panel">
+    <div class="flow-steps" id="dns-flow"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="dns-play">▶ Resolve example.com</button></div>
+  </div>
+  <h3>DHCP lease</h3>
+  <div class="panel mt-lg">
+    <div class="flow-steps" id="dhcp-flow"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="dhcp-play">▶ Request an IP (DORA)</button></div>
+  </div>
+  <h3>NAT translation table</h3>
+  <div class="panel mt-lg">
+    <button class="chip-btn active" id="nat-add">＋ New outbound connection</button>
+    <table class="nat-table"><thead><tr><th>Private IP:Port</th><th>Public IP:Port</th><th>Destination</th></tr></thead><tbody id="nat-tbody"></tbody></table>
+  </div>
+</section>
+
+<!-- 17 TLS/SSL, HTTPS & SSH -->
+<section class="chapter reveal" id="sec-tlsssh">
+  <div class="chapter-kicker"><span class="idx">14</span><span class="track">Networking</span></div>
+  <h2>TLS/SSL, HTTP vs HTTPS &amp; SSH</h2>
+  <h3>TLS handshake</h3>
+  <div class="panel">
+    <div class="flow-steps" id="tls-flow"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="tls-play">▶ Animate handshake</button></div>
+  </div>
+  <div class="grid grid-2 mt-lg">
+    <div class="card"><h4>HTTP</h4><p>Plaintext — port 80. Anyone on the path can read or modify the traffic.</p></div>
+    <div class="card"><h4>HTTPS</h4><p>HTTP wrapped in TLS — port 443. Confidentiality and integrity in transit, and server authenticity via certificates.</p></div>
+  </div>
+  <h3>SSH secure connection</h3>
+  <div class="panel mt-lg">
+    <div class="flow-steps" id="ssh-flow"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="ssh-play">▶ Connect via SSH key</button></div>
+  </div>
+  <h3>ICMP: ping &amp; traceroute</h3>
+  <div class="panel mt-lg">
+    <button class="chip-btn active" id="ping-run">ping 8.8.8.8</button>
+    <button class="chip-btn" id="trace-run">traceroute 8.8.8.8</button>
+    <div class="terminal mt-lg" style="max-width:100%;"><div id="icmp-out" style="padding:14px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; min-height:80px; white-space:pre-wrap;"></div></div>
+  </div>
+</section>
+
+<!-- 18 TCP vs UDP, FIREWALLS & LB -->
+<section class="chapter reveal" id="sec-tcpudp">
+  <div class="chapter-kicker"><span class="idx">15</span><span class="track">Networking</span></div>
+  <h2>TCP vs UDP, Firewalls &amp; Load Balancing</h2>
+  <table class="cmp">
+    <tr><th></th><th>TCP</th><th>UDP</th></tr>
+    <tr><td>Connection</td><td>Connection-oriented (3-way handshake)</td><td>Connectionless</td></tr>
+    <tr><td>Reliability</td><td>Guaranteed delivery, retransmission</td><td>Best-effort, no retransmission</td></tr>
+    <tr><td>Ordering</td><td>In-order delivery</td><td>No ordering guarantee</td></tr>
+    <tr><td>Latency</td><td>Higher (handshake + acks)</td><td>Lower</td></tr>
+    <tr><td>Use cases</td><td>HTTP, SSH, databases</td><td>DNS queries, video streaming, VoIP</td></tr>
+  </table>
+  <h3>Stateful vs stateless firewall</h3>
+  <div class="panel">
+    <div class="cost-filters"><button class="chip-btn active" data-fw="stateful">Stateful</button><button class="chip-btn" data-fw="stateless">Stateless</button></div>
+    <p class="small mt-lg" id="fw-desc"></p>
+    <button class="chip-btn active mt-lg" id="fw-test">Test: allow return traffic for an established connection</button>
+    <p class="small mt-lg" id="fw-result"></p>
+  </div>
+  <h3>Load balancer traffic simulator</h3>
+  <div class="panel mt-lg">
+    <div class="cost-filters"><button class="chip-btn active" data-lb="rr">Round Robin</button><button class="chip-btn" data-lb="lc">Least Connections</button><button class="chip-btn" data-lb="ih">IP Hash</button></div>
+    <button class="chip-btn active mt-lg" id="lb-send">Send 6 requests</button>
+    <div class="grid grid-3 mt-lg" id="lb-backends"></div>
+  </div>
+</section>
+<!-- 19 OCI CLOUD SHELL -->
+<section class="chapter reveal" id="sec-cloudshell">
+  <div class="chapter-kicker"><span class="idx">16</span><span class="track">Cloud Shell &amp; CLI</span></div>
+  <h2>OCI Cloud Shell</h2>
+  <p class="dek">A browser-based terminal with the OCI CLI pre-authenticated and 5GB of persistent storage per region — no local install required.</p>
+  <div class="cloudshell">
+    <div class="cloudshell-tb"><span>Cloud Shell — region: us-ashburn-1</span><span class="cs-actions"><span>⬆ Upload</span><span>⬇ Download</span><span>📝 Editor</span></span></div>
+    <div id="cs-out" style="padding:14px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; min-height:180px; white-space:pre-wrap;"></div>
+    <div class="term-input-row"><span>$</span><input id="cs-input" type="text" placeholder="try: oci os ns get" autocomplete="off"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Cloud Shell sessions time out after a period of inactivity, but the 5GB home directory persists across sessions — code and config survive even though the compute behind it doesn't.</div></div>
+</section>
+
+<!-- 20 CLI CONFIG & AUTHENTICATION -->
+<section class="chapter reveal" id="sec-cliauth">
+  <div class="chapter-kicker"><span class="idx">17</span><span class="track">Cloud Shell &amp; CLI</span></div>
+  <h2>CLI Configuration &amp; Authentication</h2>
+  <p class="dek">The CLI reads <span class="mono">~/.oci/config</span> for a profile's region, user, and key fingerprint.</p>
+  <div class="config-editor">
+[<span class="cv">DEFAULT</span>]
+<span class="ck">user</span>=<span class="cv">ocid1.user.oc1..aaaaaaaa...</span>
+<span class="ck">fingerprint</span>=<span class="cv">a1:b2:c3:d4:e5:f6:...</span>
+<span class="ck">key_file</span>=<span class="cv">~/.oci/oci_api_key.pem</span>
+<span class="ck">tenancy</span>=<span class="cv">ocid1.tenancy.oc1..aaaaaaaa...</span>
+<span class="ck">region</span>=<span class="cv">us-ashburn-1</span> <span class="cc"># default profile</span>
+  </div>
+  <h3>Authentication methods</h3>
+  <div class="grid grid-2 mt-lg">
+    <div class="card"><h4>API Keys / Config File</h4><p>A local RSA key pair; fingerprint + private key referenced from <span class="mono">~/.oci/config</span>. Best for CLI/SDK use from your own machine.</p></div>
+    <div class="card"><h4>Session Token</h4><p>Short-lived token from an SSO login (<span class="mono">oci session authenticate</span>) — no long-lived key on disk.</p></div>
+    <div class="card"><h4>Instance Principal</h4><p>A compute instance authenticates as itself, no embedded credentials — ideal for code running on OCI compute.</p></div>
+    <div class="card"><h4>Resource Principal / Dynamic Group</h4><p>Non-compute resources (like Functions) authenticate via a Dynamic Group's matching rule, scoped by IAM policy.</p></div>
+  </div>
+  <h3>CLI troubleshooting</h3>
+  <div class="panel mt-lg">
+    <div class="cost-filters" id="clierr-btns">
+      <button class="chip-btn active" data-clierr="notauth">NotAuthorizedOrNotFound</button>
+      <button class="chip-btn" data-clierr="invalidconfig">Invalid config file</button>
+      <button class="chip-btn" data-clierr="sigerror">Signature error</button>
+      <button class="chip-btn" data-clierr="missingregion">Missing region</button>
+      <button class="chip-btn" data-clierr="expiredkey">Expired/revoked key</button>
+    </div>
+    <p class="mono mt-lg" style="color:var(--red-bright);" id="clierr-text"></p>
+    <p class="small mt-lg" id="clierr-fix"></p>
+  </div>
+</section>
+
+<!-- 21 CLI COMMAND SIMULATOR -->
+<section class="chapter reveal" id="sec-clisim">
+  <div class="chapter-kicker"><span class="idx">18</span><span class="track">Cloud Shell &amp; CLI</span></div>
+  <h2>CLI Command Simulator</h2>
+  <p class="dek">Build a command using <span class="mono">oci &lt;service&gt; &lt;resource&gt; &lt;action&gt;</span> and run it.</p>
+  <div class="panel">
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <select class="mini-input" id="clibuild-service"><option value="iam">iam</option><option value="compute">compute</option><option value="network">network</option><option value="os">os</option></select>
+      <select class="mini-input" id="clibuild-resource"></select>
+      <select class="mini-input" id="clibuild-action"><option value="list">list</option><option value="get">get</option></select>
+      <button class="chip-btn active" id="clibuild-run">▶ Run</button>
+    </div>
+    <p class="mono mt-lg" style="color:var(--blue);" id="clibuild-preview">oci iam user list</p>
+    <div class="terminal mt-lg" style="max-width:100%;"><div id="clibuild-out" style="padding:14px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; min-height:80px; white-space:pre-wrap;"></div></div>
+  </div>
+</section>
+
+<!-- 22 REST API & STATUS CODES -->
+<section class="chapter reveal" id="sec-restapi">
+  <div class="chapter-kicker"><span class="idx">19</span><span class="track">REST &amp; SDK</span></div>
+  <h2>REST API &amp; Status Codes</h2>
+  <p class="dek">The Console, CLI, and SDKs are all thin wrappers around the same REST API.</p>
+  <div class="rest-client">
+    <div class="rest-url-row">
+      <span class="rest-method active-get" data-m="GET">GET</span>
+      <span class="rest-method" data-m="POST">POST</span>
+      <span class="rest-method" data-m="DELETE">DELETE</span>
+      <input class="mini-input" id="rest-url" value="/20160918/instances?compartmentId=ocid1.compartment..." style="flex:1;">
+      <button class="chip-btn active" id="rest-send">Send</button>
+    </div>
+    <div class="rest-response" id="rest-response">Click Send to see a simulated response.</div>
+  </div>
+  <h3>Status codes</h3>
+  <div class="status-code-grid mt-lg" id="status-grid"></div>
+  <div class="cia-detail mt-lg" id="status-detail">Click a status code above.</div>
+</section>
+
+<!-- 23 SDK, SIGNING & COMPARISON -->
+<section class="chapter reveal" id="sec-sdk">
+  <div class="chapter-kicker"><span class="idx">20</span><span class="track">REST &amp; SDK</span></div>
+  <h2>OCI SDKs, Request Signing &amp; Comparison</h2>
+  <p class="dek">Official SDKs exist for Python, Java, Go, .NET, Node.js, and Ruby — pick your language below.</p>
+  <div class="cost-filters" id="sdk-lang-btns">
+    <button class="chip-btn active" data-lang="python">Python</button><button class="chip-btn" data-lang="java">Java</button>
+    <button class="chip-btn" data-lang="go">Go</button><button class="chip-btn" data-lang="node">Node.js</button>
+  </div>
+  <div class="policy-editor" id="sdk-code" style="margin-top:12px;"></div>
+
+  <h3>Request signing</h3>
+  <div class="panel mt-lg">
+    <div class="flow-steps" id="signing-flow"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="signing-play">▶ Animate signing</button></div>
+  </div>
+
+  <h3>Console vs CLI vs SDK vs API</h3>
+  <table class="decision-matrix mt-lg">
+    <tr><th></th><th>Console</th><th>CLI</th><th>SDK</th><th>REST API</th></tr>
+    <tr><td>Best for</td><td>Exploration, one-offs</td><td>Scripting, automation</td><td>Application integration</td><td>Custom tooling, any language</td></tr>
+    <tr><td>Learning curve</td><td>Lowest</td><td>Low</td><td>Medium</td><td>Highest</td></tr>
+    <tr><td>Automatable</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Auth handling</td><td>Browser session</td><td>Config file</td><td>Config file / instance principal</td><td>Manual request signing</td></tr>
+  </table>
+</section>
+<!-- 24 CONSOLE SIMULATOR -->
+<section class="chapter reveal" id="sec-console3">
+  <div class="chapter-kicker"><span class="idx">21</span><span class="track">Hands-On Lab</span></div>
+  <h2>OCI Console Simulator</h2>
+  <p class="dek">A simplified Compute/Networking console.</p>
+  <div class="console-sim">
+    <div class="console-tb"><div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="small mono">console.oracle-simulator.local/compute</span></div>
+    <div class="console-body">
+      <div class="console-nav">
+        <div class="active" data-panel3="instances">🖥 Instances</div>
+        <div data-panel3="vcns">🌐 VCNs</div>
+        <div data-panel3="storage3">💾 Block Volumes</div>
+      </div>
+      <div class="console-main">
+        <div class="console-panel3" id="panel3-instances">
+          <table class="console-table"><thead><tr><th>Name</th><th>Shape</th><th>Public IP</th><th>State</th></tr></thead>
+          <tbody><tr><td>web-vm-01</td><td>VM.Standard.E4.Flex</td><td>140.238.10.5</td><td><span class="status-pill active">Running</span></td></tr>
+          <tr><td>batch-vm-01</td><td>VM.Standard.E4.Flex</td><td>—</td><td><span class="status-pill active">Running</span></td></tr></tbody></table>
+        </div>
+        <div class="console-panel3" id="panel3-vcns" style="display:none;">
+          <table class="console-table"><thead><tr><th>VCN</th><th>CIDR</th><th>Subnets</th></tr></thead>
+          <tbody><tr><td>prod-vcn</td><td>10.0.0.0/16</td><td>3</td></tr></tbody></table>
+        </div>
+        <div class="console-panel3" id="panel3-storage3" style="display:none;">
+          <table class="console-table"><thead><tr><th>Volume</th><th>Size</th><th>Attached To</th></tr></thead>
+          <tbody><tr><td>web-vm-01-boot</td><td>50 GB</td><td>web-vm-01</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 25 LINUX + CLI TERMINAL -->
+<section class="chapter reveal" id="sec-terminal3">
+  <div class="chapter-kicker"><span class="idx">22</span><span class="track">Hands-On Lab</span></div>
+  <h2>Linux + OCI CLI Terminal</h2>
+  <p class="dek">Combined terminal — supports both Linux commands and <span class="mono">oci</span> CLI calls.</p>
+  <div class="terminal">
+    <div class="terminal-tb">bash + oci-cli — simulator</div>
+    <div id="term-out3"></div>
+    <div class="term-input-row"><span>$</span><input id="term-input3" type="text" placeholder="type: help" autocomplete="off"></div>
+  </div>
+  <p class="small mt-lg">Try: <span class="mono">help, pwd, ls, top, journalctl, oci compute instance list, oci network vcn list, oci iam compartment list, clear</span></p>
+</section>
+
+<!-- 26 TROUBLESHOOTING LAB -->
+<section class="chapter reveal" id="sec-troubleshoot3">
+  <div class="chapter-kicker"><span class="idx">23</span><span class="track">Hands-On Lab</span></div>
+  <h2>Troubleshooting Lab</h2>
+  <p class="dek">Pick a failure scenario across Linux, networking, and API layers.</p>
+  <div class="cost-filters" id="ts3-case-btns">
+    <button class="chip-btn active" data-case3="dns">DNS Failure</button>
+    <button class="chip-btn" data-case3="routing">Routing Issue</button>
+    <button class="chip-btn" data-case3="subnet">Subnet Error</button>
+    <button class="chip-btn" data-case3="firewall">Firewall Block</button>
+    <button class="chip-btn" data-case3="tls">TLS Failure</button>
+    <button class="chip-btn" data-case3="api">API 401 Error</button>
+  </div>
+  <div class="panel" id="ts3-panel"></div>
+</section>
+
+<!-- 27 CHEAT SHEETS -->
+<section class="chapter reveal" id="sec-cheatsheet3">
+  <div class="chapter-kicker"><span class="idx">24</span><span class="track">Wrap-Up</span></div>
+  <h2>Cheat Sheets</h2>
+  <div class="grid grid-2">
+    <div class="card"><h4>Linux</h4><ul style="margin-left:16px;"><li>rwx = 4+2+1; owner-group-others</li><li>chmod 777 = world-writable, avoid</li><li>Zombie = finished, not yet reaped by parent</li></ul></div>
+    <div class="card"><h4>Networking</h4><ul style="margin-left:16px;"><li>TCP = reliable/ordered; UDP = fast/best-effort</li><li>/24 = 256 addresses, 254 usable hosts</li><li>DNS: Browser → Cache → Root → TLD → Authoritative</li></ul></div>
+    <div class="card"><h4>CLI</h4><ul style="margin-left:16px;"><li>oci &lt;service&gt; &lt;resource&gt; &lt;action&gt;</li><li>Config lives at ~/.oci/config</li><li>Instance principals need no embedded key</li></ul></div>
+    <div class="card"><h4>API / SDK</h4><ul style="margin-left:16px;"><li>2xx success · 4xx client error · 5xx server error</li><li>429 = rate limited; back off and retry</li><li>Console/CLI/SDK are all wrappers over the same REST API</li></ul></div>
+  </div>
+  <table class="cmp mt-lg"><tr><th>Command Reference</th></tr>
+    <tr><td class="mono">oci os ns get</td></tr><tr><td class="mono">oci iam user list</td></tr>
+    <tr><td class="mono">oci iam compartment list</td></tr><tr><td class="mono">oci compute instance list</td></tr>
+    <tr><td class="mono">oci network vcn list</td></tr></table>
+</section>
+
+<!-- 28 FLASHCARDS -->
+<section class="chapter reveal" id="sec-flashcards3">
+  <div class="chapter-kicker"><span class="idx">25</span><span class="track">Wrap-Up</span></div>
+  <h2>Flash Cards</h2>
+  <p class="dek">Click a card to flip it.</p>
+  <div class="flash-wrap" id="flash-wrap3"></div>
+</section>
+
+<!-- 29 QUIZ -->
+<section class="chapter reveal" id="sec-quiz3">
+  <div class="chapter-kicker"><span class="idx">26</span><span class="track">Wrap-Up</span></div>
+  <h2>Certification Readiness Quiz</h2>
+  <p class="dek">20 scenario-style questions.</p>
+  <div id="quiz-wrap3"></div>
+  <div class="panel center mt-lg"><p>Your score: <b id="quiz-final-score3" style="color:var(--red-bright); font-family:var(--font-display); font-size:20px;">0 / 20</b></p></div>
+</section>
+
+<!-- 30 CERTIFICATE -->
+<section class="chapter reveal" id="sec-cert3">
+  <div class="chapter-kicker"><span class="idx">27</span><span class="track">Wrap-Up</span></div>
+  <h2>Completion &amp; Certificate Preview</h2>
+  <div class="center" style="padding:20px 0 40px;">
+    <div class="badge-circle" id="badge-circle3"><span id="badge-pct3">0%</span></div>
+    <h3 id="badge-title3">Keep going</h3>
+    <p class="small" id="badge-sub3">Complete every section and the quiz to preview your certificate.</p>
+  </div>
+  <div class="cert-frame">
+    <p class="small">ORACLE CLOUD INFRASTRUCTURE</p>
+    <h3>Certificate of Completion</h3>
+    <p class="small">This certifies that</p>
+    <div class="cert-name">Your Name</div>
+    <p class="small">has completed <strong>Day 3: Linux, Networking, Cloud Shell &amp; CLI/SDK</strong></p>
+    <p class="small mt-lg">Score: <span id="cert-score-display3">0/20</span> · Date: <span id="cert-date-display3"></span></p>
+  </div>
+</section>
+
+</div>
+</main>
+</div>
+<footer>OCI Linux, Networking &amp; CLI/SDK — Day 3 · Interactive Learning Platform · Single self-contained HTML file · No external dependencies</footer>
+<script>
+const state = { quizScore:0, quizAnswered:0, quizTotal:0 };
+document.addEventListener('DOMContentLoaded', () => {
+  initParticles(); initProgressBar(); initSidebar(); initSearch(); initTheme(); initReveal();
+  initArchStack(); initShellTerminal(); initFsTree();
+  initLinuxUsers(); initPermissions();
+  initProcesses(); initSystemd(); initPackageManager(); initCron(); initLogs(); initEnvVars();
+  initOSI(); initPacketViz(); initIPv4Calc(); initARPRoutingSwitching(); initDNSDHCPNAT(); initTLSSSH(); initTCPUDPFirewallLB();
+  initCloudShell(); initCliAuth(); initCliSim();
+  initRestApi(); initStatusCodes(); initSdk(); initSigningFlow();
+  initConsoleSim3(); initTerminal3(); initTroubleshootLab3();
+  initFlashcards3(); initQuiz3(); updateBadge3();
+});
+function initParticles(){
+  const c=document.getElementById('particles'); const ctx=c.getContext('2d'); let w,h,particles=[];
+  function resize(){ w=c.width=window.innerWidth; h=c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const N=Math.min(60, Math.floor(window.innerWidth/24));
+  for(let i=0;i<N;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+0.4,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15});
+  function tick(){ ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(199,70,52,0.5)';
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=w; if(p.x>w)p.x=0; if(p.y<0)p.y=h; if(p.y>h)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+function initProgressBar(){
+  const bar=document.getElementById('progress-bar'); const heroProgress=document.getElementById('hero-progress');
+  window.addEventListener('scroll', ()=>{
+    const scrollTop=window.scrollY; const docH=document.documentElement.scrollHeight-window.innerHeight;
+    const pct=docH>0?(scrollTop/docH)*100:0;
+    bar.style.width=pct+'%'; if(heroProgress) heroProgress.textContent=Math.round(pct)+'%';
+    window.__lastScrollPct3=pct; updateBadge3(); highlightActiveNav();
+  }, {passive:true});
+}
+function highlightActiveNav(){
+  const sections=document.querySelectorAll('section.chapter'); let current=null;
+  sections.forEach(sec=>{ const rect=sec.getBoundingClientRect(); if(rect.top<160) current=sec.id; });
+  document.querySelectorAll('#sidebar a.nav-link').forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+}
+function initSidebar(){ const sb=document.getElementById('sidebar'); document.getElementById('sidebar-toggle').addEventListener('click', ()=>sb.classList.toggle('collapsed')); }
+function initSearch(){
+  const input=document.getElementById('search'); const results=document.getElementById('search-results'); const index=[];
+  document.querySelectorAll('section.chapter').forEach(sec=>{
+    const title=sec.querySelector('h2')?.textContent || sec.id;
+    sec.querySelectorAll('h3').forEach(h3=>index.push({label:h3.textContent, cat:title, href:'#'+sec.id}));
+    index.push({label:title, cat:'Section', href:'#'+sec.id});
+  });
+  input.addEventListener('input', ()=>{
+    const q=input.value.trim().toLowerCase(); if(!q){results.style.display='none'; return;}
+    const matches=index.filter(i=>i.label.toLowerCase().includes(q)).slice(0,8);
+    results.innerHTML=matches.map(m=>`<a href="${m.href}"><span class="sr-cat">${m.cat}</span>${m.label}</a>`).join('') || '<a style="cursor:default;">No results</a>';
+    results.style.display='block';
+  });
+  document.addEventListener('click', e=>{ if(!document.getElementById('search-wrap').contains(e.target)) results.style.display='none'; });
+  results.addEventListener('click', ()=>setTimeout(()=>{results.style.display='none'; input.value='';},10));
+}
+function initTheme(){
+  const btn=document.getElementById('theme-toggle');
+  btn.addEventListener('click', ()=>{ const html=document.documentElement; const isDark=html.getAttribute('data-theme')!=='light'; html.setAttribute('data-theme', isDark?'light':'dark'); btn.textContent=isDark?'☀️':'🌙'; });
+}
+function initReveal(){
+  const els=document.querySelectorAll('.reveal');
+  const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}), {threshold:0.08});
+  els.forEach(el=>io.observe(el));
+}
+</script>
+<script>
+/* ---------- linux architecture layers ---------- */
+function initArchStack(){
+  const layers = document.querySelectorAll('#arch-stack .arch-layer'); if(!layers.length) return;
+  const detail = document.getElementById('arch-detail');
+  const info = {
+    hardware: 'Hardware: CPU, RAM, disks, NICs — the physical resources everything above ultimately consumes.',
+    kernel: 'Kernel: the core program managing process scheduling, memory, filesystems, networking, and device drivers. Talks to hardware directly and exposes system calls upward.',
+    shell: 'Shell (bash, zsh, sh): a command interpreter that turns typed commands into system calls, and lets you script repeatable tasks.',
+    applications: 'Applications: programs like nginx, PostgreSQL, or your own code, built from GNU userland tools plus whatever you install.',
+    user: 'User: the human (or automation) issuing commands — everything below exists to serve this layer\'s intent.'
+  };
+  layers.forEach(l=>{
+    l.addEventListener('click', ()=>{
+      layers.forEach(x=>x.classList.remove('active')); l.classList.add('active');
+      detail.textContent = info[l.dataset.l];
+    });
+  });
+}
+
+/* ---------- shell terminal with real simulated filesystem ---------- */
+function initShellTerminal(){
+  const out = document.getElementById('shell-out'); const input = document.getElementById('shell-input');
+  if(!input) return;
+  let fs = { '/': { type:'dir', children:{ 'docs': {type:'dir', children:{}}, 'readme.txt': {type:'file', content:'Welcome to the simulator.'} } } };
+  let cwd = ['/'];
+  let history = [];
+  function resolveDir(path){
+    let node = fs['/']; let parts = path==='/' ? [] : path.split('/').filter(Boolean);
+    for(const p of parts){ if(!node.children || !node.children[p] || node.children[p].type!=='dir') return null; node = node.children[p]; }
+    return node;
+  }
+  function cwdPath(){ return cwd.length<=1 ? '/' : '/'+cwd.slice(1).join('/'); }
+  function print(cmd, text){
+    const line = document.createElement('div');
+    const prompt = `[user@oci ${cwdPath()}]$`;
+    line.innerHTML = `<div class="cmdline" style="color:#7db2ff;">${esc(prompt+' '+cmd)}</div>` + (text!==undefined?`<div style="color:#c9f7d8; margin:2px 0 10px; white-space:pre-wrap;">${esc(text)}</div>`:'');
+    out.appendChild(line); out.scrollTop = out.scrollHeight;
+    document.getElementById('shell-prompt-span').textContent = prompt;
+  }
+  function esc(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  print('', 'Simulated Oracle Linux 9 shell. Try: pwd, ls, cd docs, mkdir project, touch notes.txt, cat notes.txt');
+  input.addEventListener('keydown', e=>{
+    if(e.key!=='Enter') return;
+    const raw = input.value.trim(); input.value=''; if(!raw){ print(''); return; }
+    history.push(raw);
+    const [cmd, ...args] = raw.split(/\s+/);
+    const dir = resolveDir(cwdPath());
+    switch(cmd){
+      case 'pwd': print(raw, cwdPath()); break;
+      case 'whoami': print(raw, 'opc'); break;
+      case 'hostname': print(raw, 'oci-instance-01'); break;
+      case 'date': print(raw, new Date().toString()); break;
+      case 'clear': out.innerHTML=''; break;
+      case 'history': print(raw, history.map((h,i)=>`${i+1}  ${h}`).join('\n')); break;
+      case 'echo': print(raw, args.join(' ')); break;
+      case 'ls': {
+        const flags = args.filter(a=>a.startsWith('-')).join('');
+        const entries = Object.entries(dir.children||{});
+        if(flags.includes('l') || flags.includes('a')){
+          print(raw, entries.map(([n,v])=> `${v.type==='dir'?'drwxr-xr-x':'-rw-r--r--'}  opc  opc  ${n}`).join('\n') || '(empty directory)');
+        } else {
+          print(raw, entries.map(([n,v])=> v.type==='dir'? n+'/' : n).join('   ') || '');
+        }
+        break;
+      }
+      case 'cd': {
+        const target = args[0];
+        if(!target || target==='~'){ cwd=['/']; print(raw); break; }
+        if(target==='..'){ if(cwd.length>1) cwd.pop(); print(raw); break; }
+        if(dir.children && dir.children[target] && dir.children[target].type==='dir'){ cwd.push(target); print(raw); }
+        else print(raw, `bash: cd: ${target}: No such file or directory`);
+        break;
+      }
+      case 'mkdir': {
+        const name = args[0];
+        if(!name){ print(raw,'mkdir: missing operand'); break; }
+        dir.children[name] = {type:'dir', children:{}};
+        print(raw); break;
+      }
+      case 'touch': {
+        const name = args[0];
+        if(!name){ print(raw,'touch: missing operand'); break; }
+        if(!dir.children[name]) dir.children[name] = {type:'file', content:''};
+        print(raw); break;
+      }
+      case 'cat': {
+        const name = args[0];
+        if(!name || !dir.children[name] || dir.children[name].type!=='file'){ print(raw, `cat: ${name||''}: No such file`); break; }
+        print(raw, dir.children[name].content || '(empty file)'); break;
+      }
+      case 'rm': {
+        const name = args[0];
+        if(!name || !dir.children[name]){ print(raw, `rm: cannot remove '${name||''}': No such file or directory`); break; }
+        delete dir.children[name]; print(raw); break;
+      }
+      case 'mv': case 'cp': {
+        const [src,dest] = args;
+        if(!src || !dest || !dir.children[src]){ print(raw, `${cmd}: missing file operand`); break; }
+        dir.children[dest] = JSON.parse(JSON.stringify(dir.children[src]));
+        if(cmd==='mv') delete dir.children[src];
+        print(raw); break;
+      }
+      case 'head': case 'tail': case 'less': {
+        const name = args[0];
+        if(!name || !dir.children[name]){ print(raw, `${cmd}: cannot open '${name||''}'`); break; }
+        print(raw, dir.children[name].content || '(empty file)'); break;
+      }
+      default: print(raw, `bash: ${cmd}: command not found`);
+    }
+  });
+}
+
+/* ---------- filesystem explorer (FHS) ---------- */
+function initFsTree(){
+  const wrap = document.getElementById('fs-tree'); if(!wrap) return;
+  const fhs = [
+    ['/','Root of the entire filesystem tree — everything else is mounted under it.'],
+    ['/bin','Essential user command binaries (ls, cp, cat) needed even in single-user mode.'],
+    ['/boot','Boot loader files and the kernel image.'],
+    ['/dev','Device files representing hardware (disks, terminals) as special files.'],
+    ['/etc','System-wide configuration files.'],
+    ['/home','Per-user home directories.'],
+    ['/lib','Shared libraries needed by binaries in /bin and /sbin.'],
+    ['/media','Mount points for removable media (USB, CD-ROM).'],
+    ['/mnt','Temporary mount points for admins to mount filesystems manually.'],
+    ['/opt','Optional third-party application packages.'],
+    ['/proc','Virtual filesystem exposing kernel/process information at runtime.'],
+    ['/root','Home directory for the root user (not to be confused with / ).'],
+    ['/run','Runtime data since last boot (PIDs, sockets).'],
+    ['/sbin','System binaries typically requiring root privileges.'],
+    ['/srv','Data for services provided by this system (e.g. web/ftp data).'],
+    ['/sys','Virtual filesystem exposing kernel and device information.'],
+    ['/tmp','Temporary files, usually cleared on reboot.'],
+    ['/usr','Secondary hierarchy for user utilities and applications.'],
+    ['/var','Variable data: logs, spool files, caches.'],
+  ];
+  wrap.innerHTML = fhs.map(([p])=>`<div class="fs-node" data-p="${p}">📁 ${p}</div>`).join('');
+  const detail = document.getElementById('fs-detail');
+  const map = Object.fromEntries(fhs);
+  wrap.querySelectorAll('.fs-node').forEach(n=> n.addEventListener('click', ()=> detail.textContent = map[n.dataset.p]));
+}
+
+</script>
+<script>
+/* ---------- linux user manager ---------- */
+function initLinuxUsers(){
+  const btn = document.getElementById('lu-add-btn'); if(!btn) return;
+  let uid = 1001;
+  let users = [{name:'opc', uid:1000, group:'opc', home:'/home/opc', status:'active'}];
+  function render(){
+    document.getElementById('lu-tbody').innerHTML = users.map((u,i)=>`
+      <tr><td>${u.name}</td><td>${u.uid}</td><td>${u.group}</td><td>${u.home}</td>
+      <td><span class="status-pill ${u.status==='active'?'active':'deleted'}">${u.status}</span></td>
+      <td>
+        <span style="cursor:pointer; margin-right:8px;" data-lock="${i}">${u.status==='active'?'🔒 Lock':'🔓 Unlock'}</span>
+        <span style="cursor:pointer; color:var(--text-3);" data-del="${i}">🗑</span>
+      </td></tr>`).join('');
+  }
+  document.getElementById('lu-add-btn').addEventListener('click', ()=>{
+    const inp = document.getElementById('lu-new-name'); const name = inp.value.trim();
+    if(!name) return;
+    users.push({name, uid:uid++, group:name, home:'/home/'+name, status:'active'});
+    inp.value=''; render();
+  });
+  document.getElementById('lu-tbody').addEventListener('click', e=>{
+    if(e.target.dataset.lock!==undefined){ const i=e.target.dataset.lock; users[i].status = users[i].status==='active'?'locked':'active'; render(); }
+    if(e.target.dataset.del!==undefined){ users.splice(e.target.dataset.del,1); render(); }
+  });
+  render();
+}
+
+/* ---------- permissions / octal / chmod ---------- */
+function initPermissions(){
+  const grid = document.getElementById('perm-grid'); if(!grid) return;
+  const rows = ['owner','group','others'];
+  const bits = {owner:{r:1,w:1,x:0}, group:{r:1,w:0,x:0}, others:{r:1,w:0,x:0}};
+  function render(){
+    let html = grid.querySelector('.ph') ? '<div class="ph"></div><div class="ph">Read</div><div class="ph">Write</div><div class="ph">Execute</div>' : '';
+    rows.forEach(role=>{
+      html += `<div style="text-transform:capitalize; font-weight:700;">${role}</div>`;
+      ['r','w','x'].forEach(bit=>{
+        html += `<div><div class="perm-toggle ${bits[role][bit]?'on':''}" data-role="${role}" data-bit="${bit}">${bit.toUpperCase()}</div></div>`;
+      });
+    });
+    grid.innerHTML = html;
+    let octals = [];
+    rows.forEach(role=>{
+      const val = bits[role].r*4 + bits[role].w*2 + bits[role].x*1;
+      octals.push(val);
+      document.getElementById('oct-'+role).textContent = val;
+    });
+    document.getElementById('chmod-output').textContent = `# chmod ${octals.join('')} notes.txt`;
+    const sym = rows.map(role=> (bits[role].r?'r':'-')+(bits[role].w?'w':'-')+(bits[role].x?'x':'-')).join('');
+    document.getElementById('perm-symbolic').innerHTML = `Symbolic: <span class="mono">-${sym}</span>`;
+  }
+  render();
+  grid.addEventListener('click', e=>{
+    const t = e.target.closest('.perm-toggle'); if(!t) return;
+    const role = t.dataset.role, bit = t.dataset.bit;
+    bits[role][bit] = bits[role][bit] ? 0 : 1;
+    render();
+  });
+}
+
+</script>
+<script>
+/* ---------- process manager ---------- */
+function initProcesses(){
+  const btn = document.getElementById('proc-spawn'); if(!btn) return;
+  let pid = 2001;
+  let procs = [{pid:1,ppid:0,cmd:'systemd',state:'running',cpu:0.1},{pid:842,ppid:1,cmd:'sshd',state:'running',cpu:0.2}];
+  const cmds = ['nginx: worker process','python3 app.py','node server.js','backup.sh','curl https://api'];
+  function render(){
+    document.getElementById('proc-tbody').innerHTML = procs.map((p,i)=>`
+      <tr><td>${p.pid}</td><td>${p.ppid}</td><td>${p.cmd}</td>
+      <td><span class="proc-state ${p.state}">${p.state}</span></td><td>${p.cpu.toFixed(1)}%</td>
+      <td>
+        ${p.state==='running' ? `<span style="cursor:pointer; margin-right:8px;" data-suspend="${i}">⏸</span>` : `<span style="cursor:pointer; margin-right:8px;" data-resume="${i}">▶</span>`}
+        <span style="cursor:pointer; color:var(--red-bright);" data-kill="${i}">✕ kill</span>
+      </td></tr>`).join('');
+  }
+  btn.addEventListener('click', ()=>{
+    procs.push({pid:pid++, ppid:1, cmd:cmds[Math.floor(Math.random()*cmds.length)], state:'running', cpu:Math.random()*20});
+    render();
+  });
+  document.getElementById('proc-tbody').addEventListener('click', e=>{
+    if(e.target.dataset.kill!==undefined) procs.splice(e.target.dataset.kill,1);
+    if(e.target.dataset.suspend!==undefined) procs[e.target.dataset.suspend].state='stopped';
+    if(e.target.dataset.resume!==undefined) procs[e.target.dataset.resume].state='running';
+    render();
+  });
+  render();
+}
+
+/* ---------- systemd dashboard ---------- */
+function initSystemd(){
+  const panel = document.getElementById('systemd-panel'); if(!panel) return;
+  let services = [{name:'httpd', status:'active', enabled:true},{name:'sshd', status:'active', enabled:true},{name:'nginx', status:'inactive', enabled:false}];
+  function render(){
+    panel.innerHTML = services.map((s,i)=>`
+      <div class="service-row"><span><strong class="mono">${s.name}.service</strong> — <span style="color:${s.status==='active'?'var(--green)':'var(--text-3)'}">${s.status}</span> ${s.enabled?'· enabled at boot':'· disabled'}</span>
+      <span class="service-actions">
+        <button class="chip-btn" data-svc="${i}" data-act="start">start</button>
+        <button class="chip-btn" data-svc="${i}" data-act="stop">stop</button>
+        <button class="chip-btn" data-svc="${i}" data-act="restart">restart</button>
+        <button class="chip-btn" data-svc="${i}" data-act="${s.enabled?'disable':'enable'}">${s.enabled?'disable':'enable'}</button>
+      </span></div>`).join('');
+  }
+  panel.addEventListener('click', e=>{
+    const idx = e.target.dataset.svc; if(idx===undefined) return;
+    const act = e.target.dataset.act; const s = services[idx];
+    if(act==='start'||act==='restart') s.status='active';
+    if(act==='stop') s.status='inactive';
+    if(act==='enable') s.enabled=true;
+    if(act==='disable') s.enabled=false;
+    render();
+  });
+  render();
+}
+
+/* ---------- package manager simulator ---------- */
+function initPackageManager(){
+  const out = document.getElementById('pkg-out'); if(!out) return;
+  let pm = 'dnf';
+  document.querySelectorAll('[data-pm]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ document.querySelectorAll('[data-pm]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); pm = btn.dataset.pm; });
+  });
+  document.querySelectorAll('[data-action]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const name = document.getElementById('pkg-name').value.trim() || 'nginx';
+      const act = btn.dataset.action;
+      let cmd, output;
+      if(pm==='dnf'){
+        cmd = act==='install' ? `sudo dnf install -y ${name}` : act==='update' ? `sudo dnf update -y ${name}` : `sudo dnf remove -y ${name}`;
+        output = act==='install' ? `Last metadata expiration check...\nDependencies resolved.\nInstalling: ${name}\nComplete!` : act==='update' ? `Dependencies resolved.\nUpgrading: ${name}\nComplete!` : `Removing: ${name}\nComplete!`;
+      } else {
+        cmd = act==='install' ? `sudo apt install -y ${name}` : act==='update' ? `sudo apt update && sudo apt upgrade -y ${name}` : `sudo apt remove -y ${name}`;
+        output = act==='install' ? `Reading package lists... Done\nSetting up ${name}...\ndone.` : act==='update' ? `Reading package lists... Done\n${name} is now the newest version.` : `Removing ${name}...\ndone.`;
+      }
+      out.textContent = `$ ${cmd}\n${output}`;
+    });
+  });
+}
+
+/* ---------- cron scheduler ---------- */
+function initCron(){
+  const btn = document.getElementById('cron-preview'); if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const expr = document.getElementById('cron-input').value.trim();
+    const wrap = document.getElementById('cron-timeline');
+    let intervalMin = 15;
+    const m = expr.match(/^\*\/(\d+)/); if(m) intervalMin = parseInt(m[1]);
+    else if(expr.startsWith('0 * ')) intervalMin = 60;
+    const now = new Date();
+    let runs = [];
+    for(let i=1;i<=5;i++){ const t = new Date(now.getTime()+i*intervalMin*60000); runs.push(t.toTimeString().slice(0,5)); }
+    wrap.innerHTML = runs.map((r,i)=>(i>0?'<span class="flow-arrow">→</span>':'')+`<div class="flow-step">${r}</div>`).join('');
+  });
+}
+</script>
+<script>
+/* ---------- logs ---------- */
+function initLogs(){
+  const btns = document.querySelectorAll('[data-logcmd]'); if(!btns.length) return;
+  const out = document.getElementById('log-out');
+  const samples = {
+    'journalctl -u nginx': `-- Logs begin at Mon 2026-07-20 --\nJul 24 09:12:01 oci-web nginx[1042]: Started nginx service\nJul 24 09:15:33 oci-web nginx[1042]: 200 GET /health\nJul 24 09:16:02 oci-web nginx[1042]: 502 GET /api/orders — upstream timeout`,
+    'tail -f /var/log/messages': `Jul 24 09:10:01 oci-web systemd: Starting Session 12 of user opc.\nJul 24 09:11:44 oci-web sudo: opc : COMMAND=/bin/systemctl restart nginx\nJul 24 09:16:02 oci-web kernel: TCP: out of memory -- consider tuning tcp_mem`,
+    'grep ERROR /var/log/app.log': `2026-07-24 09:14:20 ERROR OrderService: connection refused to db-primary:5432\n2026-07-24 09:14:21 ERROR OrderService: retrying (1/3)\n2026-07-24 09:14:25 ERROR OrderService: retrying (2/3)`
+  };
+  btns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      btns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+      out.textContent = `$ ${b.dataset.logcmd}\n${samples[b.dataset.logcmd]}`;
+    });
+  });
+  btns[0].click();
+}
+
+/* ---------- environment variables ---------- */
+function initEnvVars(){
+  const btn = document.getElementById('env-append-btn'); if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const val = document.getElementById('env-append').value.trim();
+    if(!val) return;
+    const pathEl = document.getElementById('env-path');
+    pathEl.textContent = val + ':' + pathEl.textContent;
+    document.getElementById('env-append').value='';
+  });
+}
+
+</script>
+<script>
+/* ---------- OSI layers ---------- */
+function initOSI(){
+  const layers = document.querySelectorAll('#osi-stack .osi-layer'); if(!layers.length) return;
+  const detail = document.getElementById('osi-detail');
+  const info = {
+    physical: 'Physical (L1): raw bits over cable, fiber, or radio — voltages, light pulses, radio waves.',
+    datalink: 'Data Link (L2): frames and MAC addresses — switches operate here.',
+    network: 'Network (L3): IP addresses and routing between networks — routers operate here.',
+    transport: 'Transport (L4): TCP/UDP — ports, reliability, ordering, segmentation.',
+    session: 'Session (L5): establishes, manages, and tears down sessions between applications.',
+    presentation: 'Presentation (L6): data translation, encryption, compression (e.g. TLS, character encoding).',
+    application: 'Application (L7): what the user/programs actually interact with — HTTP, DNS, SSH.'
+  };
+  layers.forEach(l=> l.addEventListener('click', ()=>{ layers.forEach(x=>x.classList.remove('active')); l.classList.add('active'); detail.textContent = info[l.dataset.o]; }));
+}
+
+/* ---------- packet visualizer ---------- */
+function initPacketViz(){
+  const btn = document.getElementById('packet-play'); if(!btn) return;
+  const dot = document.getElementById('packet-dot'); const msg = document.getElementById('packet-msg');
+  const stops = [0,23,46,69,88];
+  const labels = ['Leaving client','Through switch','Through router','Crossing the internet','Arrived at server'];
+  btn.addEventListener('click', ()=>{
+    let i=0;
+    function step(){
+      dot.style.left = stops[i]+'%';
+      msg.textContent = labels[i];
+      i++;
+      if(i<stops.length) setTimeout(step, 700);
+      else setTimeout(()=>{
+        msg.textContent = 'Server processed the request — now returning the response along the same path.';
+        let j = stops.length-1;
+        function back(){ dot.style.left = stops[j]+'%'; j--; if(j>=0) setTimeout(back,500); else msg.textContent='✓ Round trip complete.'; }
+        back();
+      }, 700);
+    }
+    step();
+  });
+}
+
+/* ---------- IPv4 / CIDR calculator ---------- */
+function initIPv4Calc(){
+  const slider = document.getElementById('ip-prefix-slider'); if(!slider) return;
+  const octets = ['ip-o1','ip-o2','ip-o3','ip-o4'].map(id=>document.getElementById(id));
+  const prefixInput = document.getElementById('ip-prefix');
+  function ipToInt(a,b,c,d){ return ((a<<24)>>>0)+(b<<16)+(c<<8)+d; }
+  function intToIp(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.'); }
+  function calc(){
+    const [a,b,c,d] = octets.map(o=>Math.max(0,Math.min(255,parseInt(o.value)||0)));
+    let prefix = Math.max(1,Math.min(32,parseInt(prefixInput.value)||24));
+    slider.value = prefix; prefixInput.value = prefix;
+    const ipInt = ipToInt(a,b,c,d);
+    const maskInt = prefix===0 ? 0 : (0xFFFFFFFF << (32-prefix)) >>> 0;
+    const network = (ipInt & maskInt) >>> 0;
+    const broadcast = (network | (~maskInt >>> 0)) >>> 0;
+    const totalHosts = Math.pow(2,32-prefix);
+    const usable = Math.max(0, totalHosts-2);
+    const octClass = a<128 ? 'A' : a<192 ? 'B' : a<224 ? 'C' : a<240 ? 'D (Multicast)' : 'E (Reserved)';
+    document.getElementById('ip-results').innerHTML = `
+      <div class="ip-result-item">Network Address<b>${intToIp(network)}</b></div>
+      <div class="ip-result-item">Broadcast Address<b>${intToIp(broadcast)}</b></div>
+      <div class="ip-result-item">Subnet Mask<b>${intToIp(maskInt)}</b></div>
+      <div class="ip-result-item">Total Addresses<b>${totalHosts}</b></div>
+      <div class="ip-result-item">Usable Hosts<b>${usable}</b></div>
+      <div class="ip-result-item">First / Last Usable<b>${usable>0?intToIp(network+1)+' – '+intToIp(broadcast-1):'—'}</b></div>
+    `;
+    document.getElementById('ip-class-info').textContent = `Historical class: ${octClass}. (Modern networks use CIDR, not classful addressing — this is shown for exam context.)`;
+  }
+  octets.forEach(o=>o.addEventListener('input', calc));
+  prefixInput.addEventListener('input', calc);
+  slider.addEventListener('input', ()=>{ prefixInput.value = slider.value; calc(); });
+  calc();
+}
+
+/* ---------- ARP, routing, switching ---------- */
+function initARPRoutingSwitching(){
+  const btn = document.getElementById('arp-run'); if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    document.getElementById('arp-result').innerHTML = `ARP request broadcast: "Who has 10.0.1.5?"<br>Reply: 10.0.1.5 is at <span class="mono">02:1a:3f:9c:88:01</span><br>Cached in local ARP table.`;
+  });
+  const mac = document.getElementById('mac-table');
+  const entries = [['02:1a:3f:9c:88:01','port 1'],['02:1a:3f:9c:88:02','port 2'],['02:1a:3f:9c:88:03','port 3']];
+  mac.innerHTML = '<tr><th>MAC</th><th>Port</th></tr>'+entries.map(([m,p])=>`<tr><td class="mono">${m}</td><td>${p}</td></tr>`).join('');
+}
+
+/* ---------- DNS / DHCP / NAT ---------- */
+function initDNSDHCPNAT(){
+  const dnsWrap = document.getElementById('dns-flow'); if(!dnsWrap) return;
+  const dnsSteps = ['Browser Cache','OS Resolver','Recursive Resolver','Root Server','TLD Server (.com)','Authoritative Server','Answer: 93.184.216.34'];
+  dnsWrap.innerHTML = dnsSteps.map((s,i)=>(i>0?'<span class="flow-arrow">→</span>':'')+`<div class="flow-step">${s}</div>`).join('');
+  document.getElementById('dns-play').addEventListener('click', ()=>{
+    const els = dnsWrap.querySelectorAll('.flow-step'); els.forEach(e=>e.classList.remove('lit'));
+    dnsSteps.forEach((s,i)=> setTimeout(()=>els[i].classList.add('lit'), i*400));
+  });
+
+  const dhcpWrap = document.getElementById('dhcp-flow');
+  const dhcpSteps = ['Discover (client broadcasts)','Offer (server proposes IP)','Request (client accepts)','Acknowledge (lease confirmed)'];
+  dhcpWrap.innerHTML = dhcpSteps.map((s,i)=>(i>0?'<span class="flow-arrow">→</span>':'')+`<div class="flow-step">${s}</div>`).join('');
+  document.getElementById('dhcp-play').addEventListener('click', ()=>{
+    const els = dhcpWrap.querySelectorAll('.flow-step'); els.forEach(e=>e.classList.remove('lit'));
+    dhcpSteps.forEach((s,i)=> setTimeout(()=>els[i].classList.add('lit'), i*450));
+  });
+
+  const natBody = document.getElementById('nat-tbody');
+  let natEntries = [['10.0.1.15:51422','140.238.10.5:33001','142.250.80.14:443']];
+  function renderNat(){ natBody.innerHTML = natEntries.map(([p,pub,dst])=>`<tr><td>${p}</td><td>${pub}</td><td>${dst}</td></tr>`).join(''); }
+  document.getElementById('nat-add').addEventListener('click', ()=>{
+    const priv = `10.0.1.${Math.floor(Math.random()*250)+2}:${40000+Math.floor(Math.random()*9000)}`;
+    const pub = `140.238.10.5:${33000+Math.floor(Math.random()*900)}`;
+    const dst = ['142.250.80.14:443','93.184.216.34:443','151.101.1.140:443'][Math.floor(Math.random()*3)];
+    natEntries.push([priv,pub,dst]); renderNat();
+  });
+  renderNat();
+}
+
+/* ---------- TLS, SSH, ICMP ---------- */
+function initTLSSSH(){
+  const tlsWrap = document.getElementById('tls-flow'); if(!tlsWrap) return;
+  const tlsSteps = ['Client Hello','Server Hello + Certificate','Client verifies cert','Key exchange','Session keys derived','Encrypted channel open'];
+  tlsWrap.innerHTML = tlsSteps.map((s,i)=>(i>0?'<span class="flow-arrow">→</span>':'')+`<div class="flow-step">${s}</div>`).join('');
+  document.getElementById('tls-play').addEventListener('click', ()=>{
+    const els = tlsWrap.querySelectorAll('.flow-step'); els.forEach(e=>e.classList.remove('lit'));
+    tlsSteps.forEach((s,i)=> setTimeout(()=>els[i].classList.add('lit'), i*400));
+  });
+
+  const sshWrap = document.getElementById('ssh-flow');
+  const sshSteps = ['TCP connect :22','Server presents host key','Client verifies known_hosts','Key exchange (Diffie-Hellman)','Client authenticates with private key','Shell session established'];
+  sshWrap.innerHTML = sshSteps.map((s,i)=>(i>0?'<span class="flow-arrow">→</span>':'')+`<div class="flow-step">${s}</div>`).join('');
+  document.getElementById('ssh-play').addEventListener('click', ()=>{
+    const els = sshWrap.querySelectorAll('.flow-step'); els.forEach(e=>e.classList.remove('lit'));
+    sshSteps.forEach((s,i)=> setTimeout(()=>els[i].classList.add('lit'), i*400));
+  });
+
+  const icmpOut = document.getElementById('icmp-out');
+  document.getElementById('ping-run').addEventListener('click', ()=>{
+    icmpOut.textContent = `PING 8.8.8.8 (8.8.8.8): 56 data bytes\n64 bytes from 8.8.8.8: icmp_seq=0 ttl=115 time=11.2 ms\n64 bytes from 8.8.8.8: icmp_seq=1 ttl=115 time=10.8 ms\n64 bytes from 8.8.8.8: icmp_seq=2 ttl=115 time=12.1 ms\n\n--- 8.8.8.8 ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss`;
+  });
+  document.getElementById('trace-run').addEventListener('click', ()=>{
+    icmpOut.textContent = `traceroute to 8.8.8.8, 30 hops max\n 1  10.0.0.1 (gateway)      1.1 ms\n 2  140.91.x.x (ISP edge)   4.3 ms\n 3  72.14.x.x (transit)     8.7 ms\n 4  8.8.8.8 (google)       11.2 ms`;
+  });
+}
+
+/* ---------- TCP/UDP, firewall, load balancer ---------- */
+function initTCPUDPFirewallLB(){
+  const fwBtns = document.querySelectorAll('[data-fw]'); if(!fwBtns.length) return;
+  const fwDesc = document.getElementById('fw-desc');
+  const desc = { stateful: 'Stateful firewalls track connection state — once an outbound request is allowed, the matching return traffic is automatically permitted.', stateless: 'Stateless firewalls evaluate every packet independently against static rules — return traffic needs its own explicit allow rule.' };
+  let fwMode = 'stateful';
+  fwBtns.forEach(b=> b.addEventListener('click', ()=>{ fwBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); fwMode=b.dataset.fw; fwDesc.textContent = desc[fwMode]; }));
+  fwDesc.textContent = desc.stateful;
+  document.getElementById('fw-test').addEventListener('click', ()=>{
+    const result = document.getElementById('fw-result');
+    if(fwMode==='stateful'){ result.textContent = '✓ Return traffic automatically allowed — the firewall recognized it belongs to an established outbound connection.'; result.style.color='var(--green)'; }
+    else { result.textContent = '✗ Blocked — no explicit inbound rule exists for this return traffic; stateless firewalls need one written per direction.'; result.style.color='var(--red-bright)'; }
+  });
+
+  const lbWrap = document.getElementById('lb-backends'); let lbMode = 'rr';
+  const backends = [{name:'backend-1', conns:0, count:0},{name:'backend-2', conns:0, count:0},{name:'backend-3', conns:0, count:0}];
+  function renderLB(){
+    lbWrap.innerHTML = backends.map(b=>`<div class="card"><h4>${b.name}</h4><p>Requests received: <strong>${b.count}</strong></p></div>`).join('');
+  }
+  document.querySelectorAll('[data-lb]').forEach(b=> b.addEventListener('click', ()=>{ document.querySelectorAll('[data-lb]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); lbMode=b.dataset.lb; }));
+  document.getElementById('lb-send').addEventListener('click', ()=>{
+    backends.forEach(b=>{b.count=0;});
+    let rrIndex=0;
+    for(let i=0;i<6;i++){
+      let chosen;
+      if(lbMode==='rr'){ chosen = backends[rrIndex % backends.length]; rrIndex++; }
+      else if(lbMode==='lc'){ chosen = backends.reduce((a,b)=> a.conns<=b.conns?a:b); }
+      else { chosen = backends[i % backends.length]; } // simplified ip-hash simulation
+      chosen.count++; chosen.conns++;
+    }
+    renderLB();
+  });
+  renderLB();
+}
+</script>
+<script>
+/* ---------- OCI Cloud Shell ---------- */
+function initCloudShell(){
+  const input = document.getElementById('cs-input'); if(!input) return;
+  const out = document.getElementById('cs-out');
+  const responses = {
+    'oci os ns get': `{\n  "data": "axzs9frtpxxx"\n}`,
+    'oci iam compartment list': `{\n  "data": [{"name": "Production", "id": "ocid1.compartment.oc1..aaa1"}, {"name": "Dev", "id": "ocid1.compartment.oc1..aaa2"}]\n}`,
+    'ls': 'notes.txt  scripts/  config.json',
+    'pwd': '/home/opc'
+  };
+  function esc(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  out.innerHTML = 'Cloud Shell ready. 5GB persistent storage mounted at /home/opc.\n\n';
+  input.addEventListener('keydown', e=>{
+    if(e.key!=='Enter') return;
+    const cmd = input.value.trim(); input.value=''; if(!cmd) return;
+    const line = document.createElement('div');
+    line.innerHTML = `<span style="color:#7db2ff;">$ ${esc(cmd)}</span>\n<span>${esc(responses[cmd] || 'command executed (simulated).')}</span>\n`;
+    out.appendChild(line); out.scrollTop = out.scrollHeight;
+  });
+}
+
+/* ---------- CLI auth troubleshooting ---------- */
+function initCliAuth(){
+  const btns = document.querySelectorAll('[data-clierr]'); if(!btns.length) return;
+  const errText = document.getElementById('clierr-text'); const errFix = document.getElementById('clierr-fix');
+  const cases = {
+    notauth: {e:'ServiceError: NotAuthorizedOrNotFound (Status 404)', f:'Fix: check the IAM policy grants the calling principal the needed verb on this resource type in this compartment — this error deliberately hides whether the resource exists or you lack permission.'},
+    invalidconfig: {e:'Error: Invalid config file, key_file /home/user/.oci/key.pem does not exist', f:'Fix: verify the key_file path in ~/.oci/config points to an actual private key file, and that the path uses the correct home directory.'},
+    sigerror: {e:'ServiceError: The required information to complete authentication was not provided or was incorrect. (Status 401)', f:'Fix: the fingerprint in your config likely doesn\'t match the uploaded public key — re-upload the public key or fix the fingerprint value.'},
+    missingregion: {e:'Error: Missing config value: region', f:'Fix: add a region= line to your profile in ~/.oci/config, or pass --region on the command line.'},
+    expiredkey: {e:'ServiceError: The API signing key has been deleted or deactivated. (Status 401)', f:'Fix: generate a new API key pair, upload the new public key in the Console, and update key_file/fingerprint locally.'}
+  };
+  btns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      btns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+      const c = cases[b.dataset.clierr]; errText.textContent = c.e; errFix.textContent = c.f;
+    });
+  });
+  btns[0].click();
+}
+
+/* ---------- CLI command builder ---------- */
+function initCliSim(){
+  const svc = document.getElementById('clibuild-service'); if(!svc) return;
+  const resource = document.getElementById('clibuild-resource'); const action = document.getElementById('clibuild-action');
+  const resources = { iam:['user','group','compartment','policy'], compute:['instance','image'], network:['vcn','subnet'], os:['ns','bucket'] };
+  function fillResources(){
+    resource.innerHTML = resources[svc.value].map(r=>`<option value="${r}">${r}</option>`).join('');
+    updatePreview();
+  }
+  function updatePreview(){
+    document.getElementById('clibuild-preview').textContent = `oci ${svc.value} ${resource.value} ${action.value}`;
+  }
+  svc.addEventListener('change', fillResources);
+  resource.addEventListener('change', updatePreview);
+  action.addEventListener('change', updatePreview);
+  fillResources();
+  document.getElementById('clibuild-run').addEventListener('click', ()=>{
+    const cmd = `oci ${svc.value} ${resource.value} ${action.value}`;
+    document.getElementById('clibuild-out').textContent = `$ ${cmd}\n{\n  "data": [\n    { "display-name": "example-${resource.value}-1" },\n    { "display-name": "example-${resource.value}-2" }\n  ]\n}`;
+  });
+}
+</script>
+<script>
+/* ---------- REST client ---------- */
+function initRestApi(){
+  const btn = document.getElementById('rest-send'); if(!btn) return;
+  let method = 'GET';
+  document.querySelectorAll('.rest-method').forEach(m=>{
+    m.addEventListener('click', ()=>{
+      document.querySelectorAll('.rest-method').forEach(x=>x.className='rest-method');
+      method = m.dataset.m;
+      m.classList.add('active-'+method.toLowerCase());
+    });
+  });
+  btn.addEventListener('click', ()=>{
+    const resp = document.getElementById('rest-response');
+    if(method==='GET') resp.textContent = `HTTP/1.1 200 OK\n{\n  "data": [\n    {"id": "ocid1.instance.oc1..aaa1", "lifecycleState": "RUNNING"},\n    {"id": "ocid1.instance.oc1..aaa2", "lifecycleState": "STOPPED"}\n  ]\n}`;
+    else if(method==='POST') resp.textContent = `HTTP/1.1 201 Created\n{\n  "id": "ocid1.instance.oc1..aaa3",\n  "lifecycleState": "PROVISIONING"\n}`;
+    else resp.textContent = `HTTP/1.1 204 No Content`;
+  });
+}
+
+/* ---------- status codes ---------- */
+function initStatusCodes(){
+  const grid = document.getElementById('status-grid'); if(!grid) return;
+  const codes = [
+    [200,'OK — request succeeded','2xx'],[201,'Created — resource was created','2xx'],[204,'No Content — succeeded, nothing to return','2xx'],
+    [400,'Bad Request — malformed request body/params','4xx'],[401,'Unauthorized — authentication failed or missing','4xx'],
+    [403,'Forbidden — authenticated but not authorized','4xx'],[404,'Not Found — resource doesn\'t exist (or you lack access)','4xx'],
+    [409,'Conflict — resource state conflict (e.g. already exists)','4xx'],[429,'Too Many Requests — rate limited, back off and retry','4xx'],
+    [500,'Internal Server Error — unexpected failure on the server','5xx']
+  ];
+  grid.innerHTML = codes.map(([c,d,cls])=>`<div class="status-card status-${cls}" data-c="${c}"><div class="code">${c}</div></div>`).join('');
+  const detail = document.getElementById('status-detail');
+  const map = Object.fromEntries(codes.map(([c,d])=>[c,d]));
+  grid.querySelectorAll('.status-card').forEach(card=> card.addEventListener('click', ()=> detail.textContent = map[card.dataset.c]));
+}
+
+/* ---------- SDK snippets ---------- */
+function initSdk(){
+  const btns = document.querySelectorAll('#sdk-lang-btns .chip-btn'); if(!btns.length) return;
+  const out = document.getElementById('sdk-code');
+  const snippets = {
+    python: `<span class="ck">import</span> oci\n\nconfig = oci.config.from_file()\nidentity = oci.identity.IdentityClient(config)\nusers = identity.list_users(compartment_id=config[<span class="cv">"tenancy"</span>])\n<span class="ck">print</span>(users.data)`,
+    java: `ConfigFileReader.ConfigFile configFile = ConfigFileReader.parseDefault();\nAuthenticationDetailsProvider provider =\n  <span class="ck">new</span> ConfigFileAuthenticationDetailsProvider(configFile);\nIdentityClient client = <span class="ck">new</span> IdentityClient(provider);\nListUsersResponse resp = client.listUsers(ListUsersRequest.builder().build());`,
+    go: `config := common.DefaultConfigProvider()\nclient, _ := identity.NewIdentityClientWithConfigurationProvider(config)\nresp, _ := client.ListUsers(context.Background(), identity.ListUsersRequest{})\nfmt.Println(resp.Items)`,
+    node: `<span class="ck">const</span> identity = require(<span class="cv">"oci-identity"</span>);\n<span class="ck">const</span> common = require(<span class="cv">"oci-common"</span>);\n<span class="ck">const</span> provider = <span class="ck">new</span> common.ConfigFileAuthenticationDetailProvider();\n<span class="ck">const</span> client = <span class="ck">new</span> identity.IdentityClient({ authenticationDetailProvider: provider });\n<span class="ck">const</span> resp = <span class="ck">await</span> client.listUsers({ compartmentId: provider.getTenantId() });`
+  };
+  function render(lang){ out.innerHTML = snippets[lang]; }
+  btns.forEach(b=> b.addEventListener('click', ()=>{ btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(b.dataset.lang); }));
+  render('python');
+}
+
+/* ---------- request signing flow ---------- */
+function initSigningFlow(){
+  const wrap = document.getElementById('signing-flow'); if(!wrap) return;
+  const steps = ['Build request','Compute SHA-256 body digest','Assemble signing string','Sign with RSA private key','Attach Authorization header','Send to OCI API'];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="flow-arrow">→</span>':'')+`<div class="flow-step">${s}</div>`).join('');
+  document.getElementById('signing-play').addEventListener('click', ()=>{
+    const els = wrap.querySelectorAll('.flow-step'); els.forEach(e=>e.classList.remove('lit'));
+    steps.forEach((s,i)=> setTimeout(()=>els[i].classList.add('lit'), i*400));
+  });
+}
+
+/* ---------- console simulator 3 ---------- */
+function initConsoleSim3(){
+  const nav = document.querySelectorAll('.console-nav div[data-panel3]'); if(!nav.length) return;
+  nav.forEach(item=>{
+    item.addEventListener('click', ()=>{
+      nav.forEach(n=>n.classList.remove('active')); item.classList.add('active');
+      document.querySelectorAll('.console-panel3').forEach(p=>p.style.display='none');
+      document.getElementById('panel3-'+item.dataset.panel3).style.display='';
+    });
+  });
+}
+</script>
+<script>
+/* ---------- combined linux + cli terminal ---------- */
+function initTerminal3(){
+  const out = document.getElementById('term-out3'); const input = document.getElementById('term-input3'); if(!input) return;
+  const responses = {
+    'help': `Linux commands: pwd, ls, top, journalctl\nOCI CLI: oci compute instance list, oci network vcn list, oci iam compartment list\nclear`,
+    'pwd': '/home/opc',
+    'ls': 'scripts/  app.log  config.yaml',
+    'top': `PID   USER  %CPU  %MEM  COMMAND\n1042  opc   12.3  2.1   nginx\n2091  opc   4.5   1.2   python3`,
+    'journalctl': `-- Logs begin --\nJul 24 09:12:01 nginx[1042]: Started nginx service\nJul 24 09:16:02 nginx[1042]: 502 GET /api/orders`,
+    'oci compute instance list': `{ "data": [{"display-name": "web-vm-01", "lifecycle-state": "RUNNING"}] }`,
+    'oci network vcn list': `{ "data": [{"display-name": "prod-vcn", "cidr-block": "10.0.0.0/16"}] }`,
+    'oci iam compartment list': `{ "data": [{"name": "Production"}, {"name": "Dev"}] }`
+  };
+  function esc(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function print(cmd, text, isErr){
+    const line = document.createElement('div');
+    line.innerHTML = `<div class="cmdline">${esc(cmd)}</div><div style="color:${isErr?'#ff8a7a':'#c9f7d8'}; margin:4px 0 12px; white-space:pre-wrap;">${esc(text)}</div>`;
+    out.appendChild(line); out.scrollTop = out.scrollHeight;
+  }
+  print('help', 'Combined Linux + OCI CLI simulator. Type "help" for commands.');
+  input.addEventListener('keydown', e=>{
+    if(e.key!=='Enter') return;
+    const cmd = input.value.trim(); input.value=''; if(!cmd) return;
+    if(cmd==='clear'){ out.innerHTML=''; return; }
+    if(responses[cmd]){ print(cmd, responses[cmd]); return; }
+    print(cmd, 'Command not recognized in this simulator. Type "help" for the supported list.', true);
+  });
+}
+
+/* ---------- troubleshooting lab 3 ---------- */
+function initTroubleshootLab3(){
+  const btns = document.querySelectorAll('#ts3-case-btns .chip-btn'); if(!btns.length) return;
+  const panel = document.getElementById('ts3-panel');
+  const cases = {
+    dns: {err:'curl: (6) Could not resolve host: api.internal.example.com', hint:'Check whether the VCN\'s DNS resolution is enabled and the correct DNS label/zone is configured.', fix:'Fix: enable DNS hostnames in the VCN settings, or verify the private DNS zone has the correct A record for the internal service.'},
+    routing: {err:'Instance in subnet A cannot reach a host in subnet B of the same VCN.', hint:'Check the route table attached to subnet A.', fix:'Fix: add a route rule in subnet A\'s route table pointing to the correct target (local VCN routing is automatic for VCN-internal traffic; check for an overriding rule or a missing route to a DRG/peering).'},
+    subnet: {err:'Error: CIDR block 10.0.1.0/24 overlaps with an existing subnet.', hint:'Subnets within the same VCN cannot have overlapping CIDR ranges.', fix:'Fix: choose a non-overlapping CIDR block, e.g. 10.0.2.0/24, that fits within the VCN\'s overall CIDR and doesn\'t collide with existing subnets.'},
+    firewall: {err:'Connection timed out connecting to db-host:5432.', hint:'Check both the Security List/NSG and the OS-level firewall (firewalld/iptables).', fix:'Fix: add an ingress rule allowing TCP/5432 from the app subnet\'s CIDR in the Security List or NSG, and confirm firewalld isn\'t blocking it on the host itself.'},
+    tls: {err:'SSL: certificate verify failed: unable to get local issuer certificate', hint:'The client doesn\'t trust the certificate chain presented by the server.', fix:'Fix: install the correct intermediate/root CA certificate on the client, or fix the server to send the full certificate chain, not just the leaf cert.'},
+    api: {err:'HTTP/1.1 401 Unauthorized — {"code":"NotAuthenticated"}', hint:'A 401 means the request signing/authentication itself failed, before authorization is even checked.', fix:'Fix: verify the request signature was built correctly (date header, signing string, key), and that the API key hasn\'t been deactivated.'}
+  };
+  function render(key){
+    const c = cases[key];
+    panel.innerHTML = `<p class="mono" style="color:var(--red-bright);">${c.err}</p>
+      <button class="chip-btn active mt-lg" id="ts3-hint-btn">💡 Show hint</button>
+      <p class="small mt-lg" id="ts3-hint" style="display:none;">${c.hint}</p>
+      <button class="chip-btn mt-lg" id="ts3-fix-btn" style="display:none;">✓ Reveal fix</button>
+      <p class="small mt-lg" id="ts3-fix" style="display:none; color:var(--green);">${c.fix}</p>`;
+    document.getElementById('ts3-hint-btn').addEventListener('click', function(){ document.getElementById('ts3-hint').style.display='block'; document.getElementById('ts3-fix-btn').style.display='inline-flex'; this.disabled=true; });
+    document.getElementById('ts3-fix-btn').addEventListener('click', function(){ document.getElementById('ts3-fix').style.display='block'; this.disabled=true; });
+  }
+  btns.forEach(b=> b.addEventListener('click', ()=>{ btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(b.dataset.case3); }));
+  render('dns');
+}
+</script>
+<script>
+/* ---------- flashcards 3 ---------- */
+function initFlashcards3(){
+  const wrap = document.getElementById('flash-wrap3'); if(!wrap) return;
+  const cards = [
+    ['Kernel','Core program managing scheduling, memory, filesystems, drivers'],
+    ['chmod 755','rwxr-xr-x — owner full, group/others read+execute'],
+    ['Zombie process','Finished but not yet reaped by its parent'],
+    ['systemd unit','A managed service definition (start/stop/enable/disable)'],
+    ['CIDR /24','256 addresses total, 254 usable hosts'],
+    ['ARP','Resolves an IP address to a MAC address on the local segment'],
+    ['DNS resolution order','Cache → Root → TLD → Authoritative'],
+    ['NAT','Translates private IPs to a shared public IP for outbound traffic'],
+    ['TLS handshake','Negotiates keys and verifies identity before encrypted data flows'],
+    ['Stateful firewall','Automatically allows return traffic for an established connection'],
+    ['Instance Principal','Lets a compute instance authenticate as itself, no embedded key'],
+    ['429 status code','Too Many Requests — rate limited, back off and retry'],
+  ];
+  wrap.innerHTML = cards.map(([f,b])=>`<div class="flashcard"><div class="fc-inner"><div class="fc-face fc-front">${f}</div><div class="fc-face fc-back">${b}</div></div></div>`).join('');
+  wrap.querySelectorAll('.flashcard').forEach(fc=> fc.addEventListener('click', ()=> fc.classList.toggle('flipped')));
+}
+
+/* ---------- certification quiz 3 ---------- */
+function initQuiz3(){
+  const wrap = document.getElementById('quiz-wrap3'); if(!wrap) return;
+  const Q = [
+    {q:'Which component of Linux directly manages CPU scheduling and memory allocation?', o:['Shell','Kernel','GNU utilities','Package manager'], c:1, e:'The kernel is the core program that manages hardware resources including scheduling and memory.'},
+    {q:'What does chmod 644 grant?', o:['Owner rwx, group rwx, others rwx','Owner rw-, group r--, others r--','Owner r--, group rw-, others rw-','No permissions to anyone'], c:1, e:'6=rw-, 4=r--, 4=r-- → owner read/write, group and others read-only.'},
+    {q:'A process that has finished executing but hasn\'t been reaped by its parent is called a:', o:['Daemon','Orphan','Zombie','Thread'], c:2, e:'A zombie process still holds a process table entry until its parent collects its exit status.'},
+    {q:'Which command manages systemd services (start, stop, enable)?', o:['service', 'systemctl', 'initctl', 'chkconfig'], c:1, e:'systemctl is the standard tool for managing systemd units on modern distributions.'},
+    {q:'On Oracle Linux/RHEL, which package manager is standard today?', o:['apt','dnf','pip','npm'], c:1, e:'dnf (successor to yum) is standard on modern RHEL-family distributions including Oracle Linux.'},
+    {q:'A /26 subnet provides how many usable host addresses?', o:['254','126','62','30'], c:2, e:'/26 = 2^6 = 64 total addresses, minus network and broadcast = 62 usable.'},
+    {q:'Which protocol resolves an IP address to a MAC address on a local network segment?', o:['DNS','DHCP','ARP','NAT'], c:2, e:'ARP (Address Resolution Protocol) maps IP addresses to MAC addresses on the local segment.'},
+    {q:'In DNS resolution, which server is queried right after the Root server for "example.com"?', o:['Authoritative server for example.com','TLD server for .com','Local DNS cache','ISP router'], c:1, e:'The Root server refers the resolver to the TLD server (.com), which then refers to the authoritative server.'},
+    {q:'Which of the following is TRUE about TCP vs UDP?', o:['UDP guarantees delivery order','TCP has lower latency than UDP','TCP retransmits lost segments; UDP does not','UDP is connection-oriented'], c:2, e:'TCP is connection-oriented and reliable (with retransmission); UDP is connectionless and best-effort.'},
+    {q:'A stateless firewall, unlike a stateful one, requires:', o:['No rules at all','An explicit rule for return traffic in each direction','MFA for every packet','A VPN tunnel'], c:1, e:'Stateless firewalls evaluate each packet independently, so return traffic needs its own explicit rule.'},
+    {q:'Which OCI authentication method is most appropriate for code running ON an OCI compute instance, with no embedded credentials?', o:['API key in config file','Session token','Instance principal','Username/password'], c:2, e:'Instance principals let a compute instance authenticate as itself without any embedded long-lived key.'},
+    {q:'A CLI command returns "NotAuthorizedOrNotFound." The most likely first thing to check is:', o:['Network connectivity','Whether the IAM policy grants sufficient permission on this resource','The region name spelling','The OS package version'], c:1, e:'This error deliberately conflates "doesn\'t exist" with "not authorized" — check the policy first.'},
+    {q:'Which HTTP status code indicates the request succeeded and created a new resource?', o:['200','201','204','409'], c:1, e:'201 Created specifically indicates successful resource creation.'},
+    {q:'A 429 response from the OCI API means you should:', o:['Retry immediately in a tight loop','Back off and retry after a delay','Regenerate your API key','Switch regions'], c:1, e:'429 Too Many Requests indicates rate limiting — the correct response is backoff and retry, not hammering the API again.'},
+    {q:'The Console, CLI, SDKs, and REST API in OCI are best described as:', o:['Four unrelated systems','Different wrappers around the same underlying REST API','Only the CLI talks to the real API','SDKs bypass authentication entirely'], c:1, e:'All four are different clients built on top of the same signed REST API calls.'},
+    {q:'Where does the OCI CLI look for connection/auth details by default?', o:['/etc/oci.conf','~/.oci/config','Environment variable OCI_KEY only','A database'], c:1, e:'~/.oci/config is the default CLI configuration file location, containing user, tenancy, fingerprint, key_file, and region.'},
+    {q:'Which of these is a private (RFC 1918) IPv4 range?', o:['8.8.8.0/24','172.16.0.0/12','203.0.113.0/24','198.51.100.0/24'], c:1, e:'172.16.0.0/12 is one of the three RFC 1918 private ranges, along with 10.0.0.0/8 and 192.168.0.0/16.'},
+    {q:'In the OSI model, at which layer do switches primarily operate?', o:['Layer 1 (Physical)','Layer 2 (Data Link)','Layer 3 (Network)','Layer 4 (Transport)'], c:1, e:'Switches forward frames using MAC addresses, which is Layer 2 (Data Link) functionality.'},
+    {q:'What is the primary security risk of running "chmod 777" on a script?', o:['It makes the file unreadable','Any local user or compromised process can modify/replace the script','It deletes the file automatically','It disables logging'], c:1, e:'777 makes the file world-writable, letting any local account or code execution overwrite it with malicious content.'},
+  ];
+  state.quizTotal = Q.length;
+  wrap.innerHTML = Q.map((item,qi)=>`
+    <div class="quiz-q" id="quiz3-${qi}">
+      <div class="qtext">${qi+1}. ${item.q}</div>
+      <div class="quiz-opts">${item.o.map((opt,oi)=>`<label class="quiz-opt"><input type="radio" name="q3-${qi}" value="${oi}"> ${opt}</label>`).join('')}</div>
+      <div class="quiz-explain">${item.e}</div>
+    </div>`).join('');
+  wrap.querySelectorAll('.quiz-q').forEach((qEl, qi)=>{
+    qEl.addEventListener('change', e=>{
+      if(qEl.classList.contains('answered')) return;
+      qEl.classList.add('answered');
+      const chosen = parseInt(e.target.value);
+      qEl.querySelectorAll('.quiz-opt').forEach((o,oi)=>{ if(oi===Q[qi].c) o.classList.add('correct'); else if(oi===chosen) o.classList.add('incorrect'); });
+      state.quizAnswered++; if(chosen===Q[qi].c) state.quizScore++;
+      document.getElementById('score-chip-val').textContent = `${state.quizScore} / ${state.quizAnswered}`;
+      document.getElementById('quiz-final-score3').textContent = `${state.quizScore} / ${Q.length}`;
+      document.getElementById('cert-score-display3').textContent = `${state.quizScore}/${Q.length}`;
+      updateBadge3();
+    });
+  });
+}
+
+/* ---------- badge / certificate 3 ---------- */
+function updateBadge3(){
+  const scrollPct = window.__lastScrollPct3 || 0;
+  const quizPct = state.quizTotal ? (state.quizAnswered/state.quizTotal)*100 : 0;
+  const combined = Math.round(scrollPct*0.5 + quizPct*0.5);
+  const circle = document.getElementById('badge-circle3'); if(!circle) return;
+  circle.style.setProperty('--pct', (combined*3.6)+'deg');
+  document.getElementById('badge-pct3').textContent = combined+'%';
+  const title = document.getElementById('badge-title3'); const sub = document.getElementById('badge-sub3');
+  if(combined>=95){ title.textContent='🏆 Day 3 Complete'; sub.textContent='Certificate preview unlocked below.'; }
+  else if(combined>=50){ title.textContent='🟠 Halfway there'; sub.textContent='Keep going through the remaining sections and the quiz.'; }
+  else { title.textContent='Keep going'; sub.textContent='Complete every section and the quiz to preview your certificate.'; }
+  const d = new Date(); document.getElementById('cert-date-display3').textContent = d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+}
+</script>
+</body>
+</html>
