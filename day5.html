@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Networking, VCN, Compute &amp; Storage — Day 5 | Interactive Learning Platform</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS — void black base, Oracle red signal,
+   cool blue for network/data, amber warnings, green success.
+   ============================================================ */
+:root{
+  --void:#08090b;
+  --panel:#101217;
+  --panel-2:#15171e;
+  --panel-glass: rgba(21,23,30,0.6);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text-1:#eef0f3;
+  --text-2:#a7acb8;
+  --text-3:#6b7180;
+  --red:#c74634;
+  --red-bright:#ff5a3c;
+  --red-dim: rgba(199,70,52,0.15);
+  --blue:#4f8cff;
+  --blue-dim: rgba(79,140,255,0.15);
+  --amber:#e8a33d;
+  --amber-dim: rgba(232,163,61,0.15);
+  --green:#3ec28f;
+  --green-dim: rgba(62,194,143,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: "Space Grotesk","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-body: "Inter","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.35);
+}
+html[data-theme="light"]{
+  --void:#f3f2ee;
+  --panel:#ffffff;
+  --panel-2:#f7f6f2;
+  --panel-glass: rgba(255,255,255,0.7);
+  --border: rgba(10,10,10,0.08);
+  --border-strong: rgba(10,10,10,0.16);
+  --text-1:#15171c;
+  --text-2:#4b4f58;
+  --text-3:#838791;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void); color:var(--text-1); font-family:var(--font-body); line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 500px at 15% -5%, rgba(199,70,52,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(79,140,255,0.10), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 100%, rgba(199,70,52,0.08), transparent 60%);
+}
+h1,h2,h3,h4{font-family:var(--font-display); letter-spacing:-0.02em; font-weight:700; color:var(--text-1);}
+code,.mono{font-family:var(--font-mono);}
+a{color:inherit;}
+::selection{background:var(--red); color:#fff;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:10px;}
+
+#particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg,var(--red),var(--red-bright));
+  z-index:9999; box-shadow:0 0 12px var(--red-bright); transition:width .1s linear;
+}
+#topbar{
+  position:fixed; top:0; left:0; right:0; z-index:900; height:60px; display:flex; align-items:center; gap:14px;
+  padding:0 18px; margin-top:3px; background:var(--panel-glass); backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:15px; white-space:nowrap;}
+#topbar .brand .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,var(--red),var(--red-bright)); box-shadow:0 0 14px var(--red-bright);}
+#sidebar-toggle{
+  background:transparent; border:1px solid var(--border); color:var(--text-2); width:36px; height:36px;
+  border-radius:var(--radius-sm); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:.2s;
+}
+#sidebar-toggle:hover{border-color:var(--border-strong); color:var(--text-1);}
+#search-wrap{position:relative; flex:1; max-width:420px;}
+#search{
+  width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text-1);
+  padding:8px 14px 8px 34px; border-radius:999px; font-size:13px; font-family:var(--font-body); outline:none; transition:.2s;
+}
+#search:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-dim);}
+#search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-3);}
+#search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--panel); border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm); box-shadow:var(--shadow-lg); max-height:320px; overflow-y:auto; display:none; z-index:50;
+}
+#search-results a{display:block; padding:9px 14px; font-size:13px; color:var(--text-2); border-bottom:1px solid var(--border); text-decoration:none;}
+#search-results a:hover{background:var(--panel-2); color:var(--text-1);}
+#search-results .sr-cat{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--red-bright); display:block; margin-bottom:2px;}
+.topbar-spacer{flex:1;}
+#theme-toggle{
+  background:var(--panel); border:1px solid var(--border); color:var(--text-2); width:36px; height:36px; border-radius:999px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s; font-size:15px;
+}
+#theme-toggle:hover{border-color:var(--red); color:var(--red-bright);}
+#score-chip{
+  display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border);
+  padding:6px 12px; border-radius:999px; font-size:12px; color:var(--text-2); white-space:nowrap;
+}
+#score-chip b{color:var(--red-bright); font-family:var(--font-display);}
+
+#shell{display:flex; padding-top:63px; position:relative; z-index:1;}
+#sidebar{
+  width:270px; flex-shrink:0; height:calc(100vh - 63px); position:sticky; top:63px; overflow-y:auto;
+  border-right:1px solid var(--border); padding:18px 10px 60px; transition:margin-left .3s ease, opacity .3s ease;
+}
+#sidebar.collapsed{margin-left:-270px; opacity:0;}
+#sidebar .nav-head{font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3); padding:14px 12px 6px; font-weight:700;}
+#sidebar a.nav-link{
+  display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:var(--radius-sm); font-size:13.5px;
+  color:var(--text-2); text-decoration:none; transition:.15s; border-left:2px solid transparent;
+}
+#sidebar a.nav-link:hover{background:var(--panel); color:var(--text-1);}
+#sidebar a.nav-link.active{background:var(--red-dim); color:var(--red-bright); border-left-color:var(--red-bright); font-weight:600;}
+#sidebar a.nav-link .num{font-family:var(--font-mono); font-size:10px; color:var(--text-3); width:18px;}
+
+main{flex:1; min-width:0; padding:0 0 100px;}
+.container{max-width:980px; margin:0 auto; padding:0 32px;}
+
+#hero{position:relative; padding:100px 32px 70px; overflow:hidden;}
+#hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red-bright); background:var(--red-dim); border:1px solid rgba(199,70,52,0.3);
+  padding:6px 14px; border-radius:999px; margin-bottom:22px; font-weight:600;
+}
+#hero h1{font-size:clamp(2.4rem,5vw,4.2rem); line-height:1.02; max-width:820px;}
+#hero h1 .accent{background:linear-gradient(135deg,var(--red),var(--red-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+#hero p.lede{max-width:620px; font-size:17px; color:var(--text-2); margin-top:22px;}
+#hero .hero-stats{display:flex; gap:34px; margin-top:40px; flex-wrap:wrap;}
+#hero .hstat b{font-family:var(--font-display); font-size:26px; display:block;}
+#hero .hstat span{font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;}
+#hero .cta-row{display:flex; gap:14px; margin-top:38px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:14px; padding:12px 22px; border-radius:999px;
+  border:1px solid var(--border-strong); cursor:pointer; transition:.2s; display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn-primary{background:linear-gradient(135deg,var(--red),var(--red-bright)); color:#fff; border:none; box-shadow:0 8px 24px rgba(199,70,52,0.35);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px rgba(199,70,52,0.45);}
+.btn-ghost{background:var(--panel); color:var(--text-1);}
+.btn-ghost:hover{border-color:var(--red); color:var(--red-bright);}
+
+section.chapter{padding:70px 0 10px; border-top:1px solid var(--border); scroll-margin-top:80px;}
+section.chapter:first-of-type{border-top:none;}
+.chapter-kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.chapter-kicker .idx{font-family:var(--font-mono); font-size:12px; color:var(--red-bright); background:var(--red-dim); padding:4px 10px; border-radius:6px; border:1px solid rgba(199,70,52,.3);}
+.chapter-kicker .track{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3);}
+.chapter h2{font-size:clamp(1.6rem,3vw,2.3rem); margin-bottom:6px;}
+.chapter .dek{color:var(--text-2); font-size:15.5px; max-width:680px; margin-bottom:30px;}
+.chapter h3{font-size:1.15rem; margin:34px 0 14px;}
+.chapter p{color:var(--text-2); font-size:15px; margin-bottom:14px; max-width:720px;}
+.chapter ul,.chapter ol{color:var(--text-2); font-size:15px; margin:0 0 16px 20px;}
+.chapter li{margin-bottom:6px;}
+.chapter strong{color:var(--text-1);}
+
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--border);
+  border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); position:relative;
+}
+.grid{display:grid; gap:16px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:800px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; transition:.25s; cursor:default;}
+.card:hover{border-color:var(--border-strong); transform:translateY(-3px); box-shadow:var(--shadow-sm);}
+.card h4{font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.card p{font-size:13.5px; margin:0; color:var(--text-2);}
+
+.callout{border-radius:var(--radius-sm); padding:14px 16px; margin:16px 0; border:1px solid; font-size:14px; display:flex; gap:12px; align-items:flex-start;}
+.callout .ic{font-size:16px; flex-shrink:0; margin-top:1px;}
+.callout-tip{background:var(--green-dim); border-color:rgba(62,194,143,.35); color:var(--text-1);}
+.callout-warn{background:var(--amber-dim); border-color:rgba(232,163,61,.35); color:var(--text-1);}
+.callout-trap{background:var(--red-dim); border-color:rgba(199,70,52,.35); color:var(--text-1);}
+.callout-q{background:var(--blue-dim); border-color:rgba(79,140,255,.35); color:var(--text-1);}
+.callout b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; margin:18px 0;}
+table.cmp th{text-align:left; color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--border-strong);}
+table.cmp td{padding:12px; border-bottom:1px solid var(--border); color:var(--text-2);}
+table.cmp tr:hover td{background:var(--panel);}
+table.cmp td:first-child, table.cmp th:first-child{color:var(--text-1); font-weight:600;}
+
+.chip-btn{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text-2); font-size:12.5px;
+  padding:7px 14px; border-radius:999px; cursor:pointer; transition:.2s; font-family:var(--font-body); font-weight:600;
+}
+.chip-btn:hover{border-color:var(--red); color:var(--red-bright);}
+.chip-btn.active{background:var(--red); color:#fff; border-color:var(--red);}
+.chip-btn:disabled{opacity:.4; cursor:not-allowed;}
+.chip-btn.right{background:var(--green); color:#fff; border-color:var(--green);}
+.chip-btn.wrong{background:var(--red); color:#fff; border-color:var(--red);}
+.cost-filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+
+/* pipeline (reused for packet journey / flows) */
+.problem-pipeline{display:flex; align-items:center; gap:4px; overflow-x:auto; padding:14px 0;}
+.pipe-step{flex-shrink:0; min-width:100px; text-align:center; padding:12px 8px; border-radius:8px; background:var(--panel); border:1px solid var(--border); font-size:11.5px; transition:.3s;}
+.pipe-step.lit{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); color:var(--amber);}
+.pipe-step.ok{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); color:var(--green);}
+.pipe-arrow{color:var(--text-3); flex-shrink:0; font-size:14px;}
+.sim-log{
+  background:#0c0d10; border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+  padding:12px 14px; font-family:var(--font-mono); font-size:11.5px; line-height:1.8;
+  min-height:70px; max-height:220px; overflow-y:auto; color:var(--text-2); margin-top:14px;
+}
+html[data-theme="light"] .sim-log{background:#1b1d22;}
+.sim-log .l-pass{color:var(--red-bright);}
+.sim-log .l-block{color:var(--green);}
+.sim-log .l-info{color:var(--text-3);}
+.sim-log .l-warn{color:var(--amber);}
+
+/* trucks / packet switching */
+.truck-road{position:relative; height:44px; border-bottom:1px dashed var(--border-strong); margin-bottom:6px;}
+.truck{position:absolute; left:0; top:4px; font-size:22px; transition:left 1.2s ease;}
+.truck .plabel{font-size:9px; font-family:var(--font-mono); color:var(--text-3); display:block; text-align:center;}
+.assemble-box{margin-top:14px; padding:12px 14px; border-radius:8px; background:var(--panel); border:1px solid var(--border); font-family:var(--font-mono); font-size:14px; min-height:46px; letter-spacing:2px;}
+.assemble-box b{color:var(--green);}
+
+/* CIDR planner */
+.cidr-display{font-family:var(--font-mono); font-size:clamp(18px,3.5vw,28px); text-align:center; padding:16px; background:#0c0d10; border-radius:var(--radius-sm); border:1px solid var(--border-strong); margin-bottom:14px;}
+html[data-theme="light"] .cidr-display{background:#1b1d22;}
+.cidr-display .c-net{color:#7fb2ff;}
+.cidr-display .c-slash{color:var(--text-3);}
+.cidr-display .c-pre{color:var(--red-bright);}
+.cidr-bar{height:26px; border-radius:8px; overflow:hidden; display:flex; border:1px solid var(--border-strong); margin:12px 0 4px;}
+.cidr-bar .net-part{background:var(--blue-dim); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:10px; font-family:var(--font-mono); transition:width .3s;}
+.cidr-bar .host-part{background:var(--red-dim); color:var(--red-bright); display:flex; align-items:center; justify-content:center; font-size:10px; font-family:var(--font-mono); flex:1; transition:.3s;}
+.cidr-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px;}
+@media(max-width:700px){.cidr-stats{grid-template-columns:1fr;}}
+.cidr-stat{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; text-align:center;}
+.cidr-stat b{font-family:var(--font-display); font-size:20px; display:block; color:var(--red-bright);}
+.cidr-stat span{font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em;}
+
+/* subnet access sim */
+.mall{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0;}
+@media(max-width:700px){.mall{grid-template-columns:1fr;}}
+.mall-floor{border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:16px; text-align:center; background:var(--panel); transition:.3s;}
+.mall-floor .mf-tag{font-size:10px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:6px;}
+.mall-floor.pub .mf-tag{color:var(--green);}
+.mall-floor.priv .mf-tag{color:var(--red-bright);}
+.mall-floor .mf-ico{font-size:26px;}
+.mall-floor.hit-ok{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim);}
+.mall-floor.hit-no{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim); animation:shake .35s;}
+.sz-result{margin-top:12px; padding:12px 14px; border-radius:8px; font-size:13px; display:none;}
+.sz-result.blocked{display:block; background:var(--red-dim); color:var(--red-bright); border:1px solid rgba(199,70,52,.35);}
+.sz-result.allowed{display:block; background:var(--green-dim); color:var(--green); border:1px solid rgba(62,194,143,.35);}
+
+/* ip planner */
+.ip-row{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+.ip-row .ip-name{width:90px; font-weight:600; font-size:13px;}
+.ip-row .ip-prefix{font-family:var(--font-mono); font-size:13px; color:var(--text-2);}
+.ip-row input{width:70px; background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:6px 8px; font-family:var(--font-mono); font-size:13px; text-align:center;}
+.ip-row .ip-state{font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;}
+.ip-ok{background:var(--green-dim); color:var(--green);}
+.ip-bad{background:var(--red-dim); color:var(--red-bright);}
+
+/* route tester */
+.route-row{display:flex; align-items:center; gap:12px; padding:11px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px; transition:.3s; flex-wrap:wrap;}
+.route-row .rr-cidr{font-family:var(--font-mono); color:var(--blue); min-width:110px;}
+.route-row .rr-target{flex:1; color:var(--text-2);}
+.route-row .rr-len{font-size:10px; color:var(--text-3); font-family:var(--font-mono);}
+.route-row.win{border-color:var(--green); background:var(--green-dim); box-shadow:0 0 0 3px var(--green-dim);}
+.route-row.win .rr-target{color:var(--green); font-weight:700;}
+.route-row.lose{opacity:.45;}
+
+/* vcn builder */
+.vcn-build{display:grid; grid-template-columns:240px 1fr; gap:20px;}
+@media(max-width:800px){.vcn-build{grid-template-columns:1fr;}}
+.vcn-parts{display:flex; flex-direction:column; gap:8px;}
+.vcn-part{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--panel);}
+.vcn-diagram{border:2px dashed var(--border-strong); border-radius:var(--radius); padding:18px; min-height:280px; position:relative;}
+.vcn-diagram .vd-title{font-family:var(--font-mono); font-size:11px; color:var(--text-3); margin-bottom:12px;}
+.vd-item{border:1px solid var(--border-strong); border-radius:8px; padding:10px 14px; margin-bottom:8px; font-size:12.5px; background:var(--panel); animation:popIn .3s ease; display:flex; align-items:center; gap:8px;}
+.vd-item.gw{border-color:rgba(79,140,255,.45); color:var(--blue);}
+.vd-item.pub{border-color:rgba(62,194,143,.45);}
+.vd-item.priv{border-color:rgba(232,163,61,.45);}
+.vd-empty{color:var(--text-3); font-size:12.5px; font-style:italic;}
+.vcn-status{margin-top:12px; padding:11px 14px; border-radius:8px; font-size:13px; font-weight:600; background:var(--panel-2); border:1px solid var(--border); transition:.3s;}
+.vcn-status.ready{background:var(--green-dim); color:var(--green); border-color:rgba(62,194,143,.4);}
+
+/* firewall sim */
+.switch{position:relative; width:44px; height:24px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .slider{position:absolute; inset:0; background:var(--panel-2); border:1px solid var(--border-strong); border-radius:999px; cursor:pointer; transition:.25s;}
+.switch .slider::before{content:""; position:absolute; width:16px; height:16px; left:3px; top:2px; background:var(--text-3); border-radius:50%; transition:.25s;}
+.switch input:checked + .slider{background:var(--green-dim); border-color:var(--green);}
+.switch input:checked + .slider::before{transform:translateX(20px); background:var(--green);}
+.fw-rule{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px;}
+.fw-rule .fr-name{font-weight:600;}
+.fw-rule .fr-port{font-family:var(--font-mono); font-size:11px; color:var(--text-3);}
+
+/* splitter */
+.splitter{display:flex; align-items:stretch; gap:0; margin:16px 0; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-strong);}
+.split-half{flex:1; padding:18px; text-align:center;}
+.split-half.left{background:var(--red-dim);}
+.split-half.right{background:var(--green-dim);}
+.split-half .sh-tag{font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;}
+.split-half.left .sh-tag{color:var(--red-bright);}
+.split-half.right .sh-tag{color:var(--green);}
+.split-half .sh-word{font-family:var(--font-mono); font-size:16px; font-weight:800; margin-top:6px; color:var(--text-1);}
+.split-half .sh-desc{font-size:11.5px; color:var(--text-2); margin-top:6px; line-height:1.55;}
+.split-div{display:flex; align-items:center; justify-content:center; background:#0c0d10; color:var(--amber); font-family:var(--font-mono); font-size:16px; font-weight:700; padding:0 12px;}
+html[data-theme="light"] .split-div{background:#1b1d22;}
+
+/* shape picker */
+.shape-card{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px; transition:.3s; flex-wrap:wrap;}
+.shape-card .sc-spec{font-family:var(--font-mono); font-size:11px; color:var(--text-3);}
+.shape-card.pick{border-color:var(--green); background:var(--green-dim); box-shadow:0 0 0 3px var(--green-dim);}
+.shape-card.pick .sc-name{color:var(--green); font-weight:700;}
+
+/* race */
+.race{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media(max-width:700px){.race{grid-template-columns:1fr;}}
+.race-col{border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:14px; background:var(--panel);}
+.race-col h4{font-size:13px; margin-bottom:10px;}
+.race-step{padding:8px 12px; border-radius:6px; background:var(--panel-2); border:1px solid var(--border); font-size:12px; margin-bottom:6px; color:var(--text-3); transition:.3s;}
+.race-step.done{border-color:var(--green); color:var(--green); background:var(--green-dim);}
+.race-time{font-family:var(--font-mono); font-size:12px; margin-top:8px; color:var(--text-2); min-height:18px;}
+
+/* terminal */
+.terminal{background:#0a0b0d; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden;}
+html[data-theme="light"] .terminal{background:#16171c;}
+.terminal-tb{background:#16171c; padding:8px 14px; font-size:11px; color:var(--text-3); font-family:var(--font-mono); border-bottom:1px solid var(--border);}
+.term-out{padding:16px; font-family:var(--font-mono); font-size:12.5px; color:#c9f7d8; min-height:150px; max-height:260px; overflow-y:auto; white-space:pre-wrap;}
+.term-out .cmd{color:#7db2ff;}
+
+/* game scenarios */
+.game-scen{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px 18px; margin-bottom:12px;}
+.game-scen .gs-q{font-size:13.5px; font-weight:600; margin-bottom:10px; color:var(--text-1);}
+.game-scen .gs-opts{display:flex; gap:8px; flex-wrap:wrap;}
+.game-scen .gs-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.game-scen.answered .gs-explain{display:block;}
+
+/* VCN architecture explorer */
+.vx-inet{border:1px solid rgba(79,140,255,.45); background:var(--blue-dim); border-radius:var(--radius-sm); padding:10px 14px; text-align:center; font-size:13px; font-weight:700; color:var(--blue); cursor:pointer; transition:.25s;}
+.vx-region{border:2px dashed var(--border-strong); border-radius:var(--radius); padding:14px; margin-top:8px;}
+.vx-vcn{border:2px solid rgba(199,70,52,.5); border-radius:var(--radius); padding:14px; margin-top:10px; background:rgba(199,70,52,0.04);}
+.vx-label{font-family:var(--font-mono); font-size:11px; color:var(--text-3); margin-bottom:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.vx-label b{color:var(--text-1); font-size:12px;}
+.vx-gwrow{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+.vx-subnet{border:1.5px solid var(--border-strong); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px;}
+.vx-subnet.pub{border-color:rgba(62,194,143,.45); background:rgba(62,194,143,.05);}
+.vx-subnet.priv{border-color:rgba(232,163,61,.45); background:rgba(232,163,61,.05);}
+.vx-sublabel{font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px;}
+.vx-subnet.pub .vx-sublabel{color:var(--green);}
+.vx-subnet.priv .vx-sublabel{color:var(--amber);}
+.vx-noderow{display:flex; gap:8px; flex-wrap:wrap;}
+.vx-node{background:var(--panel); border:1px solid var(--border-strong); border-radius:8px; padding:8px 14px; font-size:12.5px; cursor:pointer; transition:.25s; user-select:none;}
+.vx-node:hover{border-color:var(--red); transform:translateY(-1px);}
+.vx-node.sel{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim);}
+.vx-node.lit{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); color:var(--amber);}
+.vx-node.litok{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); color:var(--green);}
+.vx-svc{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.vx-detail{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; color:var(--text-2); line-height:1.7; margin-top:14px; min-height:60px;}
+.vx-detail strong{color:var(--text-1);}
+
+/* peering */
+.peer-wrap{display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; margin:14px 0;}
+@media(max-width:700px){.peer-wrap{grid-template-columns:1fr;}}
+.peer-vcn{border:2px solid rgba(79,140,255,.5); border-radius:var(--radius-sm); padding:14px; text-align:center; font-size:12.5px; background:var(--panel); transition:.3s;}
+.peer-vcn.b{border-color:rgba(62,194,143,.5);}
+.peer-vcn .pv-name{font-weight:700; font-size:13.5px;}
+.peer-vcn .pv-cidr{font-family:var(--font-mono); font-size:11px; color:var(--text-3);}
+.peer-vcn.sending{box-shadow:0 0 0 3px var(--amber-dim); border-color:var(--amber);}
+.peer-link{text-align:center; font-size:12px; font-family:var(--font-mono); color:var(--text-3); padding:8px 10px; border-radius:8px; border:1px dashed var(--border-strong); min-width:120px; transition:.3s;}
+.peer-link.on{border-style:solid; border-color:var(--green); color:var(--green); background:var(--green-dim);}
+
+/* colony dot grid (CIDR) */
+.dotgrid{display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:12px; max-width:640px; margin-left:auto; margin-right:auto;}
+.dotgrid .dot{width:13px; height:13px; border-radius:3px; background:var(--red-dim); border:1px solid rgba(199,70,52,.45); transition:.2s;}
+.cidr-sentence{font-size:14px; text-align:center; margin-top:18px; color:var(--text-1); font-weight:600;}
+
+/* route checking animation */
+.route-row.checking{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim);}
+
+/* gateway doors */
+.door-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:14px;}
+.door-card{background:var(--panel); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:14px; text-align:center; cursor:pointer; transition:.2s; font-size:12.5px;}
+.door-card:hover{transform:translateY(-2px); border-color:var(--red);}
+.door-card.sel{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim);}
+.door-card .dc-ico{font-size:24px; margin-bottom:6px;}
+.door-tests{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; font-size:13px;}
+.door-tests h4{font-size:13.5px; margin-bottom:8px;}
+.door-test-row{display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px dashed var(--border); font-size:12.5px; color:var(--text-2);}
+.door-test-row:last-child{border-bottom:none;}
+.door-test-row .dt-res{margin-left:auto; font-weight:700; font-size:12px; white-space:nowrap;}
+.dt-ok{color:var(--green);} .dt-no{color:var(--red-bright);}
+
+/* terraform house sim */
+.tf-house{background:var(--panel); border:1px dashed var(--border-strong); border-radius:var(--radius-sm); padding:16px; text-align:center; font-size:12.5px; min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--text-3); transition:.3s;}
+.tf-house.built{border-style:solid; border-color:rgba(79,140,255,.5); color:var(--text-1); animation:popIn .3s ease;}
+.tf-house.configured{border-color:var(--green); background:var(--green-dim);}
+.tf-house .th-ico{font-size:24px;}
+.tf-house .th-sw{font-size:11px; color:var(--text-3);}
+.tf-house.configured .th-sw{color:var(--green); font-weight:700;}
+
+/* flashcards */
+.flash-wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:800px){.flash-wrap{grid-template-columns:1fr 1fr;}}
+@media (max-width:520px){.flash-wrap{grid-template-columns:1fr;}}
+.flashcard{perspective:1000px; height:130px; cursor:pointer;}
+.flashcard .fc-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm); border:1px solid var(--border-strong); padding:14px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13px;}
+.fc-front{background:var(--panel);}
+.fc-back{background:var(--red-dim); color:var(--red-bright); transform:rotateY(180deg); font-weight:600;}
+
+/* quiz */
+.quiz-q{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px 20px; margin-bottom:14px;}
+.quiz-q .qtext{font-size:14.5px; font-weight:600; margin-bottom:12px;}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; border:1px solid var(--border); cursor:pointer; font-size:13.5px; color:var(--text-2); transition:.15s;}
+.quiz-opt:hover{border-color:var(--border-strong); background:var(--panel-2);}
+.quiz-opt.correct{border-color:var(--green); background:var(--green-dim); color:var(--green);}
+.quiz-opt.incorrect{border-color:var(--red); background:var(--red-dim); color:var(--red-bright);}
+.quiz-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.quiz-q.answered .quiz-explain{display:block;}
+
+/* badge / cert */
+.badge-circle{width:150px; height:150px; border-radius:50%; margin:0 auto 20px; position:relative; background:conic-gradient(var(--red-bright) 0deg, var(--red) var(--pct,0deg), var(--panel-2) var(--pct,0deg)); display:flex; align-items:center; justify-content:center; transition:background 1s ease;}
+.badge-circle::before{content:""; position:absolute; inset:10px; border-radius:50%; background:var(--void);}
+.badge-circle span{position:relative; font-family:var(--font-display); font-size:28px; font-weight:700;}
+.cert-frame{max-width:640px; margin:0 auto; border:2px solid var(--red); border-radius:var(--radius); padding:40px; text-align:center; background:linear-gradient(160deg,var(--panel),var(--panel-2)); position:relative; overflow:hidden;}
+.cert-frame::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(45deg, rgba(199,70,52,0.04) 0 12px, transparent 12px 24px); pointer-events:none;}
+.cert-frame h3{font-family:var(--font-display); font-size:22px; margin:14px 0 4px;}
+.cert-name{font-size:24px; font-family:var(--font-display); color:var(--red-bright); margin:16px 0; border-bottom:1px solid var(--border-strong); display:inline-block; padding-bottom:6px; min-width:260px;}
+.mini-input{background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:6px 10px; font-size:12.5px; font-family:var(--font-body);}
+
+.center{text-align:center;}
+.mt-lg{margin-top:36px;}
+.small{font-size:12px; color:var(--text-3);}
+footer{text-align:center; padding:50px 20px; color:var(--text-3); font-size:12.5px; border-top:1px solid var(--border); margin-top:60px;}
+@keyframes popIn{from{opacity:0; transform:scale(.7);} to{opacity:1; transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="progress-bar"></div>
+<div id="topbar">
+  <button id="sidebar-toggle" title="Toggle sidebar">☰</button>
+  <div class="brand"><span class="dot"></span> OCI Networking &amp; VCN · Day 5</div>
+  <div id="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" type="text" placeholder="Search networking, VCN, compute, storage…" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div id="score-chip">Quiz score: <b id="score-chip-val">0/0</b></div>
+  <button id="theme-toggle" title="Toggle theme">🌙</button>
+</div>
+
+<div id="shell">
+  <nav id="sidebar">
+    <div class="nav-group"><div class="nav-head">The Big Picture</div>
+      <a class="nav-link" href="#sec-bigpicture"><span class="num">01</span>VCN Architecture Explorer</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 1 · Networking Basics</div>
+      <a class="nav-link" href="#sec-netbasics"><span class="num">02</span>What is Networking?</a>
+      <a class="nav-link" href="#sec-packets"><span class="num">03</span>Packet Switching</a>
+      <a class="nav-link" href="#sec-switchrouter"><span class="num">04</span>Switch vs Router</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 2–3 · Addresses &amp; Subnets</div>
+      <a class="nav-link" href="#sec-cidr"><span class="num">05</span>CIDR Planner</a>
+      <a class="nav-link" href="#sec-subnets"><span class="num">06</span>Public vs Private Subnets</a>
+      <a class="nav-link" href="#sec-ipplan"><span class="num">07</span>IP Address Planner</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 4–10 · Routing &amp; VCN</div>
+      <a class="nav-link" href="#sec-routes"><span class="num">08</span>Route Tables</a>
+      <a class="nav-link" href="#sec-gateways"><span class="num">09</span>The 5 Gateways</a>
+      <a class="nav-link" href="#sec-vcn"><span class="num">10</span>VCN Builder</a>
+      <a class="nav-link" href="#sec-peering"><span class="num">11</span>VCN Peering</a>
+      <a class="nav-link" href="#sec-seclists"><span class="num">12</span>Security Lists &amp; NSGs</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 11–16 · Compute</div>
+      <a class="nav-link" href="#sec-compute"><span class="num">13</span>Compute · Shapes · Boot Volume</a>
+      <a class="nav-link" href="#sec-cloudinit"><span class="num">14</span>Cloud-init Race</a>
+      <a class="nav-link" href="#sec-ssh"><span class="num">15</span>SSH Keys &amp; Metadata</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Module 17–20 · Storage &amp; Config</div>
+      <a class="nav-link" href="#sec-storage"><span class="num">16</span>Object · Block · File Storage</a>
+      <a class="nav-link" href="#sec-tfansible"><span class="num">17</span>Terraform vs Ansible</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Wrap-Up</div>
+      <a class="nav-link" href="#sec-e2e"><span class="num">18</span>End-to-End Architecture</a>
+      <a class="nav-link" href="#sec-cheatsheet"><span class="num">19</span>Cheat Sheets</a>
+      <a class="nav-link" href="#sec-flashcards"><span class="num">20</span>Flash Cards</a>
+      <a class="nav-link" href="#sec-quiz"><span class="num">21</span>Certification Quiz</a>
+      <a class="nav-link" href="#sec-cert"><span class="num">22</span>Certificate Preview</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="hero">
+      <span class="eyebrow">● Oracle Cloud Infrastructure — Networking &amp; Compute Track</span>
+      <h1>Day 5: Build your own<br><span class="accent">cloud data center.</span></h1>
+      <p class="lede">Networking fundamentals, CIDR, subnets, route tables, gateways, VCN, security lists, compute, cloud-init and storage — every concept has a hands-on simulator below.</p>
+      <div class="hero-stats">
+        <div class="hstat"><b>22</b><span>Interactive sections</span></div>
+        <div class="hstat"><b>10</b><span>Certification MCQs</span></div>
+        <div class="hstat"><b>17</b><span>Live simulators</span></div>
+        <div class="hstat"><b id="hero-progress">0%</b><span>Your progress</span></div>
+      </div>
+      <div class="cta-row">
+        <a href="#sec-bigpicture" class="btn btn-primary">Start with the city map →</a>
+        <a href="#sec-quiz" class="btn btn-ghost">Jump to certification quiz</a>
+      </div>
+    </section>
+
+    <div class="container">
+
+<!-- 00 BIG PICTURE / VCN ARCHITECTURE EXPLORER -->
+<section class="chapter reveal" id="sec-bigpicture">
+  <div class="chapter-kicker"><span class="idx">01</span><span class="track">The Big Picture</span></div>
+  <h2>Your Private City — VCN Architecture Explorer</h2>
+  <p class="dek">Imagine Oracle Cloud is building a <strong>new city for your company</strong>. Everything you create in OCI lives inside this map. Click ANY component to learn what it is — then run the three traffic journeys and watch the city work.</p>
+  <div class="panel">
+    <div class="vx-inet vx-node" data-vx="inet" style="border-radius:8px;">🌍 The Internet — the world outside your city</div>
+    <div class="center" style="font-size:14px; color:var(--text-3); padding:2px 0;">↕</div>
+    <div class="vx-region">
+      <div class="vx-label">🗺 <b>OCI Region</b> — the land your city is built on <span class="vx-node" data-vx="region" style="margin-left:auto; font-size:11px;">what's a region?</span></div>
+      <div class="vx-vcn">
+        <div class="vx-label">🏙 <b>VCN — your private city</b> · CIDR <span class="mono" style="color:var(--red-bright);">10.0.0.0/16</span> <span class="vx-node" data-vx="vcn" style="margin-left:auto; font-size:11px;">what's a VCN?</span></div>
+        <div class="vx-gwrow">
+          <span class="vx-node" data-vx="igw">🌐 Internet Gateway</span>
+          <span class="vx-node" data-vx="nat">🥷 NAT Gateway</span>
+          <span class="vx-node" data-vx="sgw">🛗 Service Gateway</span>
+          <span class="vx-node" data-vx="rt">🗺 Route Table</span>
+        </div>
+        <div class="vx-subnet pub">
+          <div class="vx-sublabel">🏪 Public Subnet · 10.0.1.0/24 · the ground floor</div>
+          <div class="vx-noderow">
+            <span class="vx-node" data-vx="web">🖥 Web Server VM <span class="small mono">public IP</span></span>
+            <span class="vx-node" data-vx="sl">💂 Security List</span>
+          </div>
+        </div>
+        <div class="vx-subnet priv">
+          <div class="vx-sublabel">🔒 Private Subnet · 10.0.2.0/24 · staff only</div>
+          <div class="vx-noderow">
+            <span class="vx-node" data-vx="app">⚙️ App Server VM</span>
+            <span class="vx-node" data-vx="db">🗄 Database VM</span>
+            <span class="vx-node" data-vx="block">💽 Block Volume</span>
+            <span class="vx-node" data-vx="nsg">🔐 NSG</span>
+          </div>
+        </div>
+      </div>
+      <div class="vx-svc">
+        <span class="small" style="color:var(--text-3);">OCI services in the region (outside your VCN):</span>
+        <span class="vx-node" data-vx="obj">📦 Object Storage</span>
+      </div>
+    </div>
+    <div class="vx-detail" id="vx-detail">👆 Click any component in the city map to learn what it does.</div>
+    <div class="cost-filters mt-lg" style="justify-content:center;">
+      <button class="chip-btn" id="vx-trip1">🚶 Journey 1: customer opens your website</button>
+      <button class="chip-btn" id="vx-trip2">⬇ Journey 2: database downloads updates</button>
+      <button class="chip-btn" id="vx-trip3">💾 Journey 3: backup to Object Storage</button>
+    </div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏙</div><div><b>Hold this map all day</b>Every topic below is one piece of this city: CIDR plans the house numbers, subnets are the districts, route tables are the roads, gateways are the doors, security lists are the guards, VMs are the buildings, storage is the warehouse. Come back and re-run the journeys after each topic.</div></div>
+</section>
+
+<!-- 01 NETWORKING BASICS -->
+<section class="chapter reveal" id="sec-netbasics">
+  <div class="chapter-kicker"><span class="idx">02</span><span class="track">Networking Basics</span></div>
+  <h2>What is Networking?</h2>
+  <p class="dek">Networking = connecting devices so they can communicate. Think of a city: houses are computers, roads are cables, the traffic police is the router, the security checkpost is the firewall, and every house has an address (IP).</p>
+  <div class="grid grid-2">
+    <div class="card"><h4>🏠 LAN — Local Area Network</h4><p>Everything inside ONE building: laptop, desktop, printer, server. Example: a college computer lab where all systems are connected together.</p></div>
+    <div class="card"><h4>🌍 WAN — Wide Area Network</h4><p>Connects multiple LANs across cities: College → Internet → Oracle Cloud. The Internet itself is the biggest WAN.</p></div>
+  </div>
+  <h3>🚦 Packet Journey Simulator</h3>
+  <p>When your laptop talks to a server, the message passes through devices — each with one job. Press play and watch a packet travel.</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="pj-pipeline"></div>
+    <div class="center"><button class="chip-btn active" id="pj-play">▶ Send a packet</button></div>
+    <div class="sim-log" id="pj-log"><span class="l-info">Press "Send a packet" to watch it travel from your laptop to the server.</span></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏙</div><div><b>City Analogy</b>Houses → Computers · Roads → Network cables · Traffic Police → Router · Security Checkpost → Firewall · Address → IP Address. Without roads nobody reaches anyone; without networking, servers can't communicate.</div></div>
+</section>
+
+<!-- 02 PACKET SWITCHING -->
+<section class="chapter reveal" id="sec-packets">
+  <div class="chapter-kicker"><span class="idx">03</span><span class="track">Networking Basics</span></div>
+  <h2>Packet Switching</h2>
+  <p class="dek">Data is never sent as one big file. It's split into small packets — like a courier company sending 4 trucks instead of 1 huge one — and reassembled at the destination.</p>
+  <div class="panel">
+    <p class="small">Sending the word <span class="mono" style="color:var(--red-bright);">"DATA"</span> — one letter per truck. Watch them travel and arrive (sometimes out of order!):</p>
+    <div id="truck-roads"></div>
+    <div class="assemble-box" id="assemble-box">📥 Destination inbox: waiting for trucks…</div>
+    <div class="center mt-lg"><button class="chip-btn active" id="truck-send">🚚 Send the 4 packets</button></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">💡</div><div><b>Why split?</b>Small packets can take different roads, survive one road failing, and be re-sent individually if lost. Exactly how the Internet works — every image you load arrives as reassembled packets.</div></div>
+</section>
+
+<!-- 03 SWITCH VS ROUTER -->
+<section class="chapter reveal" id="sec-switchrouter">
+  <div class="chapter-kicker"><span class="idx">04</span><span class="track">Networking Basics</span></div>
+  <h2>Switch vs Router</h2>
+  <p class="dek">Two devices beginners always confuse. One works INSIDE a network, the other connects DIFFERENT networks.</p>
+  <div class="splitter">
+    <div class="split-half left">
+      <div class="sh-tag">Switch</div>
+      <div class="sh-word">INSIDE one network</div>
+      <div class="sh-desc">PC1 ↔ Switch ↔ PC2, same office.<br>Like a <strong>classroom monitor</strong> — only manages students inside the class.</div>
+    </div>
+    <div class="split-div">vs</div>
+    <div class="split-half right">
+      <div class="sh-tag">Router</div>
+      <div class="sh-word">BETWEEN networks</div>
+      <div class="sh-desc">Home Network ↔ Router ↔ Internet.<br>Like a <strong>traffic policeman</strong> — controls vehicles going between cities.</div>
+    </div>
+  </div>
+  <h3>🚀 Try it yourself — send a message</h3>
+  <p>Pick where the message is going, then watch which device actually does the work.</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" id="swr-local">📩 PC1 → PC2 (same office)</button>
+      <button class="chip-btn" id="swr-remote">🌍 PC1 → Oracle Cloud website (another network)</button>
+    </div>
+    <div class="problem-pipeline" id="swr-pipeline"></div>
+    <div class="sim-log" id="swr-log"><span class="l-info">Choose a destination above — the message travels automatically.</span></div>
+  </div>
+  <h3>Quick check — who handles it?</h3>
+  <div id="swr-game">
+    <div class="game-scen" data-ans="switch">
+      <div class="gs-q">PC1 sends a file to PC2 sitting on the same office network.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="switch">🔀 Switch</button><button class="chip-btn" data-pick="router">🚦 Router</button></div>
+      <div class="gs-explain">✓ <strong>Switch</strong> — same network, so the classroom monitor handles it. No router needed.</div>
+    </div>
+    <div class="game-scen" data-ans="router">
+      <div class="gs-q">Your laptop at home opens a website hosted in Oracle Cloud.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="switch">🔀 Switch</button><button class="chip-btn" data-pick="router">🚦 Router</button></div>
+      <div class="gs-explain">✓ <strong>Router</strong> — home network → Internet → OCI is traffic between DIFFERENT networks. The traffic policeman's job.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 CIDR -->
+<section class="chapter reveal" id="sec-cidr">
+  <div class="chapter-kicker"><span class="idx">05</span><span class="track">CIDR Planning</span></div>
+  <h2>CIDR Planner</h2>
+  <p class="dek">CIDR (Classless Inter-Domain Routing) defines how many IP addresses your network contains. The number after the slash — the prefix length — is the whole story. Slide it and watch.</p>
+  <div class="panel">
+    <div class="cidr-display"><span class="c-net">10.0.0.0</span><span class="c-slash">/</span><span class="c-pre" id="cidr-pre">16</span></div>
+    <input type="range" id="cidr-slider" min="8" max="30" value="16" style="width:100%; accent-color:var(--red);">
+    <div class="cidr-bar"><div class="net-part" id="cidr-netpart">network bits</div><div class="host-part" id="cidr-hostpart">host bits</div></div>
+    <p class="small center">Blue = fixed network part · Red = free for your machines</p>
+    <div class="cidr-stats">
+      <div class="cidr-stat"><b id="cidr-total">65,536</b><span>IP addresses</span></div>
+      <div class="cidr-stat"><b id="cidr-size">Large company</b><span>Fits a…</span></div>
+      <div class="cidr-stat"><b id="cidr-subnets">256</b><span>possible /24 subnets</span></div>
+    </div>
+    <div class="cost-filters mt-lg" style="justify-content:center;">
+      <button class="chip-btn" data-cidr="16">/16 — big VCN</button>
+      <button class="chip-btn" data-cidr="24">/24 — one subnet</button>
+      <button class="chip-btn" data-cidr="30">/30 — just 4 IPs</button>
+    </div>
+    <div class="cidr-sentence" id="cidr-sentence"></div>
+    <div class="dotgrid" id="cidr-dots"></div>
+    <p class="small center" id="cidr-dots-note"></p>
+  </div>
+  <div class="callout callout-warn"><div class="ic">⚠️</div><div><b>Exam Tip</b>Plan your VCN CIDR carefully <em>before</em> building. Redesigning subnets later is disruptive — a /16 VCN (65,536 IPs) split into /24 subnets (256 IPs each) is the classic safe pattern. Bigger prefix number = smaller network.</div></div>
+</section>
+
+<!-- 05 SUBNETS -->
+<section class="chapter reveal" id="sec-subnets">
+  <div class="chapter-kicker"><span class="idx">06</span><span class="track">Subnets</span></div>
+  <h2>Public vs Private Subnets</h2>
+  <p class="dek">A subnet divides a big network into smaller sections — like a campus divided into departments. The key difference: can the Internet reach it? Think of a shopping mall.</p>
+  <div class="panel">
+    <div class="mall">
+      <div class="mall-floor pub" id="mall-pub">
+        <div class="mf-tag">Public Subnet · Ground Floor</div>
+        <div class="mf-ico">🌐</div>
+        <div><strong>Web Server</strong></div>
+        <p class="small">Open to customers — reachable from the Internet</p>
+      </div>
+      <div class="mall-floor priv" id="mall-priv">
+        <div class="mf-tag">Private Subnet · Employee Floor</div>
+        <div class="mf-ico">🗄</div>
+        <div><strong>Database</strong></div>
+        <p class="small">Employees only — NOT reachable from the Internet</p>
+      </div>
+    </div>
+    <p class="small center">You are a visitor from the Internet. Where do you try to go?</p>
+    <div class="cost-filters" style="justify-content:center;">
+      <button class="chip-btn" id="visit-pub">🚶 Visit the Web Server (public)</button>
+      <button class="chip-btn" id="visit-priv">🕵️ Try to reach the Database (private)</button>
+      <button class="chip-btn" id="visit-mistake">😈 What if we move the Database to the ground floor?</button>
+    </div>
+    <div class="sz-result" id="mall-result"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏬</div><div><b>Mall Analogy</b>Ground floor (shops) = public subnet — anyone walks in. Upper floor (staff only) = private subnet — databases, backend servers, internal apps. The database NEVER sits on the ground floor.</div></div>
+</section>
+
+<!-- 06 IP PLANNER -->
+<section class="chapter reveal" id="sec-ipplan">
+  <div class="chapter-kicker"><span class="idx">07</span><span class="track">Subnets</span></div>
+  <h2>IP Address Planner</h2>
+  <p class="dek">Every VM needs a UNIQUE address — like house numbers on a street. Two houses with the same number = the postman gets confused. Try creating a duplicate below.</p>
+  <div class="panel">
+    <p class="small">Subnet: <span class="mono" style="color:var(--blue);">10.0.1.0/24</span> — assign the last number (2–254) to each VM:</p>
+    <div id="ip-rows"></div>
+    <div class="sz-result" id="ip-result"></div>
+    <div class="cost-filters mt-lg">
+      <button class="chip-btn active" id="ip-deliver">📬 Send the postman with a letter for VM2</button>
+    </div>
+    <div class="sim-log" id="ip-log"><span class="l-info">Set the house numbers above, then send the postman.</span></div>
+  </div>
+  <div class="callout callout-trap"><div class="ic">💥</div><div><b>Never Duplicate</b>Duplicate IPs cause "address conflict" chaos — packets go to the wrong machine or nowhere. OCI hands out unique private IPs automatically, but architects must ensure <em>CIDR ranges</em> don't overlap between networks that will be connected.</div></div>
+</section>
+
+<!-- 07 ROUTE TABLES -->
+<section class="chapter reveal" id="sec-routes">
+  <div class="chapter-kicker"><span class="idx">08</span><span class="track">Routing</span></div>
+  <h2>Route Tables — Longest Prefix Wins</h2>
+  <p class="dek">A route table is Google Maps for packets: destination in, best road out. When two routes match, OCI picks the MOST SPECIFIC one (longest prefix). Test it.</p>
+  <div class="panel">
+    <p class="small">The route table of your VCN:</p>
+    <div id="route-rows"></div>
+    <p class="small mt-lg">Now pick a destination and see which route wins:</p>
+    <div class="cost-filters">
+      <button class="chip-btn" data-dest="10.0.5.7">📦 Send to 10.0.5.7</button>
+      <button class="chip-btn" data-dest="10.0.9.9">📦 Send to 10.0.9.9</button>
+      <button class="chip-btn" data-dest="8.8.8.8">📦 Send to 8.8.8.8 (Google)</button>
+    </div>
+    <div class="sz-result" id="route-result"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🗺</div><div><b>Memory Trick</b><span class="mono">0.0.0.0/0</span> = "everywhere else" — the catch-all road to the Internet Gateway. A /24 route beats a /16 route beats /0, because more specific = better directions.</div></div>
+</section>
+
+<!-- 08 GATEWAYS -->
+<section class="chapter reveal" id="sec-gateways">
+  <div class="chapter-kicker"><span class="idx">09</span><span class="track">Gateways</span></div>
+  <h2>The 5 Gateways — Pick the Right Door</h2>
+  <p class="dek">Gateways are the doors of your VCN — each opens to a different place. Learn the memory tricks, then answer the scenarios.</p>
+  <div class="grid grid-3">
+    <div class="card"><h4>🌐 Internet Gateway</h4><p>"Everyone can visit me." Two-way door to the public Internet — for public subnets.</p></div>
+    <div class="card"><h4>🥷 NAT Gateway</h4><p>"I can go outside, nobody comes inside." Outbound-only Internet for private subnets.</p></div>
+    <div class="card"><h4>🛗 Service Gateway</h4><p>"Only OCI services." Private corridor to Object Storage &amp; co. without touching Internet.</p></div>
+    <div class="card"><h4>🏢 DRG</h4><p>"Office connection." Dynamic Routing Gateway links your VCN to on-premises networks.</p></div>
+    <div class="card"><h4>🏘 LPG</h4><p>"Neighbor VCN." Local Peering Gateway connects another VCN in the same region.</p></div>
+  </div>
+  <h3>🚪 Test each door yourself</h3>
+  <p>Click a door, then watch who can pass through it — in both directions.</p>
+  <div class="panel">
+    <div class="door-grid" id="door-grid">
+      <div class="door-card sel" data-door="igw"><div class="dc-ico">🌐</div><strong>Internet GW</strong></div>
+      <div class="door-card" data-door="nat"><div class="dc-ico">🥷</div><strong>NAT GW</strong></div>
+      <div class="door-card" data-door="sgw"><div class="dc-ico">🛗</div><strong>Service GW</strong></div>
+      <div class="door-card" data-door="drg"><div class="dc-ico">🏢</div><strong>DRG</strong></div>
+      <div class="door-card" data-door="lpg"><div class="dc-ico">🏘</div><strong>LPG</strong></div>
+    </div>
+    <div class="door-tests" id="door-tests"></div>
+  </div>
+  <h3>🎯 Scenario Drill — which gateway?</h3>
+  <div id="gw-game">
+    <div class="game-scen" data-ans="nat">
+      <div class="gs-q">1. A private database server needs to download security patches from the Internet — but must never be reachable FROM the Internet.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="igw">Internet GW</button><button class="chip-btn" data-pick="nat">NAT GW</button><button class="chip-btn" data-pick="sgw">Service GW</button><button class="chip-btn" data-pick="drg">DRG</button><button class="chip-btn" data-pick="lpg">LPG</button></div>
+      <div class="gs-explain">✓ <strong>NAT Gateway</strong> — outbound only. The server goes out for patches; nobody comes in. "I can go outside, nobody comes inside."</div>
+    </div>
+    <div class="game-scen" data-ans="igw">
+      <div class="gs-q">2. Your public website must be reachable by customers worldwide.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="igw">Internet GW</button><button class="chip-btn" data-pick="nat">NAT GW</button><button class="chip-btn" data-pick="sgw">Service GW</button><button class="chip-btn" data-pick="drg">DRG</button><button class="chip-btn" data-pick="lpg">LPG</button></div>
+      <div class="gs-explain">✓ <strong>Internet Gateway</strong> — the two-way public door. "Everyone can visit me."</div>
+    </div>
+    <div class="game-scen" data-ans="sgw">
+      <div class="gs-q">3. A private VM must back up files to OCI Object Storage without any Internet exposure.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="igw">Internet GW</button><button class="chip-btn" data-pick="nat">NAT GW</button><button class="chip-btn" data-pick="sgw">Service GW</button><button class="chip-btn" data-pick="drg">DRG</button><button class="chip-btn" data-pick="lpg">LPG</button></div>
+      <div class="gs-explain">✓ <strong>Service Gateway</strong> — a private corridor straight to OCI services. Traffic never touches the Internet.</div>
+    </div>
+    <div class="game-scen" data-ans="drg">
+      <div class="gs-q">4. Your company's on-premises data center must connect securely to the VCN.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="igw">Internet GW</button><button class="chip-btn" data-pick="nat">NAT GW</button><button class="chip-btn" data-pick="sgw">Service GW</button><button class="chip-btn" data-pick="drg">DRG</button><button class="chip-btn" data-pick="lpg">LPG</button></div>
+      <div class="gs-explain">✓ <strong>DRG</strong> — the "office connection" for VPN / FastConnect links to on-premises networks.</div>
+    </div>
+    <div class="game-scen" data-ans="lpg">
+      <div class="gs-q">5. Two VCNs in the SAME region need to talk privately to each other.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="igw">Internet GW</button><button class="chip-btn" data-pick="nat">NAT GW</button><button class="chip-btn" data-pick="sgw">Service GW</button><button class="chip-btn" data-pick="drg">DRG</button><button class="chip-btn" data-pick="lpg">LPG</button></div>
+      <div class="gs-explain">✓ <strong>LPG</strong> — Local Peering Gateway, the "neighbor VCN" door within one region.</div>
+    </div>
+    <p class="small" id="gw-score">0 / 5 answered.</p>
+  </div>
+</section>
+
+<!-- 09 VCN BUILDER -->
+<section class="chapter reveal" id="sec-vcn">
+  <div class="chapter-kicker"><span class="idx">10</span><span class="track">VCN Architecture</span></div>
+  <h2>VCN Builder — Assemble Your Gated Community</h2>
+  <p class="dek">A VCN is your company's private network inside Oracle Cloud — a gated community: boundary wall (VCN), houses (subnets), roads (route tables), security guard (security list). Switch on each part and build it.</p>
+  <div class="panel">
+    <div class="vcn-build">
+      <div class="vcn-parts" id="vcn-parts"></div>
+      <div class="vcn-diagram">
+        <div class="vd-title">VCN 10.0.0.0/16 — your gated community</div>
+        <div id="vcn-canvas"><p class="vd-empty">Nothing built yet — switch on components from the left.</p></div>
+      </div>
+    </div>
+    <div class="vcn-status" id="vcn-status">0 / 6 components — your community is an empty plot of land.</div>
+    <div class="cost-filters mt-lg">
+      <button class="chip-btn" id="vcn-test-web">🧪 Test 1: a customer visits your website</button>
+      <button class="chip-btn" id="vcn-test-db">🧪 Test 2: the database downloads updates</button>
+    </div>
+    <div class="sz-result" id="vcn-test-result"></div>
+  </div>
+</section>
+
+<!-- 10b VCN PEERING -->
+<section class="chapter reveal" id="sec-peering">
+  <div class="chapter-kicker"><span class="idx">11</span><span class="track">VCN Architecture</span></div>
+  <h2>VCN Peering — Connecting Two Cities</h2>
+  <p class="dek">Sometimes two VCNs need to talk — the Dev team's city and the Prod team's city. Peering builds a private bridge between them. No Internet required.</p>
+  <div class="panel">
+    <div class="peer-wrap">
+      <div class="peer-vcn" id="peer-a">
+        <div class="pv-name">🏙 VCN A — Development</div>
+        <div class="pv-cidr" id="peer-a-cidr">10.0.0.0/16</div>
+      </div>
+      <div class="peer-link" id="peer-link">no connection</div>
+      <div class="peer-vcn b" id="peer-b">
+        <div class="pv-name">🏙 VCN B — Production</div>
+        <div class="pv-cidr">172.16.0.0/16</div>
+      </div>
+    </div>
+    <div class="cost-filters" style="justify-content:center;">
+      <button class="chip-btn" id="peer-enable">🌉 Create the peering bridge</button>
+      <button class="chip-btn" id="peer-send">📨 Send data Dev → Prod</button>
+      <button class="chip-btn" id="peer-overlap">😈 Try peering two VCNs that BOTH use 10.0.0.0/16</button>
+    </div>
+    <div class="sz-result" id="peer-result"></div>
+  </div>
+  <div class="callout callout-warn"><div class="ic">⚠️</div><div><b>Exam Gotchas</b>Same region → <strong>Local Peering (LPG)</strong> · different regions → <strong>Remote Peering (via DRG)</strong> · and VCNs with <strong>overlapping CIDR ranges cannot peer</strong> — two cities can't share the same house numbers. This is why Day-5 CIDR planning matters!</div></div>
+</section>
+
+<!-- 10 SECURITY LISTS -->
+<section class="chapter reveal" id="sec-seclists">
+  <div class="chapter-kicker"><span class="idx">12</span><span class="track">Security</span></div>
+  <h2>Security Lists — The Building Guard</h2>
+  <p class="dek">A Security List is the guard's rulebook: allow SSH, allow HTTPS, block everything else. Set your rules, then fire traffic at the VM and see what gets through.</p>
+  <div class="panel">
+    <p class="small">Ingress rules (incoming traffic) for your subnet:</p>
+    <div class="fw-rule"><span><span class="fr-name">🔑 Allow SSH</span> <span class="fr-port">port 22</span></span><label class="switch"><input type="checkbox" class="fw-toggle" data-port="22" checked><span class="slider"></span></label></div>
+    <div class="fw-rule"><span><span class="fr-name">🔒 Allow HTTPS</span> <span class="fr-port">port 443</span></span><label class="switch"><input type="checkbox" class="fw-toggle" data-port="443" checked><span class="slider"></span></label></div>
+    <div class="fw-rule"><span><span class="fr-name">🌐 Allow HTTP</span> <span class="fr-port">port 80</span></span><label class="switch"><input type="checkbox" class="fw-toggle" data-port="80"><span class="slider"></span></label></div>
+    <p class="small mt-lg">Now send traffic at the VM:</p>
+    <div class="cost-filters">
+      <button class="chip-btn" data-fire="22">🔑 SSH login (port 22)</button>
+      <button class="chip-btn" data-fire="443">🔒 HTTPS request (port 443)</button>
+      <button class="chip-btn" data-fire="80">🌐 HTTP request (port 80)</button>
+      <button class="chip-btn" data-fire="3306">🕵️ Hacker probes port 3306</button>
+    </div>
+    <div class="sz-result" id="fw-result"></div>
+  </div>
+  <h3>Security List vs NSG</h3>
+  <div class="splitter">
+    <div class="split-half left">
+      <div class="sh-tag">Security List</div>
+      <div class="sh-word">WHOLE SUBNET</div>
+      <div class="sh-desc">Rules apply to every VM in the subnet.<br>Like <strong>apartment building security</strong> at the main gate.</div>
+    </div>
+    <div class="split-div">vs</div>
+    <div class="split-half right">
+      <div class="sh-tag">NSG</div>
+      <div class="sh-word">INDIVIDUAL VM</div>
+      <div class="sh-desc">Rules attach to specific VMs (VNICs).<br>Like your <strong>personal door lock</strong> inside the building.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 COMPUTE -->
+<section class="chapter reveal" id="sec-compute">
+  <div class="chapter-kicker"><span class="idx">13</span><span class="track">Compute</span></div>
+  <h2>Compute Instances &amp; Shapes</h2>
+  <p class="dek">A Compute Instance is a virtual machine: Oracle manages the physical server + hypervisor, you manage the VM. A "shape" is the configuration — like choosing a laptop's specs before buying.</p>
+  <div class="panel">
+    <p class="small">Pick a workload, and the right shape lights up:</p>
+    <div class="cost-filters">
+      <button class="chip-btn active" data-wl="blog">📝 Small blog website</button>
+      <button class="chip-btn" data-wl="app">🛒 Busy e-commerce app</button>
+      <button class="chip-btn" data-wl="ml">🤖 Machine learning training</button>
+    </div>
+    <div id="shape-cards"></div>
+    <div class="sz-result allowed" id="shape-why" style="display:block;"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">💻</div><div><b>Laptop Analogy</b>Shape = the configuration page when buying a laptop: how many cores (OCPUs), how much RAM, what disk performance. Flex shapes even let you dial OCPUs and memory independently.</div></div>
+  <h3>💿 Boot Volume — the disk the OS lives on</h3>
+  <p>Every VM boots from its <strong>Boot Volume</strong> — the disk holding the operating system (e.g. Ubuntu). No boot volume = no OS = the VM cannot start. Try it:</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" id="bv-start">▶ Start the VM</button>
+      <button class="chip-btn" id="bv-detach">🔌 Detach the boot volume, then start</button>
+    </div>
+    <div class="sim-log" id="bv-log"><span class="l-info">A VM is just CPU + RAM until a boot volume gives it an operating system.</span></div>
+  </div>
+</section>
+
+<!-- 12 CLOUD-INIT -->
+<section class="chapter reveal" id="sec-cloudinit">
+  <div class="chapter-kicker"><span class="idx">14</span><span class="track">Compute</span></div>
+  <h2>Cloud-init — The Setup Race</h2>
+  <p class="dek">Cloud-init automates server setup — like a new phone auto-restoring your apps, contacts and settings instead of you installing everything by hand. Race the two approaches.</p>
+  <div class="panel">
+    <div class="race">
+      <div class="race-col">
+        <h4>🐢 Manual setup</h4>
+        <div id="race-manual"></div>
+        <div class="race-time" id="race-manual-time"></div>
+      </div>
+      <div class="race-col">
+        <h4>⚡ With cloud-init</h4>
+        <div id="race-cloudinit"></div>
+        <div class="race-time" id="race-ci-time"></div>
+      </div>
+    </div>
+    <div class="center mt-lg"><button class="chip-btn active" id="race-start">🏁 Launch both servers</button></div>
+  </div>
+  <div class="callout callout-q"><div class="ic">❓</div><div><b>Interview Question</b>"You need 50 identical web servers by tomorrow." Answer: launch instances with a <strong>cloud-init</strong> script (install nginx, configure, start) — every VM configures itself on first boot. Zero manual logins.</div></div>
+</section>
+
+<!-- 13 SSH -->
+<section class="chapter reveal" id="sec-ssh">
+  <div class="chapter-kicker"><span class="idx">15</span><span class="track">Compute</span></div>
+  <h2>SSH &amp; Instance Metadata</h2>
+  <p class="dek">SSH (Secure Shell) is the secure way to log into your Linux VM. Your public key goes into the instance metadata at launch; your private key stays with you. Watch a connection happen.</p>
+  <div class="terminal">
+    <div class="terminal-tb">laptop:~ — ssh — bash</div>
+    <div class="term-out" id="ssh-out"><span class="l-info">Press Connect to SSH into your OCI VM.</span></div>
+  </div>
+  <div class="center mt-lg"><button class="chip-btn active" id="ssh-connect">🔐 Connect via SSH</button></div>
+  <h3>📇 Instance Metadata Explorer</h3>
+  <p>Once inside, the VM can ask OCI about ITSELF — its identity card. Apps read this to configure themselves dynamically. Query each field (after connecting):</p>
+  <div class="cost-filters">
+    <button class="chip-btn" data-meta="region">🗺 Which region am I in?</button>
+    <button class="chip-btn" data-meta="shape">💻 What shape am I?</button>
+    <button class="chip-btn" data-meta="ad">🏢 Which Availability Domain?</button>
+    <button class="chip-btn" data-meta="ocid">🆔 What is my OCID?</button>
+    <button class="chip-btn" data-meta="host">🏷 What is my hostname?</button>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🗝</div><div><b>Key Idea</b>Metadata stores instance configuration — the <strong>public</strong> SSH key you provide at launch, cloud-init scripts, plus the instance's OCID, region, AD, shape and hostname. The <strong>private</strong> key never leaves your laptop; lose it and you lose access.</div></div>
+</section>
+
+<!-- 14 STORAGE -->
+<section class="chapter reveal" id="sec-storage">
+  <div class="chapter-kicker"><span class="idx">16</span><span class="track">Storage</span></div>
+  <h2>Storage Chooser — Warehouse, SSD, or Shared Folder?</h2>
+  <p class="dek">Three storage services, three jobs: Object Storage = warehouse for files. Block Storage = personal SSD for one VM. File Storage = office shared folder for many VMs. Pick the right one per scenario.</p>
+  <div class="grid grid-3">
+    <div class="card"><h4>📦 Object Storage</h4><p><strong>Warehouse.</strong> Images, videos, backups, documents — unlimited files, reached over APIs.</p></div>
+    <div class="card"><h4>💽 Block Storage</h4><p><strong>Personal laptop SSD.</strong> A disk attached to ONE VM — for the OS, databases, apps.</p></div>
+    <div class="card"><h4>🗂 File Storage</h4><p><strong>Office shared folder.</strong> Many VMs mount the same files at once (NFS).</p></div>
+  </div>
+  <h3>🧪 Try each storage yourself</h3>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn" data-stdemo="object">📦 Upload a photo to Object Storage</button>
+      <button class="chip-btn" data-stdemo="block">💽 Attach VM1's Block volume to VM2 too</button>
+      <button class="chip-btn" data-stdemo="file">🗂 VM1 writes a file — can VM2 read it?</button>
+    </div>
+    <div class="sim-log" id="st-log"><span class="l-info">Click an action to see how each storage type behaves.</span></div>
+  </div>
+  <h3>🎯 Scenario Drill — pick the right storage</h3>
+  <div id="st-game">
+    <div class="game-scen" data-ans="object">
+      <div class="gs-q">1. Store 10 million product photos and nightly backups.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="object">📦 Object</button><button class="chip-btn" data-pick="block">💽 Block</button><button class="chip-btn" data-pick="file">🗂 File</button></div>
+      <div class="gs-explain">✓ <strong>Object Storage</strong> — the warehouse. Massive amounts of files, cheap, durable.</div>
+    </div>
+    <div class="game-scen" data-ans="block">
+      <div class="gs-q">2. A database VM needs a fast disk for its data files.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="object">📦 Object</button><button class="chip-btn" data-pick="block">💽 Block</button><button class="chip-btn" data-pick="file">🗂 File</button></div>
+      <div class="gs-explain">✓ <strong>Block Storage</strong> — the personal SSD. High-performance disk attached to one VM.</div>
+    </div>
+    <div class="game-scen" data-ans="file">
+      <div class="gs-q">3. Three app servers must all read/write the SAME shared documents.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="object">📦 Object</button><button class="chip-btn" data-pick="block">💽 Block</button><button class="chip-btn" data-pick="file">🗂 File</button></div>
+      <div class="gs-explain">✓ <strong>File Storage</strong> — the shared office folder. VM1 + VM2 + VM3 mount it simultaneously.</div>
+    </div>
+    <p class="small" id="st-score">0 / 3 answered.</p>
+  </div>
+</section>
+
+<!-- 15 TERRAFORM VS ANSIBLE -->
+<section class="chapter reveal" id="sec-tfansible">
+  <div class="chapter-kicker"><span class="idx">17</span><span class="track">Configuration Management</span></div>
+  <h2>Terraform vs Ansible — Who Does What?</h2>
+  <p class="dek">Terraform BUILDS the house (creates infrastructure). Ansible FURNISHES it (installs & configures software on 100 servers at once). Sort each task to the right tool.</p>
+  <div class="splitter">
+    <div class="split-half left">
+      <div class="sh-tag">Terraform</div>
+      <div class="sh-word">CREATES INFRA</div>
+      <div class="sh-desc">IaC · VM creation · one-time provisioning.<br>Admin → Terraform → VCN + VMs exist.</div>
+    </div>
+    <div class="split-div">vs</div>
+    <div class="split-half right">
+      <div class="sh-tag">Ansible</div>
+      <div class="sh-word">CONFIGURES SERVERS</div>
+      <div class="sh-desc">Config management · software installation · continuous.<br>Admin → Ansible → 100 servers configured identically.</div>
+    </div>
+  </div>
+  <h3>🏗 Build it yourself — run the tools in order</h3>
+  <p>Terraform builds the houses. Ansible furnishes them. Try running Ansible <em>first</em> and see what happens…</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn" id="tf-apply">🏗 terraform apply</button>
+      <button class="chip-btn" id="an-run">🔧 ansible-playbook install_nginx.yml</button>
+      <button class="chip-btn" id="tf-reset">↺ terraform destroy (reset)</button>
+    </div>
+    <div class="grid grid-3" id="tf-houses"></div>
+    <div class="sim-log" id="tf-log"><span class="l-warn">Hint: click ansible-playbook FIRST to learn why order matters.</span></div>
+  </div>
+  <h3>🎯 Scenario Drill — which tool?</h3>
+  <div id="tf-game">
+    <div class="game-scen" data-ans="tf">
+      <div class="gs-q">1. "Create a VCN, 3 subnets and 5 compute instances."</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="tf">🏗 Terraform</button><button class="chip-btn" data-pick="an">🔧 Ansible</button></div>
+      <div class="gs-explain">✓ <strong>Terraform</strong> — creating infrastructure that doesn't exist yet = IaC provisioning.</div>
+    </div>
+    <div class="game-scen" data-ans="an">
+      <div class="gs-q">2. "Install nginx and apply the same config on all 100 servers."</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="tf">🏗 Terraform</button><button class="chip-btn" data-pick="an">🔧 Ansible</button></div>
+      <div class="gs-explain">✓ <strong>Ansible</strong> — installing/configuring software on existing servers = configuration management.</div>
+    </div>
+    <div class="game-scen" data-ans="an">
+      <div class="gs-q">3. "Every month, ensure all servers still have the correct settings (fix drift)."</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="tf">🏗 Terraform</button><button class="chip-btn" data-pick="an">🔧 Ansible</button></div>
+      <div class="gs-explain">✓ <strong>Ansible</strong> — continuous management keeps servers consistent over time.</div>
+    </div>
+    <p class="small" id="tf-score">0 / 3 answered.</p>
+  </div>
+</section>
+
+<!-- 16 END TO END -->
+<section class="chapter reveal" id="sec-e2e">
+  <div class="chapter-kicker"><span class="idx">18</span><span class="track">Wrap-Up</span></div>
+  <h2>End-to-End: A Customer Visits Your Website</h2>
+  <p class="dek">Everything from today in ONE journey. A customer on the Internet loads your shop — watch the request travel through every layer you just learned.</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="e2e-pipeline" style="flex-direction:column; align-items:stretch;"></div>
+    <div class="center"><button class="chip-btn active" id="e2e-play">▶ Send a customer request</button></div>
+    <div class="sim-log" id="e2e-log"><span class="l-info">Press play — the full Day-5 architecture in action.</span></div>
+  </div>
+</section>
+
+<!-- 17 CHEAT SHEETS -->
+<section class="chapter reveal" id="sec-cheatsheet">
+  <div class="chapter-kicker"><span class="idx">19</span><span class="track">Wrap-Up</span></div>
+  <h2>Cheat Sheets</h2>
+  <div class="grid grid-2">
+    <div class="card"><h4>Networking</h4><ul style="margin-left:16px;"><li>LAN = one building · WAN = connects LANs</li><li>Data travels as packets, reassembled at destination</li><li>Switch = inside a network · Router = between networks</li></ul></div>
+    <div class="card"><h4>CIDR &amp; Subnets</h4><ul style="margin-left:16px;"><li>10.0.0.0/16 = 65,536 IPs · bigger /number = smaller network</li><li>Public subnet = Internet-reachable · Private = not</li><li>Never overlap CIDRs; never duplicate IPs</li></ul></div>
+    <div class="card"><h4>Routing &amp; Gateways</h4><ul style="margin-left:16px;"><li>Route table = Google Maps · longest prefix wins</li><li>0.0.0.0/0 → Internet Gateway = "everywhere else"</li><li>IGW public · NAT outbound-only · SGW OCI services · DRG on-prem · LPG neighbor VCN</li><li>Peering: overlapping CIDRs can't peer · SL = subnet guard, NSG = per-VM lock</li></ul></div>
+    <div class="card"><h4>Compute &amp; Storage</h4><ul style="margin-left:16px;"><li>Shape = VM specs · Boot Volume = the OS disk (no boot volume, no start)</li><li>cloud-init = automatic first-boot setup · SSH keys &gt; passwords</li><li>Metadata = the VM's identity card (OCID, region, AD, shape)</li><li>Object = warehouse · Block = personal SSD · File = shared folder</li><li>Terraform creates · Ansible configures</li></ul></div>
+  </div>
+</section>
+
+<!-- 18 FLASHCARDS -->
+<section class="chapter reveal" id="sec-flashcards">
+  <div class="chapter-kicker"><span class="idx">20</span><span class="track">Wrap-Up</span></div>
+  <h2>Flash Cards</h2>
+  <p class="dek">Click a card to flip it.</p>
+  <div class="flash-wrap" id="flash-wrap"></div>
+</section>
+
+<!-- 19 QUIZ -->
+<section class="chapter reveal" id="sec-quiz">
+  <div class="chapter-kicker"><span class="idx">21</span><span class="track">Wrap-Up</span></div>
+  <h2>Certification Readiness Quiz</h2>
+  <p class="dek">10 scenario-style questions covering everything from today.</p>
+  <div id="quiz-wrap"></div>
+  <div class="panel center mt-lg"><p>Your score: <b id="quiz-final-score" style="color:var(--red-bright); font-family:var(--font-display); font-size:20px;">0 / 10</b></p></div>
+</section>
+
+<!-- 20 CERT -->
+<section class="chapter reveal" id="sec-cert">
+  <div class="chapter-kicker"><span class="idx">22</span><span class="track">Wrap-Up</span></div>
+  <h2>Completion &amp; Certificate Preview</h2>
+  <div class="center" style="padding:20px 0 40px;">
+    <div class="badge-circle" id="badge-circle"><span id="badge-pct">0%</span></div>
+    <h3 id="badge-title">Keep going</h3>
+    <p class="small" id="badge-sub">Scroll through every section and finish the quiz to fill the ring.</p>
+  </div>
+  <div class="cert-frame">
+    <p class="small">ORACLE CLOUD INFRASTRUCTURE · 1Z0-1067-26</p>
+    <h3>Certificate of Completion</h3>
+    <p class="small">This certifies that</p>
+    <div class="cert-name" id="cert-name-display">Your Name</div>
+    <p class="small">has completed <strong>Day 5: OCI Networking, VCN, Compute &amp; Storage</strong></p>
+    <p class="small mt-lg">Score: <span id="cert-score-display">0/10</span> · Date: <span id="cert-date-display"></span></p>
+    <div class="mt-lg"><input type="text" class="mini-input" id="cert-name-input" placeholder="Type your name…"></div>
+  </div>
+</section>
+
+    </div>
+  </main>
+</div>
+<footer>OCI Networking, VCN, Compute &amp; Storage — Day 5 · Interactive Learning Platform · Single self-contained HTML file · No external dependencies</footer>
+
+<script>
+const state = { quizScore:0, quizAnswered:0, quizTotal:10 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  initParticles(); initProgressBar(); initSidebar(); initSearch(); initTheme(); initReveal();
+  initVxExplorer(); initPeering(); initBootVolume(); initMetadata();
+  initPacketJourney(); initTrucks(); initMiniGame('swr-game', null); initSwrSim();
+  initCIDR(); initMall(); initIpPlanner(); initRoutes();
+  initMiniGame('gw-game','gw-score'); initGwDoors(); initVcnBuilder(); initFirewall();
+  initShapes(); initRace(); initSSH();
+  initMiniGame('st-game','st-score'); initStorageDemo(); initMiniGame('tf-game','tf-score'); initTfSim();
+  initE2E(); initFlashcards(); initQuiz(); initCert(); updateBadge();
+});
+
+/* ---------- ambient ---------- */
+function initParticles(){
+  const c = document.getElementById('particles'); const ctx = c.getContext('2d');
+  let w,h,particles=[];
+  function resize(){ w=c.width=window.innerWidth; h=c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const N = Math.min(60, Math.floor(window.innerWidth/24));
+  for(let i=0;i<N;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+0.4,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15});
+  (function tick(){
+    ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(199,70,52,0.5)';
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=w; if(p.x>w)p.x=0; if(p.y<0)p.y=h; if(p.y>h)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+    requestAnimationFrame(tick);
+  })();
+}
+function initProgressBar(){
+  const bar = document.getElementById('progress-bar'); const heroProgress = document.getElementById('hero-progress');
+  window.addEventListener('scroll', () => {
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH>0 ? (window.scrollY/docH)*100 : 0;
+    bar.style.width = pct+'%'; if(heroProgress) heroProgress.textContent = Math.round(pct)+'%';
+    window.__scrollPct = pct; updateBadge(); highlightActiveNav();
+  }, {passive:true});
+}
+function highlightActiveNav(){
+  let current=null;
+  document.querySelectorAll('section.chapter').forEach(sec=>{ if(sec.getBoundingClientRect().top<160) current=sec.id; });
+  document.querySelectorAll('#sidebar a.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+}
+function initSidebar(){ const sb=document.getElementById('sidebar'); document.getElementById('sidebar-toggle').addEventListener('click', ()=>sb.classList.toggle('collapsed')); }
+function initSearch(){
+  const input=document.getElementById('search'); const results=document.getElementById('search-results'); const index=[];
+  document.querySelectorAll('section.chapter').forEach(sec=>{
+    const title = sec.querySelector('h2')?.textContent || sec.id;
+    sec.querySelectorAll('h3').forEach(h3=>index.push({label:h3.textContent, cat:title, href:'#'+sec.id}));
+    index.push({label:title, cat:'Section', href:'#'+sec.id});
+  });
+  input.addEventListener('input', ()=>{
+    const q=input.value.trim().toLowerCase(); if(!q){results.style.display='none'; return;}
+    const matches=index.filter(i=>i.label.toLowerCase().includes(q)).slice(0,8);
+    results.innerHTML = matches.map(m=>'<a href="'+m.href+'"><span class="sr-cat">'+m.cat+'</span>'+m.label+'</a>').join('') || '<a style="cursor:default;">No results</a>';
+    results.style.display='block';
+  });
+  document.addEventListener('click', e=>{ if(!document.getElementById('search-wrap').contains(e.target)) results.style.display='none'; });
+  results.addEventListener('click', ()=>setTimeout(()=>{results.style.display='none'; input.value='';},10));
+}
+function initTheme(){
+  const btn=document.getElementById('theme-toggle');
+  btn.addEventListener('click', ()=>{ const html=document.documentElement; const isDark=html.getAttribute('data-theme')!=='light'; html.setAttribute('data-theme', isDark?'light':'dark'); btn.textContent=isDark?'☀️':'🌙'; });
+}
+function initReveal(){
+  const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}), {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+}
+
+/* ---------- generic mini game (scenario chips) ---------- */
+function initMiniGame(gameId, scoreId){
+  const game = document.getElementById(gameId); if(!game) return;
+  game.addEventListener('click', e=>{
+    const btn = e.target.closest('.chip-btn[data-pick]'); if(!btn) return;
+    const scen = btn.closest('.game-scen'); if(scen.classList.contains('answered')) return;
+    scen.classList.add('answered');
+    const correct = scen.dataset.ans;
+    scen.querySelectorAll('.chip-btn').forEach(b=>{
+      b.disabled = true;
+      if(b.dataset.pick===correct) b.classList.add('right');
+      else if(b===btn) b.classList.add('wrong');
+    });
+    if(scoreId){
+      const total = game.querySelectorAll('.game-scen').length;
+      const done = game.querySelectorAll('.game-scen.answered').length;
+      const correctCount = [...game.querySelectorAll('.game-scen.answered')].filter(s=>!s.querySelector('.chip-btn.wrong')).length;
+      const el = document.getElementById(scoreId);
+      el.textContent = done+' / '+total+' answered · '+correctCount+' correct.'+(done===total && correctCount===total ? ' 🏆 Perfect!' : '');
+    }
+  });
+}
+
+/* ---------- 01 packet journey ---------- */
+function initPacketJourney(){
+  const wrap = document.getElementById('pj-pipeline'); if(!wrap) return;
+  const devices = [
+    ['💻 Laptop','Your message starts here — wrapped into a packet with a destination IP.'],
+    ['🔀 Switch','Inside your local network: the classroom monitor forwards it toward the exit.'],
+    ['🚦 Router','The traffic policeman: this destination is in ANOTHER network — route it out.'],
+    ['🛡 Firewall','The security checkpost: rules checked… traffic type allowed. Pass.'],
+    ['🖥 Server','Delivered! The server unpacks the message and sends a reply back the same way.']
+  ];
+  wrap.innerHTML = devices.map((d,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+d[0]+'</div>').join('');
+  const log = document.getElementById('pj-log');
+  let running = false;
+  document.getElementById('pj-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    log.innerHTML = '<div class="l-warn">📨 Packet leaving the laptop…</div>';
+    devices.forEach((d,i)=> setTimeout(()=>{
+      els[i].classList.add(i===devices.length-1?'ok':'lit');
+      const line = document.createElement('div');
+      line.className = i===devices.length-1 ? 'l-block' : 'l-info';
+      line.textContent = (i===devices.length-1?'✅ ':'→ ')+d[0].replace(/^[^ ]+ /,'')+': '+d[1];
+      log.appendChild(line); log.scrollTop = log.scrollHeight;
+      if(i===devices.length-1) running = false;
+    }, (i+1)*750));
+  });
+}
+
+/* ---------- 02 trucks ---------- */
+function initTrucks(){
+  const roads = document.getElementById('truck-roads'); if(!roads) return;
+  const letters = ['D','A','T','A'];
+  roads.innerHTML = letters.map((l,i)=>'<div class="truck-road"><span class="truck" id="truck-'+i+'">🚚<span class="plabel">pkt '+(i+1)+' · "'+l+'"</span></span></div>').join('');
+  const box = document.getElementById('assemble-box');
+  let running = false;
+  document.getElementById('truck-send').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    box.innerHTML = '📥 Destination inbox: <span class="l-info">trucks on the road…</span>';
+    const arrivals = [];
+    // random travel times so they can arrive out of order
+    const times = letters.map(()=> 600 + Math.random()*1400);
+    letters.forEach((l,i)=>{
+      const t = document.getElementById('truck-'+i);
+      t.style.left = '0px';
+      requestAnimationFrame(()=>{ t.style.transition = 'left '+(times[i]/1000)+'s ease'; t.style.left = 'calc(100% - 40px)'; });
+      setTimeout(()=>{
+        arrivals.push({i, l});
+        box.innerHTML = '📥 Arrived (in this order): ' + arrivals.map(a=>'pkt'+(a.i+1)).join(', ');
+        if(arrivals.length===letters.length){
+          setTimeout(()=>{
+            const sorted = arrivals.slice().sort((a,b)=>a.i-b.i).map(a=>a.l).join('');
+            box.innerHTML = '📥 All 4 packets arrived (order: '+arrivals.map(a=>'pkt'+(a.i+1)).join(', ')+') → reassembled by sequence number → <b>"'+sorted+'"</b> ✅';
+            // reset trucks
+            letters.forEach((_,j)=>{ const tr=document.getElementById('truck-'+j); tr.style.transition='none'; tr.style.left='0px'; });
+            running = false;
+          }, 700);
+        }
+      }, times[i]);
+    });
+  });
+}
+
+/* ---------- 00 VCN architecture explorer ---------- */
+function initVxExplorer(){
+  const detail = document.getElementById('vx-detail'); if(!detail) return;
+  const info = {
+    inet:  '🌍 <strong>The Internet</strong> — the world outside your city. Customers live here… and so do hackers. Everything below decides who from here gets in, and how your city reaches out.',
+    region:'🗺 <strong>OCI Region</strong> — a geographic area (e.g. Mumbai) full of Oracle data centres. Your city (VCN) is built on this land. Day-1 recap: regions contain Availability Domains.',
+    vcn:   '🏙 <strong>VCN — Virtual Cloud Network</strong> — your company\'s PRIVATE city inside Oracle Cloud. Like renting an entire floor of an office building: only your employees enter, and no other company\'s VCN can directly reach yours. Its CIDR (10.0.0.0/16 = 65,536 addresses) is the city\'s master plan of house numbers.',
+    igw:   '🌐 <strong>Internet Gateway</strong> — the city\'s main gate. Two-way: customers come in to public resources, replies go out. No IGW = no website, no SSH from your laptop, no internet at all.',
+    nat:   '🥷 <strong>NAT Gateway</strong> — the receptionist door. Private servers can order things from outside (updates!), but outsiders can never walk in. "I can go outside, nobody comes inside."',
+    sgw:   '🛗 <strong>Service Gateway</strong> — a private lift straight to OCI services like Object Storage. Traffic never touches the Internet: more secure, faster, stays on Oracle\'s network.',
+    rt:    '🗺 <strong>Route Table</strong> — Google Maps for your packets. Example rule: destination 0.0.0.0/0 (anywhere outside) → send via Internet Gateway. Every subnet follows its route table.',
+    web:   '🖥 <strong>Web Server VM</strong> — lives on the ground floor (public subnet) WITH a public IP, so customers can reach the website. It\'s a Compute Instance: CPU + RAM + disk + OS, running in Oracle\'s data centre.',
+    sl:    '💂 <strong>Security List</strong> — the guard for the WHOLE subnet: allow SSH (22), HTTP (80), HTTPS (443)… block everything else. Every VM in the subnet is behind this guard.',
+    app:   '⚙️ <strong>App Server VM</strong> — staff floor. Runs business logic. No public IP: the Internet cannot see it; only the web server talks to it internally.',
+    db:    '🗄 <strong>Database VM</strong> — the most protected resident. Private subnet, no public IP, guarded by an NSG so ONLY the App Server may connect. Never, ever on the ground floor.',
+    block: '💽 <strong>Block Volume</strong> — the database\'s personal SSD, attached to that one VM. Fast dedicated disk for data files. (The OS itself lives on a separate Boot Volume.)',
+    nsg:   '🔐 <strong>NSG — Network Security Group</strong> — the personal door lock for a SPECIFIC VM, on top of the subnet\'s guard. Rule here: "only the App Server may open the database\'s door."',
+    obj:   '📦 <strong>Object Storage</strong> — the city\'s warehouse, an OCI service OUTSIDE your VCN. Photos, backups, logs — unlimited boxes, each with a label. Private VMs reach it through the Service Gateway lift.'
+  };
+  document.querySelectorAll('.vx-node').forEach(n=>{
+    n.addEventListener('click', ()=>{
+      document.querySelectorAll('.vx-node').forEach(x=>x.classList.remove('sel'));
+      n.classList.add('sel');
+      detail.innerHTML = info[n.dataset.vx] || '';
+    });
+  });
+  // journeys
+  let running = false;
+  function journey(keys, texts, doneMsg){
+    if(running) return; running = true;
+    document.querySelectorAll('.vx-node').forEach(x=>x.classList.remove('lit','litok','sel'));
+    keys.forEach((k,i)=> setTimeout(()=>{
+      const el = document.querySelector('.vx-node[data-vx="'+k+'"]');
+      if(el) el.classList.add(i===keys.length-1?'litok':'lit');
+      detail.innerHTML = (i===keys.length-1?'✅ ':'🚶 Step '+(i+1)+': ')+texts[i];
+      if(i===keys.length-1){ detail.innerHTML += '<br><span class="small" style="color:var(--text-3);">'+doneMsg+'</span>'; running = false; }
+    }, (i+1)*950));
+  }
+  document.getElementById('vx-trip1').addEventListener('click', ()=> journey(
+    ['inet','igw','rt','sl','web'],
+    ['A customer on the Internet types your website address.',
+     'The request enters the city through the Internet Gateway (main gate).',
+     'The Route Table points it toward the public subnet.',
+     'The Security List guard checks: HTTPS on port 443 — allowed ✓.',
+     '<strong>The Web Server answers!</strong> The page travels back out the same way.'],
+    'This journey only works because: public subnet + public IP + IGW + route + allow-rule. Remove any one and the site is down.'));
+  document.getElementById('vx-trip2').addEventListener('click', ()=> journey(
+    ['db','nat','inet'],
+    ['The private Database needs security patches — it starts an OUTBOUND request.',
+     'It slips out through the NAT Gateway (receptionist): allowed out, tracked back.',
+     '<strong>Patches downloaded from the Internet!</strong> Yet no outsider can ever initiate a connection to the DB.'],
+    'Outbound-only: the exact reason NAT Gateways exist.'));
+  document.getElementById('vx-trip3').addEventListener('click', ()=> journey(
+    ['db','sgw','obj'],
+    ['The Database creates its nightly backup file.',
+     'It rides the Service Gateway — the private lift to OCI services.',
+     '<strong>Backup lands in Object Storage!</strong> The traffic never touched the Internet at all.'],
+    'Private, fast, and entirely inside Oracle\'s network.'));
+}
+
+/* ---------- 10b VCN peering ---------- */
+function initPeering(){
+  const link = document.getElementById('peer-link'); if(!link) return;
+  const result = document.getElementById('peer-result');
+  const a = document.getElementById('peer-a'), b = document.getElementById('peer-b');
+  let peered = false, busy = false;
+  document.getElementById('peer-enable').addEventListener('click', ()=>{
+    document.getElementById('peer-a-cidr').textContent = '10.0.0.0/16';
+    peered = true;
+    link.classList.add('on'); link.textContent = '🌉 peered — private bridge';
+    result.className = 'sz-result allowed';
+    result.innerHTML = '✅ <strong>Peering established.</strong> Dev city and Prod city now share a private bridge. Same region → this is a <strong>Local Peering Gateway (LPG)</strong>. No Internet involved.';
+  });
+  document.getElementById('peer-send').addEventListener('click', ()=>{
+    if(busy) return;
+    if(!peered){
+      result.className = 'sz-result blocked';
+      result.innerHTML = '🚫 <strong>No route!</strong> The two VCNs are isolated islands — without peering, Dev cannot reach Prod at all (that isolation is the whole point of VCNs). Create the bridge first.';
+      return;
+    }
+    busy = true;
+    a.classList.add('sending');
+    result.className = 'sz-result allowed';
+    result.innerHTML = '📨 Data leaving Dev (10.0.x.x)… crossing the private bridge…';
+    setTimeout(()=>{
+      a.classList.remove('sending'); b.classList.add('sending');
+      result.innerHTML = '✅ <strong>Delivered to Prod (172.16.x.x) — privately.</strong> The data never touched the Internet. Dev and Prod stay separate cities, connected only by this one controlled bridge.';
+      setTimeout(()=>{ b.classList.remove('sending'); busy = false; }, 900);
+    }, 1000);
+  });
+  document.getElementById('peer-overlap').addEventListener('click', ()=>{
+    peered = false;
+    link.classList.remove('on'); link.textContent = '💥 peering refused';
+    document.getElementById('peer-a-cidr').textContent = '10.0.0.0/16 (same as B!)';
+    result.className = 'sz-result blocked';
+    result.innerHTML = '💥 <strong>Peering refused: overlapping CIDR.</strong> If both cities number their houses 10.0.x.x, a letter for 10.0.1.5 is ambiguous — which city\'s house? <strong>VCNs with overlapping ranges can NOT peer.</strong> This is why CIDR planning (Topic 1) happens before anything else. Press "Create the peering bridge" to fix the range and retry.';
+  });
+}
+
+/* ---------- 13b boot volume ---------- */
+function initBootVolume(){
+  const log = document.getElementById('bv-log'); if(!log) return;
+  let busy = false;
+  function play(lines){
+    if(busy) return; busy = true; log.innerHTML='';
+    lines.forEach((l,i)=> setTimeout(()=>{
+      const d = document.createElement('div'); d.className = l[0]; d.textContent = l[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===lines.length-1) busy = false;
+    }, (i+1)*650));
+  }
+  document.getElementById('bv-start').addEventListener('click', ()=> play([
+    ['l-info','▶ Power on VM…'],
+    ['l-info','→ Firmware looks for a boot volume… found: "boot-vol-1" (50 GB)'],
+    ['l-info','→ Loading Ubuntu from the boot volume…'],
+    ['l-block','✅ VM is UP. CPU + RAM are useless without the disk that holds the OS — the boot volume is that disk.']
+  ]));
+  document.getElementById('bv-detach').addEventListener('click', ()=> play([
+    ['l-warn','🔌 Boot volume detached. Power on VM…'],
+    ['l-info','→ Firmware looks for a boot volume… none attached.'],
+    ['l-pass','💥 BOOT FAILED — no operating system found. The VM is a body without a brain.'],
+    ['l-warn','Re-attach (or restore) the boot volume and it boots again. Bonus: boot volumes survive VM termination if you choose — handy for recovery.']
+  ]));
+}
+
+/* ---------- 15b metadata explorer ---------- */
+function initMetadata(){
+  const out = document.getElementById('ssh-out'); if(!out) return;
+  const meta = {
+    region: ['curl …/instance/region', '"ap-mumbai-1"  ← useful: app picks the nearest endpoints automatically'],
+    shape:  ['curl …/instance/shape', '"VM.Standard.E4.Flex"  ← app can tune thread pools to the hardware'],
+    ad:     ['curl …/instance/availabilityDomain', '"AD-1"  ← lets software spread replicas across ADs'],
+    ocid:   ['curl …/instance/id', '"ocid1.instance.oc1.ap-mumbai-1.anxx…"  ← the VM\'s unique identity card number'],
+    host:   ['curl …/instance/hostname', '"web-vm-01"  ← scripts label logs & metrics with this']
+  };
+  document.querySelectorAll('[data-meta]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const m = meta[btn.dataset.meta];
+      const c = document.createElement('div'); c.className='cmd'; c.textContent='[opc@web-vm-01 ~]$ '+m[0];
+      const r = document.createElement('div'); r.textContent=m[1];
+      out.appendChild(c); out.appendChild(r); out.scrollTop = out.scrollHeight;
+    });
+  });
+}
+
+/* ---------- 03 switch vs router live sim ---------- */
+function initSwrSim(){
+  const wrap = document.getElementById('swr-pipeline'); if(!wrap) return;
+  const log = document.getElementById('swr-log');
+  const localBtn = document.getElementById('swr-local'), remoteBtn = document.getElementById('swr-remote');
+  let running = false;
+  const paths = {
+    local: {
+      nodes: ['💻 PC1','🔀 Switch','💻 PC2'],
+      lines: ['PC1 hands the message to the switch.','Switch: "PC2 sits in MY classroom" — forwards it directly.','✅ Delivered! The ROUTER was never involved — same network = switch only.']
+    },
+    remote: {
+      nodes: ['💻 PC1','🔀 Switch','🚦 Router','🌍 Internet','🖥 OCI Server'],
+      lines: ['PC1 hands the message to the switch.','Switch: "That address is NOT in my classroom" — passes it up to the router.','Router (traffic policeman): "Different network! Sending you toward the Internet."','The message hops across the Internet (WAN)…','✅ Delivered to Oracle Cloud! Crossing networks = the router\'s job.']
+    }
+  };
+  function play(which){
+    if(running) return; running = true;
+    localBtn.classList.toggle('active', which==='local');
+    remoteBtn.classList.toggle('active', which==='remote');
+    const p = paths[which];
+    wrap.innerHTML = p.nodes.map((n,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+n+'</div>').join('');
+    log.innerHTML = '';
+    const els = wrap.querySelectorAll('.pipe-step');
+    p.lines.forEach((line,i)=> setTimeout(()=>{
+      els[i].classList.add(i===p.lines.length-1?'ok':'lit');
+      const d = document.createElement('div');
+      d.className = i===p.lines.length-1?'l-block':'l-info';
+      d.textContent = (i===p.lines.length-1?'':'→ ')+line;
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===p.lines.length-1) running = false;
+    }, (i+1)*800));
+  }
+  localBtn.addEventListener('click', ()=>play('local'));
+  remoteBtn.addEventListener('click', ()=>play('remote'));
+  // pre-render the local path without playing
+  wrap.innerHTML = paths.local.nodes.map((n,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step">'+n+'</div>').join('');
+}
+
+/* ---------- 04 CIDR ---------- */
+function initCIDR(){
+  const slider = document.getElementById('cidr-slider'); if(!slider) return;
+  function fitLabel(total){
+    if(total>=65536) return 'Large company';
+    if(total>=4096) return 'Whole campus';
+    if(total>=256) return 'One department';
+    if(total>=16) return 'Small team';
+    return 'Point-to-point link';
+  }
+  function render(){
+    const p = parseInt(slider.value);
+    document.getElementById('cidr-pre').textContent = p;
+    const total = Math.pow(2, 32-p);
+    document.getElementById('cidr-total').textContent = total.toLocaleString('en-IN');
+    document.getElementById('cidr-size').textContent = fitLabel(total);
+    document.getElementById('cidr-subnets').textContent = p<=24 ? Math.pow(2,24-p).toLocaleString('en-IN') : '—';
+    document.getElementById('cidr-netpart').style.width = Math.round(p/32*100)+'%';
+    document.getElementById('cidr-netpart').textContent = p+' network bits';
+    document.getElementById('cidr-hostpart').textContent = (32-p)+' host bits';
+    // colony of houses visual
+    document.getElementById('cidr-sentence').textContent =
+      '🏘 10.0.0.0/'+p+' = a colony with '+total.toLocaleString('en-IN')+' houses (IP addresses) for your machines.';
+    const shown = Math.min(total, 128);
+    document.getElementById('cidr-dots').innerHTML = Array.from({length:shown},()=>'<div class="dot"></div>').join('');
+    document.getElementById('cidr-dots-note').textContent =
+      total>shown ? 'each square = 1 house · showing 128 of '+total.toLocaleString('en-IN')+' — imagine '+Math.round(total/shown).toLocaleString('en-IN')+'× more!'
+                  : 'each square = 1 house · all '+total+' shown';
+  }
+  slider.addEventListener('input', render);
+  document.querySelectorAll('[data-cidr]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ slider.value = btn.dataset.cidr; render(); });
+  });
+  render();
+}
+
+/* ---------- 05 mall / subnets ---------- */
+function initMall(){
+  const pub = document.getElementById('mall-pub'); if(!pub) return;
+  const priv = document.getElementById('mall-priv');
+  const result = document.getElementById('mall-result');
+  document.getElementById('visit-pub').addEventListener('click', ()=>{
+    pub.classList.remove('hit-ok'); priv.classList.remove('hit-no');
+    void pub.offsetWidth; pub.classList.add('hit-ok');
+    result.className = 'sz-result allowed';
+    result.innerHTML = '✅ <strong>Welcome in!</strong> The web server sits in a PUBLIC subnet with a route to the Internet Gateway — customers are supposed to reach it. Like walking into the mall\'s ground floor.';
+  });
+  document.getElementById('visit-priv').addEventListener('click', ()=>{
+    pub.classList.remove('hit-ok'); priv.classList.remove('hit-no');
+    void priv.offsetWidth; priv.classList.add('hit-no');
+    result.className = 'sz-result blocked';
+    result.innerHTML = '🚫 <strong>Access denied.</strong> The database sits in a PRIVATE subnet — no public IP, no route from the Internet Gateway. Like trying to enter the staff-only floor: the door doesn\'t even exist for visitors.';
+  });
+  document.getElementById('visit-mistake').addEventListener('click', ()=>{
+    priv.classList.remove('hit-no'); pub.classList.remove('hit-ok');
+    void priv.offsetWidth; priv.classList.add('hit-no'); pub.classList.add('hit-no');
+    result.className = 'sz-result blocked';
+    result.innerHTML = '😈 <strong>Disaster.</strong> With the database on the ground floor (public subnet + public IP), ANY visitor — including a hacker — can walk straight up to it and start guessing passwords. Path: Internet → Internet Gateway → 🗄 Database. This is exactly the misconfiguration Day-2\'s Security Zones exist to block. <strong>Databases stay on the staff floor. Always.</strong>';
+  });
+}
+
+/* ---------- 06 ip planner ---------- */
+function initIpPlanner(){
+  const rows = document.getElementById('ip-rows'); if(!rows) return;
+  const vms = [['VM1 · Web',10],['VM2 · App',11],['VM3 · DB',12]];
+  rows.innerHTML = vms.map((v,i)=>
+    '<div class="ip-row"><span class="ip-name">'+v[0]+'</span><span class="ip-prefix">10.0.1.</span>'+
+    '<input type="number" min="2" max="254" value="'+v[1]+'" data-i="'+i+'" class="ip-inp">'+
+    '<span class="ip-state ip-ok" id="ip-state-'+i+'">✓ unique</span></div>'
+  ).join('');
+  const result = document.getElementById('ip-result');
+  function validate(){
+    const vals = [...document.querySelectorAll('.ip-inp')].map(x=>x.value);
+    let anyDup = false;
+    vals.forEach((v,i)=>{
+      const dup = vals.filter(x=>x===v).length>1;
+      const st = document.getElementById('ip-state-'+i);
+      st.className = 'ip-state '+(dup?'ip-bad':'ip-ok');
+      st.textContent = dup ? '💥 CONFLICT' : '✓ unique';
+      if(dup) anyDup = true;
+    });
+    if(anyDup){
+      result.className = 'sz-result blocked';
+      result.innerHTML = '💥 <strong>Address conflict!</strong> Two VMs share the same IP — like two houses with the same number. The "postman" (network) delivers packets to the wrong machine or drops them. Fix the duplicate.';
+    } else {
+      result.className = 'sz-result allowed';
+      result.innerHTML = '✅ All three VMs have unique addresses: ' + vals.map(v=>'10.0.1.'+v).join(' · ') + '. The postman is happy.';
+    }
+  }
+  rows.addEventListener('input', validate);
+  validate();
+  // postman delivery test
+  const log = document.getElementById('ip-log');
+  let delivering = false;
+  document.getElementById('ip-deliver').addEventListener('click', ()=>{
+    if(delivering) return; delivering = true;
+    const vals = [...document.querySelectorAll('.ip-inp')].map(x=>x.value);
+    const target = vals[1]; // VM2's number
+    const dup = vals.filter(v=>v===target).length>1;
+    log.innerHTML = '';
+    const lines = [
+      ['l-warn','📬 Postman enters street 10.0.1.0/24 with a letter addressed to house #'+target+'…'],
+      ['l-info','→ Checks house #'+vals[0]+' (VM1)… '+(vals[0]===target && dup ? '🤔 wait, this is ALSO #'+target+'!' : 'not the one.')],
+      ['l-info','→ Arrives at house #'+target+' (VM2)…']
+    ];
+    if(dup){
+      lines.push(['l-pass','💥 TWO houses claim number #'+target+'! The postman doesn\'t know where to deliver — the letter goes to the WRONG machine or is dropped. This is an IP conflict.']);
+      lines.push(['l-warn','Fix the duplicate above, then send the postman again.']);
+    } else {
+      lines.push(['l-block','✅ Delivered! Exactly one house has #'+target+' — unique IPs make delivery unambiguous. That\'s why every VM needs its own address.']);
+    }
+    lines.forEach((l,i)=> setTimeout(()=>{
+      const d = document.createElement('div'); d.className = l[0]; d.textContent = l[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===lines.length-1) delivering = false;
+    }, (i+1)*700));
+  });
+}
+
+/* ---------- 07 routes ---------- */
+function initRoutes(){
+  const wrap = document.getElementById('route-rows'); if(!wrap) return;
+  const routes = [
+    {cidr:'10.0.5.0/24', len:24, target:'→ DRG (on-premises network)', match:ip=>ip.startsWith('10.0.5.')},
+    {cidr:'10.0.0.0/16', len:16, target:'→ stays local inside the VCN', match:ip=>ip.startsWith('10.0.')},
+    {cidr:'0.0.0.0/0', len:0, target:'→ Internet Gateway (everywhere else)', match:()=>true}
+  ];
+  wrap.innerHTML = routes.map((r,i)=>
+    '<div class="route-row" id="route-'+i+'"><span class="rr-cidr">'+r.cidr+'</span><span class="rr-target">'+r.target+'</span><span class="rr-len">prefix /'+r.len+'</span></div>'
+  ).join('');
+  const result = document.getElementById('route-result');
+  let checking = false;
+  document.querySelectorAll('[data-dest]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(checking) return; checking = true;
+      const ip = btn.dataset.dest;
+      const matching = routes.map((r,i)=>({...r,i})).filter(r=>r.match(ip));
+      const winner = matching.reduce((a,b)=> a.len>=b.len ? a : b);
+      routes.forEach((_,i)=> document.getElementById('route-'+i).classList.remove('win','lose','checking'));
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🧭 Checking each road for <strong>'+ip+'</strong>…';
+      // step through each route like a GPS comparing roads
+      routes.forEach((r,i)=> setTimeout(()=>{
+        const el = document.getElementById('route-'+i);
+        routes.forEach((_,j)=>document.getElementById('route-'+j).classList.remove('checking'));
+        el.classList.add('checking');
+        const matches = r.match(ip);
+        result.innerHTML = '🧭 Road '+(i+1)+' — <strong>'+r.cidr+'</strong>: '+
+          (matches ? 'destination fits this road ✓ (specificity /'+r.len+')' : 'destination does NOT fit this road ✗');
+      }, (i+1)*900));
+      // verdict
+      setTimeout(()=>{
+        routes.forEach((_,i)=>{
+          const el = document.getElementById('route-'+i);
+          el.classList.remove('checking');
+          el.classList.add(i===winner.i?'win':'lose');
+        });
+        const others = matching.filter(r=>r.i!==winner.i).map(r=>r.cidr).join(' and ');
+        result.innerHTML = '📦 <strong>'+ip+'</strong> fits '+matching.length+' road(s)'+
+          (others?' — but <strong>'+winner.cidr+'</strong> gives more precise directions than '+others:'')+
+          '. <strong>Longest prefix wins:</strong> traffic goes '+winner.target.replace('→ ','')+'.';
+        checking = false;
+      }, (routes.length+1)*900);
+    });
+  });
+}
+
+/* ---------- 08 gateway doors ---------- */
+function initGwDoors(){
+  const grid = document.getElementById('door-grid'); if(!grid) return;
+  const tests = document.getElementById('door-tests');
+  const doors = {
+    igw: { name:'🌐 Internet Gateway — "Everyone can visit me."', rows:[
+      ['🌍 Stranger on the Internet → your public web server','ok','✓ PASSES — that\'s the point: customers reach your website'],
+      ['🖥 Your server → out to the Internet','ok','✓ PASSES — replies and downloads go out the same door'],
+      ['Best for…','','Public subnets: websites, load balancers']]},
+    nat: { name:'🥷 NAT Gateway — "I can go outside, nobody comes inside."', rows:[
+      ['🗄 Private server → Internet (download patches)','ok','✓ PASSES — outbound is allowed'],
+      ['🌍 Stranger on the Internet → your private server','no','✗ BLOCKED — inbound simply doesn\'t exist here'],
+      ['Best for…','','Private subnets that need updates but zero exposure']]},
+    sgw: { name:'🛗 Service Gateway — "Only OCI services."', rows:[
+      ['🗄 Private VM → OCI Object Storage','ok','✓ PASSES — via Oracle\'s private corridor, never the Internet'],
+      ['🗄 Private VM → a random website','no','✗ BLOCKED — this door only leads to OCI services'],
+      ['Best for…','','Backups & service traffic with no Internet exposure']]},
+    drg: { name:'🏢 DRG — "Office connection."', rows:[
+      ['🏢 Your on-premises data center → the VCN','ok','✓ PASSES — over VPN or FastConnect'],
+      ['🌍 General Internet traffic → the VCN','no','✗ BLOCKED — this door is a private corporate tunnel'],
+      ['Best for…','','Hybrid cloud: connecting the office to OCI']]},
+    lpg: { name:'🏘 LPG — "Neighbor VCN."', rows:[
+      ['🏘 VCN-B (same region) → your VCN','ok','✓ PASSES — private peering between neighbors'],
+      ['🌏 A VCN in another region','no','✗ BLOCKED — LPG is local; cross-region uses the DRG'],
+      ['Best for…','','Two VCNs in one region talking privately']]}
+  };
+  function show(k){
+    grid.querySelectorAll('.door-card').forEach(c=>c.classList.toggle('sel', c.dataset.door===k));
+    const d = doors[k];
+    tests.innerHTML = '<h4>'+d.name+'</h4>' + d.rows.map(r=>
+      '<div class="door-test-row"><span>'+r[0]+'</span><span class="dt-res '+(r[1]==='ok'?'dt-ok':r[1]==='no'?'dt-no':'')+'">'+r[2]+'</span></div>'
+    ).join('');
+  }
+  grid.addEventListener('click', e=>{
+    const card = e.target.closest('.door-card'); if(card) show(card.dataset.door);
+  });
+  show('igw');
+}
+
+/* ---------- 09 vcn builder ---------- */
+function initVcnBuilder(){
+  const partsEl = document.getElementById('vcn-parts'); if(!partsEl) return;
+  const parts = [
+    {k:'igw',  name:'🌐 Internet Gateway', cls:'gw',  desc:'Main gate to the outside world'},
+    {k:'pub',  name:'🏪 Public Subnet',    cls:'pub', desc:'Ground floor — web servers live here'},
+    {k:'priv', name:'🔒 Private Subnet',   cls:'priv',desc:'Staff floor — database lives here'},
+    {k:'nat',  name:'🥷 NAT Gateway',      cls:'gw',  desc:'Private servers go out for updates'},
+    {k:'rt',   name:'🗺 Route Table',      cls:'',    desc:'The roads — where packets should go'},
+    {k:'sl',   name:'💂 Security List',    cls:'',    desc:'The guard — allow SSH & HTTPS only'}
+  ];
+  const on = {};
+  partsEl.innerHTML = parts.map(p=>
+    '<div class="vcn-part"><span>'+p.name+'</span><label class="switch"><input type="checkbox" class="vcn-toggle" data-k="'+p.k+'"><span class="slider"></span></label></div>'
+  ).join('');
+  const canvas = document.getElementById('vcn-canvas');
+  const status = document.getElementById('vcn-status');
+  function render(){
+    const active = parts.filter(p=>on[p.k]);
+    canvas.innerHTML = active.length
+      ? active.map(p=>'<div class="vd-item '+p.cls+'">'+p.name+' <span class="small" style="margin-left:auto;">'+p.desc+'</span></div>').join('')
+      : '<p class="vd-empty">Nothing built yet — switch on components from the left.</p>';
+    const n = active.length;
+    status.classList.toggle('ready', n===parts.length);
+    if(n===0) status.textContent = '0 / 6 components — your community is an empty plot of land.';
+    else if(n<parts.length) status.textContent = n+' / 6 components — keep building. '+(on.pub&&!on.igw?'⚠ A public subnet without an Internet Gateway can\'t actually reach the Internet!':'')+(on.priv&&!on.nat?' ⚠ Your private subnet can\'t download updates without a NAT Gateway.':'');
+    else status.textContent = '🏆 6 / 6 — your gated community is COMPLETE: wall (VCN), gate (IGW), ground floor (public), staff floor (private), roads (route table), guard (security list). This is a production-ready VCN pattern!';
+  }
+  partsEl.addEventListener('change', e=>{
+    const t = e.target.closest('.vcn-toggle'); if(!t) return;
+    on[t.dataset.k] = t.checked; render();
+  });
+  render();
+  // goal tests — does the community actually work?
+  const testResult = document.getElementById('vcn-test-result');
+  const needNames = {igw:'🌐 Internet Gateway', pub:'🏪 Public Subnet', priv:'🔒 Private Subnet', nat:'🥷 NAT Gateway', rt:'🗺 Route Table', sl:'💂 Security List'};
+  function runTest(needs, okMsg, story){
+    const missing = needs.filter(k=>!on[k]);
+    if(missing.length===0){
+      testResult.className = 'sz-result allowed';
+      testResult.innerHTML = '✅ <strong>Test passed!</strong> '+okMsg;
+    } else {
+      testResult.className = 'sz-result blocked';
+      testResult.innerHTML = '🚫 <strong>Test failed.</strong> '+story+' Missing: <strong>'+missing.map(k=>needNames[k]).join(' · ')+'</strong>. Switch them on and test again.';
+    }
+  }
+  document.getElementById('vcn-test-web').addEventListener('click', ()=>
+    runTest(['igw','pub','rt','sl'],
+      'The customer\'s request enters through the Internet Gateway, the route table guides it to the public subnet, the security list allows HTTPS, and the web server answers. Your community is open for business!',
+      'The customer is standing outside but can\'t reach the web server.'));
+  document.getElementById('vcn-test-db').addEventListener('click', ()=>
+    runTest(['priv','nat','rt'],
+      'The database (staff floor) slips out through the NAT Gateway, downloads its updates, and returns — while remaining completely unreachable from outside. Perfect.',
+      'The database needs a private room and an outbound-only door to fetch updates.'));
+}
+
+/* ---------- 10 firewall ---------- */
+function initFirewall(){
+  const result = document.getElementById('fw-result'); if(!result) return;
+  const names = {22:'SSH login',443:'HTTPS request',80:'HTTP request',3306:'MySQL probe'};
+  document.querySelectorAll('[data-fire]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const port = btn.dataset.fire;
+      const rule = document.querySelector('.fw-toggle[data-port="'+port+'"]');
+      const allowed = rule ? rule.checked : false;
+      if(allowed){
+        result.className = 'sz-result allowed';
+        result.innerHTML = '✅ <strong>'+names[port]+' (port '+port+') ALLOWED</strong> — an ingress rule permits it, so the guard waves it through to the VM.';
+      } else {
+        result.className = 'sz-result blocked';
+        result.innerHTML = '🚫 <strong>'+names[port]+' (port '+port+') BLOCKED</strong> — no matching allow rule. '+(port==='3306'?'The hacker\'s database probe dies at the guard post. Default = deny — exactly what you want.':'Switch the rule ON above if this traffic should be allowed.');
+      }
+    });
+  });
+}
+
+/* ---------- 11 shapes ---------- */
+function initShapes(){
+  const wrap = document.getElementById('shape-cards'); if(!wrap) return;
+  const shapes = [
+    {k:'small', name:'VM.Standard.E4.Flex — 1 OCPU · 8 GB RAM', spec:'~ light traffic'},
+    {k:'mid',   name:'VM.Standard.E4.Flex — 8 OCPU · 64 GB RAM', spec:'~ heavy traffic, always-on'},
+    {k:'gpu',   name:'VM.GPU.A10 — GPU + 15 OCPU · 240 GB RAM', spec:'~ parallel number crunching'}
+  ];
+  wrap.innerHTML = shapes.map(s=>
+    '<div class="shape-card" id="shape-'+s.k+'"><span class="sc-name">'+s.name+'</span><span class="sc-spec">'+s.spec+'</span></div>'
+  ).join('');
+  const why = document.getElementById('shape-why');
+  const map = {
+    blog: {k:'small', txt:'📝 A small blog barely uses CPU — 1 OCPU and 8 GB is plenty. Paying for more = the 60-seat-bus mistake from Day 2.'},
+    app:  {k:'mid',  txt:'🛒 A busy e-commerce app needs steady multi-core power and memory for sessions — 8 OCPUs / 64 GB with room to scale.'},
+    ml:   {k:'gpu',  txt:'🤖 ML training is massively parallel math — that\'s a GPU\'s job. A GPU shape trains in hours what CPUs take days to do.'}
+  };
+  function pick(wl){
+    shapes.forEach(s=>document.getElementById('shape-'+s.k).classList.toggle('pick', s.k===map[wl].k));
+    why.innerHTML = map[wl].txt;
+  }
+  document.querySelectorAll('[data-wl]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-wl]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); pick(btn.dataset.wl);
+    });
+  });
+  pick('blog');
+}
+
+/* ---------- 12 cloud-init race ---------- */
+function initRace(){
+  const manual = document.getElementById('race-manual'); if(!manual) return;
+  const mSteps = ['Launch VM','Wait for boot','SSH login','Install web server','Configure settings','Restart service','Repeat for EVERY server…'];
+  const cSteps = ['Launch VM with cloud-init script','☕ Everything happens automatically on first boot'];
+  manual.innerHTML = mSteps.map((s,i)=>'<div class="race-step" id="rm-'+i+'">'+s+'</div>').join('');
+  document.getElementById('race-cloudinit').innerHTML = cSteps.map((s,i)=>'<div class="race-step" id="rc-'+i+'">'+s+'</div>').join('');
+  let running = false;
+  document.getElementById('race-start').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    mSteps.forEach((_,i)=>document.getElementById('rm-'+i).classList.remove('done'));
+    cSteps.forEach((_,i)=>document.getElementById('rc-'+i).classList.remove('done'));
+    document.getElementById('race-manual-time').textContent = '';
+    document.getElementById('race-ci-time').textContent = '';
+    // cloud-init finishes fast
+    setTimeout(()=>document.getElementById('rc-0').classList.add('done'), 400);
+    setTimeout(()=>{
+      document.getElementById('rc-1').classList.add('done');
+      document.getElementById('race-ci-time').textContent = '⚡ Done in ~2 minutes, zero logins. Same script works for 1 or 100 servers.';
+    }, 1100);
+    // manual grinds through
+    mSteps.forEach((_,i)=> setTimeout(()=>{
+      document.getElementById('rm-'+i).classList.add('done');
+      if(i===mSteps.length-1){
+        document.getElementById('race-manual-time').textContent = '🐢 ~45 minutes per server… × 100 servers = a very bad week.';
+        running = false;
+      }
+    }, 800+(i+1)*850));
+  });
+}
+
+/* ---------- 13 ssh ---------- */
+function initSSH(){
+  const out = document.getElementById('ssh-out'); if(!out) return;
+  let running = false;
+  const lines = [
+    ['cmd','$ ssh -i ~/.ssh/my_private_key opc@203.0.113.42'],
+    ['','Exchanging keys… your private key ↔ VM\'s public key (from instance metadata)'],
+    ['','✔ Key pair matches. Identity verified — no password needed.'],
+    ['','Welcome to Oracle Linux 9'],
+    ['cmd','[opc@web-vm-01 ~]$ curl -s http://169.254.169.254/opc/v2/instance/ | head -3'],
+    ['','{ "shape": "VM.Standard.E4.Flex", "region": "ap-mumbai-1", … }   ← that\'s the metadata service'],
+    ['','You\'re in. 🔐 The private key stayed on your laptop the whole time.']
+  ];
+  document.getElementById('ssh-connect').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    out.innerHTML = '';
+    lines.forEach((l,i)=> setTimeout(()=>{
+      const d = document.createElement('div');
+      if(l[0]==='cmd') d.className='cmd';
+      d.textContent = l[1];
+      out.appendChild(d); out.scrollTop = out.scrollHeight;
+      if(i===lines.length-1) running = false;
+    }, (i+1)*700));
+  });
+}
+
+/* ---------- 14 storage demo ---------- */
+function initStorageDemo(){
+  const log = document.getElementById('st-log'); if(!log) return;
+  let busy = false;
+  const demos = {
+    object: [
+      ['l-warn','📦 Uploading holiday-photo.jpg to Object Storage…'],
+      ['l-info','→ The photo lands in a bucket — like dropping a box into a giant warehouse.'],
+      ['l-info','→ It gets a URL. Any authorized app, anywhere, can fetch it over the API.'],
+      ['l-block','✅ Stored! Add a million more — the warehouse never runs out of shelves. Perfect for images, videos, backups, documents.']
+    ],
+    block: [
+      ['l-warn','💽 Block volume "disk-1" is attached to VM1 as its personal SSD…'],
+      ['l-info','→ Now trying to attach the SAME volume to VM2 at the same time…'],
+      ['l-pass','✗ Not the way it works — a classic block volume is ONE VM\'s personal disk, like the SSD inside your laptop.'],
+      ['l-block','✅ Lesson: Block Storage = fast dedicated disk for a single VM (OS, database files). Need sharing? That\'s File Storage\'s job →']
+    ],
+    file: [
+      ['l-warn','🗂 VM1 writes report.txt into the shared File Storage folder…'],
+      ['l-info','→ VM2 opens the same folder (mounted over NFS)…'],
+      ['l-block','✅ VM2 reads report.txt instantly! VM3 too. One folder, many VMs — like the office shared drive everyone opens together.']
+    ]
+  };
+  document.querySelectorAll('[data-stdemo]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(busy) return; busy = true;
+      log.innerHTML = '';
+      const lines = demos[btn.dataset.stdemo];
+      lines.forEach((l,i)=> setTimeout(()=>{
+        const d = document.createElement('div'); d.className = l[0]; d.textContent = l[1];
+        log.appendChild(d); log.scrollTop = log.scrollHeight;
+        if(i===lines.length-1) busy = false;
+      }, (i+1)*750));
+    });
+  });
+}
+
+/* ---------- 15 terraform/ansible house sim ---------- */
+function initTfSim(){
+  const houses = document.getElementById('tf-houses'); if(!houses) return;
+  const log = document.getElementById('tf-log');
+  let built = false, configured = false, busy = false;
+  function render(){
+    houses.innerHTML = [1,2,3].map(n=>{
+      if(!built) return '<div class="tf-house"><div class="th-ico">🌫</div>empty plot #'+n+'<div class="th-sw">no server yet</div></div>';
+      if(!configured) return '<div class="tf-house built"><div class="th-ico">🏠</div>server-'+n+'<div class="th-sw">empty house — no software</div></div>';
+      return '<div class="tf-house built configured"><div class="th-ico">🏠</div>server-'+n+'<div class="th-sw">⚙️ nginx installed &amp; running</div></div>';
+    }).join('');
+  }
+  function say(lines){
+    busy = true; log.innerHTML='';
+    lines.forEach((l,i)=> setTimeout(()=>{
+      const d = document.createElement('div'); d.className = l[0]; d.textContent = l[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===lines.length-1) busy = false;
+    }, (i+1)*650));
+  }
+  document.getElementById('tf-apply').addEventListener('click', ()=>{
+    if(busy) return;
+    if(built){ say([['l-info','$ terraform apply'],['l-block','No changes — infrastructure already matches the code. (That\'s IaC: declare it once, Terraform keeps it true.)']]); return; }
+    built = true;
+    say([['l-info','$ terraform apply'],['l-info','+ oci_core_instance.server[0..2] will be created'],['l-block','✅ 3 servers CREATED — the houses are built. But they\'re empty: no software inside.']]);
+    setTimeout(render, 1300);
+  });
+  document.getElementById('an-run').addEventListener('click', ()=>{
+    if(busy) return;
+    if(!built){
+      say([['l-info','$ ansible-playbook install_nginx.yml'],['l-pass','✗ ERROR: no hosts matched — there are NO SERVERS to configure!'],['l-warn','Ansible furnishes houses… but Terraform hasn\'t built any yet. Run terraform apply first. ORDER MATTERS.']]);
+      return;
+    }
+    if(configured){ say([['l-info','$ ansible-playbook install_nginx.yml'],['l-block','ok: all 3 servers already configured — Ansible re-checks and changes nothing. (Continuous management!)']]); return; }
+    configured = true;
+    say([['l-info','$ ansible-playbook install_nginx.yml'],['l-info','TASK [install nginx] — server-1 ✓ server-2 ✓ server-3 ✓'],['l-block','✅ All 3 houses FURNISHED — same software, same config, in one command. Imagine doing that by hand on 100 servers.']]);
+    setTimeout(render, 1300);
+  });
+  document.getElementById('tf-reset').addEventListener('click', ()=>{
+    if(busy) return;
+    built = false; configured = false; render();
+    say([['l-info','$ terraform destroy'],['l-warn','All servers removed — back to empty plots. Try the wrong order this time!']]);
+  });
+  render();
+}
+
+/* ---------- 16 end-to-end ---------- */
+function initE2E(){
+  const wrap = document.getElementById('e2e-pipeline'); if(!wrap) return;
+  const steps = [
+    ['🌍 Internet — customer clicks your shop','The request leaves the customer\'s browser with your site\'s public IP.'],
+    ['🌐 Internet Gateway','The VCN\'s public door — route table entry 0.0.0.0/0 brought the reply path here too.'],
+    ['⚖️ Load Balancer (Public Subnet)','Ground floor. Security list allows port 443. LB picks the healthiest web server.'],
+    ['🖥 Web Server (Public Subnet)','Serves the page frame, then asks the app tier for data — traffic stays inside the VCN.'],
+    ['⚙️ App Server (Private Subnet)','Staff floor — unreachable from the Internet. Runs the business logic.'],
+    ['🗄 Database (DB Subnet)','Deepest private layer, on fast Block Storage. Returns the order data.'],
+    ['📦 Storage layer','Product images come from Object Storage (warehouse) via the Service Gateway.'],
+    ['✅ Response → customer','Data flows back up the same path. Page loads. Every Day-5 concept just fired at once.']
+  ];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<div class="pipe-arrow" style="text-align:center;">↓</div>':'')+'<div class="pipe-step" style="min-width:0;" data-i="'+i+'">'+s[0]+'</div>').join('');
+  const log = document.getElementById('e2e-log');
+  let running = false;
+  document.getElementById('e2e-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    log.innerHTML = '';
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1?'ok':'lit');
+      const d = document.createElement('div');
+      d.className = i===steps.length-1?'l-block':'l-info';
+      d.textContent = (i===steps.length-1?'✅ ':'→ ')+s[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===steps.length-1) running = false;
+    }, (i+1)*850));
+  });
+}
+
+/* ---------- 18 flashcards ---------- */
+function initFlashcards(){
+  const wrap = document.getElementById('flash-wrap'); if(!wrap) return;
+  const cards = [
+    ['LAN vs WAN?','LAN = one building · WAN = connects LANs (Internet)'],
+    ['Switch vs Router?','Switch: inside one network · Router: between networks'],
+    ['10.0.0.0/16 — how many IPs?','2^(32−16) = 65,536 addresses'],
+    ['Public vs Private subnet?','Public = Internet-reachable · Private = not (mall ground floor vs staff floor)'],
+    ['Which route wins?','The most specific — longest prefix match'],
+    ['NAT Gateway motto?','"I can go outside, nobody comes inside" — outbound only'],
+    ['Security List vs NSG?','SL = whole subnet · NSG = individual VM'],
+    ['Object vs Block vs File?','Warehouse · personal SSD · shared office folder'],
+    ['Terraform vs Ansible?','Terraform creates infrastructure · Ansible configures servers'],
+    ['VCN Peering rule?','Overlapping CIDRs cannot peer · same region = LPG, cross-region = DRG'],
+    ['Boot Volume?','The disk holding the OS — without it the VM cannot start'],
+    ['Instance Metadata?','The VM\'s identity card: OCID, region, AD, shape, hostname, SSH key']
+  ];
+  wrap.innerHTML = cards.map(c=>'<div class="flashcard"><div class="fc-inner"><div class="fc-face fc-front">'+c[0]+'</div><div class="fc-face fc-back">'+c[1]+'</div></div></div>').join('');
+  wrap.addEventListener('click', e=>{
+    const fc = e.target.closest('.flashcard'); if(fc) fc.classList.toggle('flipped');
+  });
+}
+
+/* ---------- 19 quiz ---------- */
+function initQuiz(){
+  const wrap = document.getElementById('quiz-wrap'); if(!wrap) return;
+  const Q = [
+    ['A VCN has CIDR 10.0.0.0/16. How many IP addresses does it contain?',['256','65,536','16,777,216'],1,'2^(32−16) = 65,536. Bigger prefix number = smaller network.'],
+    ['A private DB server must download patches from the Internet but never be reachable from it. Which gateway?',['Internet Gateway','NAT Gateway','Service Gateway'],1,'NAT = outbound only. "I can go outside, nobody comes inside."'],
+    ['A private VM must reach OCI Object Storage without touching the Internet. Which gateway?',['NAT Gateway','Service Gateway','DRG'],1,'Service Gateway = private corridor to OCI services.'],
+    ['Routes 10.0.5.0/24 → DRG and 10.0.0.0/16 → local both match destination 10.0.5.7. Which wins?',['10.0.0.0/16 (bigger network)','10.0.5.0/24 (longest prefix)','Both — traffic splits'],1,'Longest prefix match: /24 is more specific than /16, so DRG wins.'],
+    ['Which device connects DIFFERENT networks?',['Switch','Router','Hub'],1,'Router = traffic policeman between cities. Switch works inside one network.'],
+    ['Security List vs NSG — the key difference?',['SL is newer','SL applies to the whole subnet; NSG to individual VMs','NSG applies to subnets'],1,'Apartment-gate security (SL) vs personal door lock (NSG).'],
+    ['Where should the database of a web application live?',['Public subnet','Private subnet','On the Internet Gateway'],1,'Databases go on the staff-only floor — private subnet, no public exposure.'],
+    ['You need one disk attached to a single VM for its database files. Which storage?',['Object Storage','Block Storage','File Storage'],1,'Block volume = the VM\'s personal SSD.'],
+    ['What does cloud-init do?',['Creates VCNs','Automates server setup on first boot','Encrypts volumes'],1,'Like a new phone auto-restoring apps — the VM configures itself at launch.'],
+    ['"Create the VMs" vs "install software on them" — which tools?',['Ansible then Terraform','Terraform then Ansible','Terraform for both'],1,'Terraform creates infrastructure (IaC); Ansible configures the servers afterwards.']
+  ];
+  state.quizTotal = Q.length;
+  wrap.innerHTML = Q.map((q,qi)=>
+    '<div class="quiz-q" data-qi="'+qi+'"><div class="qtext">'+(qi+1)+'. '+q[0]+'</div><div class="quiz-opts">'+
+    q[1].map((o,oi)=>'<div class="quiz-opt" data-oi="'+oi+'">'+String.fromCharCode(65+oi)+'. '+o+'</div>').join('')+
+    '</div><div class="quiz-explain">'+q[3]+'</div></div>'
+  ).join('');
+  wrap.addEventListener('click', e=>{
+    const opt = e.target.closest('.quiz-opt'); if(!opt) return;
+    const qEl = opt.closest('.quiz-q'); if(qEl.classList.contains('answered')) return;
+    qEl.classList.add('answered');
+    const qi = parseInt(qEl.dataset.qi), oi = parseInt(opt.dataset.oi);
+    const correct = Q[qi][2];
+    qEl.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+      if(i===correct) o.classList.add('correct');
+      else if(i===oi) o.classList.add('incorrect');
+    });
+    state.quizAnswered++;
+    if(oi===correct) state.quizScore++;
+    document.getElementById('score-chip-val').textContent = state.quizScore+'/'+state.quizAnswered;
+    document.getElementById('quiz-final-score').textContent = state.quizScore+' / '+state.quizTotal;
+    document.getElementById('cert-score-display').textContent = state.quizScore+'/'+state.quizTotal;
+    updateBadge();
+  });
+}
+
+/* ---------- 20 badge + cert ---------- */
+function updateBadge(){
+  const scroll = window.__scrollPct || 0;
+  const quiz = state.quizTotal ? (state.quizAnswered/state.quizTotal)*100 : 0;
+  const pct = Math.round(scroll*0.5 + quiz*0.5);
+  const circle = document.getElementById('badge-circle'); if(!circle) return;
+  circle.style.setProperty('--pct', (pct*3.6)+'deg');
+  document.getElementById('badge-pct').textContent = pct+'%';
+  const title = document.getElementById('badge-title');
+  if(pct>=90) title.textContent='🏆 Day 5 mastered!';
+  else if(pct>=60) title.textContent='Almost there';
+  else title.textContent='Keep going';
+}
+function initCert(){
+  document.getElementById('cert-date-display').textContent = new Date().toLocaleDateString('en-IN', {year:'numeric', month:'long', day:'numeric'});
+  const input = document.getElementById('cert-name-input');
+  input.addEventListener('input', ()=>{
+    document.getElementById('cert-name-display').textContent = input.value || 'Your Name';
+  });
+}
+</script>
+</body>
+</html>
