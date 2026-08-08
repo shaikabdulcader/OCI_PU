@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Encryption &amp; Key Management — Day 6 | Interactive Learning Platform</title>
+<style>
+:root{
+  --void:#08090b;
+  --panel:#101217;
+  --panel-2:#15171e;
+  --panel-glass: rgba(21,23,30,0.6);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text-1:#eef0f3;
+  --text-2:#a7acb8;
+  --text-3:#6b7180;
+  --red:#c74634;
+  --red-bright:#ff5a3c;
+  --red-dim: rgba(199,70,52,0.15);
+  --blue:#4f8cff;
+  --blue-dim: rgba(79,140,255,0.15);
+  --amber:#e8a33d;
+  --amber-dim: rgba(232,163,61,0.15);
+  --green:#3ec28f;
+  --green-dim: rgba(62,194,143,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: "Space Grotesk","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-body: "Inter","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.35);
+}
+html[data-theme="light"]{
+  --void:#f3f2ee;
+  --panel:#ffffff;
+  --panel-2:#f7f6f2;
+  --panel-glass: rgba(255,255,255,0.7);
+  --border: rgba(10,10,10,0.08);
+  --border-strong: rgba(10,10,10,0.16);
+  --text-1:#15171c;
+  --text-2:#4b4f58;
+  --text-3:#838791;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void); color:var(--text-1); font-family:var(--font-body); line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 500px at 15% -5%, rgba(199,70,52,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(79,140,255,0.10), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 100%, rgba(199,70,52,0.08), transparent 60%);
+}
+h1,h2,h3,h4{font-family:var(--font-display); letter-spacing:-0.02em; font-weight:700; color:var(--text-1);}
+code,.mono{font-family:var(--font-mono);}
+a{color:inherit;}
+::selection{background:var(--red); color:#fff;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:10px;}
+
+#particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg,var(--red),var(--red-bright));
+  z-index:9999; box-shadow:0 0 12px var(--red-bright); transition:width .1s linear;
+}
+#topbar{
+  position:fixed; top:0; left:0; right:0; z-index:900; height:60px; display:flex; align-items:center; gap:14px;
+  padding:0 18px; margin-top:3px; background:var(--panel-glass); backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:15px; white-space:nowrap;}
+#topbar .brand .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,var(--red),var(--red-bright)); box-shadow:0 0 14px var(--red-bright);}
+#sidebar-toggle{
+  background:transparent; border:1px solid var(--border); color:var(--text-2); width:36px; height:36px;
+  border-radius:var(--radius-sm); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:.2s;
+}
+#sidebar-toggle:hover{border-color:var(--border-strong); color:var(--text-1);}
+#search-wrap{position:relative; flex:1; max-width:420px;}
+#search{
+  width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text-1);
+  padding:8px 14px 8px 34px; border-radius:999px; font-size:13px; font-family:var(--font-body); outline:none; transition:.2s;
+}
+#search:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-dim);}
+#search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-3);}
+#search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--panel); border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm); box-shadow:var(--shadow-lg); max-height:320px; overflow-y:auto; display:none; z-index:50;
+}
+#search-results a{display:block; padding:9px 14px; font-size:13px; color:var(--text-2); border-bottom:1px solid var(--border); text-decoration:none;}
+#search-results a:hover{background:var(--panel-2); color:var(--text-1);}
+#search-results .sr-cat{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--red-bright); display:block; margin-bottom:2px;}
+.topbar-spacer{flex:1;}
+#theme-toggle{
+  background:var(--panel); border:1px solid var(--border); color:var(--text-2); width:36px; height:36px; border-radius:999px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s; font-size:15px;
+}
+#theme-toggle:hover{border-color:var(--red); color:var(--red-bright);}
+#score-chip{
+  display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border);
+  padding:6px 12px; border-radius:999px; font-size:12px; color:var(--text-2); white-space:nowrap;
+}
+#score-chip b{color:var(--red-bright); font-family:var(--font-display);}
+
+#shell{display:flex; padding-top:63px; position:relative; z-index:1;}
+#sidebar{
+  width:270px; flex-shrink:0; height:calc(100vh - 63px); position:sticky; top:63px; overflow-y:auto;
+  border-right:1px solid var(--border); padding:18px 10px 60px; transition:margin-left .3s ease, opacity .3s ease;
+}
+#sidebar.collapsed{margin-left:-270px; opacity:0;}
+#sidebar .nav-head{font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3); padding:14px 12px 6px; font-weight:700;}
+#sidebar a.nav-link{
+  display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:var(--radius-sm); font-size:13.5px;
+  color:var(--text-2); text-decoration:none; transition:.15s; border-left:2px solid transparent;
+}
+#sidebar a.nav-link:hover{background:var(--panel); color:var(--text-1);}
+#sidebar a.nav-link.active{background:var(--red-dim); color:var(--red-bright); border-left-color:var(--red-bright); font-weight:600;}
+#sidebar a.nav-link .num{font-family:var(--font-mono); font-size:10px; color:var(--text-3); width:18px;}
+
+main{flex:1; min-width:0; padding:0 0 100px;}
+.container{max-width:980px; margin:0 auto; padding:0 32px;}
+
+#hero{position:relative; padding:100px 32px 70px; overflow:hidden;}
+#hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red-bright); background:var(--red-dim); border:1px solid rgba(199,70,52,0.3);
+  padding:6px 14px; border-radius:999px; margin-bottom:22px; font-weight:600;
+}
+#hero h1{font-size:clamp(2.4rem,5vw,4.2rem); line-height:1.02; max-width:820px;}
+#hero h1 .accent{background:linear-gradient(135deg,var(--red),var(--red-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+#hero p.lede{max-width:620px; font-size:17px; color:var(--text-2); margin-top:22px;}
+#hero .hero-stats{display:flex; gap:34px; margin-top:40px; flex-wrap:wrap;}
+#hero .hstat b{font-family:var(--font-display); font-size:26px; display:block;}
+#hero .hstat span{font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;}
+#hero .cta-row{display:flex; gap:14px; margin-top:38px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:14px; padding:12px 22px; border-radius:999px;
+  border:1px solid var(--border-strong); cursor:pointer; transition:.2s; display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn-primary{background:linear-gradient(135deg,var(--red),var(--red-bright)); color:#fff; border:none; box-shadow:0 8px 24px rgba(199,70,52,0.35);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px rgba(199,70,52,0.45);}
+.btn-ghost{background:var(--panel); color:var(--text-1);}
+.btn-ghost:hover{border-color:var(--red); color:var(--red-bright);}
+
+section.chapter{padding:70px 0 10px; border-top:1px solid var(--border); scroll-margin-top:80px;}
+section.chapter:first-of-type{border-top:none;}
+.chapter-kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.chapter-kicker .idx{font-family:var(--font-mono); font-size:12px; color:var(--red-bright); background:var(--red-dim); padding:4px 10px; border-radius:6px; border:1px solid rgba(199,70,52,.3);}
+.chapter-kicker .track{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3);}
+.chapter h2{font-size:clamp(1.6rem,3vw,2.3rem); margin-bottom:6px;}
+.chapter .dek{color:var(--text-2); font-size:15.5px; max-width:680px; margin-bottom:30px;}
+.chapter h3{font-size:1.15rem; margin:34px 0 14px;}
+.chapter p{color:var(--text-2); font-size:15px; margin-bottom:14px; max-width:720px;}
+.chapter ul,.chapter ol{color:var(--text-2); font-size:15px; margin:0 0 16px 20px;}
+.chapter li{margin-bottom:6px;}
+.chapter strong{color:var(--text-1);}
+
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--border);
+  border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); position:relative;
+}
+.grid{display:grid; gap:16px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:800px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; transition:.25s; cursor:default;}
+.card:hover{border-color:var(--border-strong); transform:translateY(-3px); box-shadow:var(--shadow-sm);}
+.card h4{font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.card p{font-size:13.5px; margin:0; color:var(--text-2);}
+
+.callout{border-radius:var(--radius-sm); padding:14px 16px; margin:16px 0; border:1px solid; font-size:14px; display:flex; gap:12px; align-items:flex-start;}
+.callout .ic{font-size:16px; flex-shrink:0; margin-top:1px;}
+.callout-tip{background:var(--green-dim); border-color:rgba(62,194,143,.35); color:var(--text-1);}
+.callout-warn{background:var(--amber-dim); border-color:rgba(232,163,61,.35); color:var(--text-1);}
+.callout-trap{background:var(--red-dim); border-color:rgba(199,70,52,.35); color:var(--text-1);}
+.callout-q{background:var(--blue-dim); border-color:rgba(79,140,255,.35); color:var(--text-1);}
+.callout b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; margin:18px 0;}
+table.cmp th{text-align:left; color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--border-strong);}
+table.cmp td{padding:12px; border-bottom:1px solid var(--border); color:var(--text-2);}
+table.cmp tr:hover td{background:var(--panel);}
+table.cmp td:first-child, table.cmp th:first-child{color:var(--text-1); font-weight:600;}
+
+.chip-btn{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text-2); font-size:12.5px;
+  padding:7px 14px; border-radius:999px; cursor:pointer; transition:.2s; font-family:var(--font-body); font-weight:600;
+}
+.chip-btn:hover{border-color:var(--red); color:var(--red-bright);}
+.chip-btn.active{background:var(--red); color:#fff; border-color:var(--red);}
+.chip-btn:disabled{opacity:.4; cursor:not-allowed;}
+.chip-btn.right{background:var(--green); color:#fff; border-color:var(--green);}
+.chip-btn.wrong{background:var(--red); color:#fff; border-color:var(--red);}
+.cost-filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+
+.problem-pipeline{display:flex; align-items:center; gap:4px; overflow-x:auto; padding:14px 0;}
+.pipe-step{flex-shrink:0; min-width:100px; text-align:center; padding:12px 8px; border-radius:8px; background:var(--panel); border:1px solid var(--border); font-size:11.5px; transition:.3s;}
+.pipe-step.lit{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); color:var(--amber);}
+.pipe-step.ok{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); color:var(--green);}
+.pipe-arrow{color:var(--text-3); flex-shrink:0; font-size:14px;}
+.sim-log{
+  background:#0c0d10; border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+  padding:12px 14px; font-family:var(--font-mono); font-size:11.5px; line-height:1.8;
+  min-height:70px; max-height:240px; overflow-y:auto; color:var(--text-2); margin-top:14px;
+}
+html[data-theme="light"] .sim-log{background:#1b1d22;}
+.sim-log .l-pass{color:var(--red-bright);}
+.sim-log .l-block{color:var(--green);}
+.sim-log .l-info{color:var(--text-3);}
+.sim-log .l-warn{color:var(--amber);}
+
+/* encrypt demo */
+.enc-box{display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:stretch; margin:14px 0;}
+@media(max-width:760px){.enc-box{grid-template-columns:1fr;}}
+.enc-side{background:var(--panel); border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:14px;}
+.enc-side .es-tag{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:8px;}
+.enc-side.locked{border-color:rgba(199,70,52,.5);}
+.enc-side textarea, .enc-side .enc-out{
+  width:100%; min-height:64px; background:var(--panel-2); border:1px solid var(--border); color:var(--text-1);
+  border-radius:6px; padding:10px; font-family:var(--font-mono); font-size:13px; resize:vertical; word-break:break-all;
+}
+.enc-side .enc-out{color:var(--red-bright); overflow-y:auto; max-height:120px;}
+.enc-mid{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;}
+.enc-key{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:12px; color:var(--text-2);}
+.enc-key select{background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:5px 8px; font-family:var(--font-mono);}
+.mini-input{background:var(--panel-2); border:1px solid var(--border-strong); color:var(--text-1); border-radius:6px; padding:6px 10px; font-size:12.5px; font-family:var(--font-body);}
+
+/* file explorer (stolen laptop / disk) */
+.file-list{background:var(--panel); border:1px solid var(--border-strong); border-radius:var(--radius-sm); overflow:hidden; margin:12px 0;}
+.file-row{display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border); font-size:12.5px; font-family:var(--font-mono);}
+.file-row:last-child{border-bottom:none;}
+.file-row .fname{min-width:150px; color:var(--text-1);}
+.file-row .fdata{color:var(--text-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;}
+.file-row.scrambled .fdata{color:var(--red-bright);}
+.switch{position:relative; width:44px; height:24px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .slider{position:absolute; inset:0; background:var(--panel-2); border:1px solid var(--border-strong); border-radius:999px; cursor:pointer; transition:.25s;}
+.switch .slider::before{content:""; position:absolute; width:16px; height:16px; left:3px; top:2px; background:var(--text-3); border-radius:50%; transition:.25s;}
+.switch input:checked + .slider{background:var(--green-dim); border-color:var(--green);}
+.switch input:checked + .slider::before{transform:translateX(20px); background:var(--green);}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; font-size:13px;}
+
+/* vault explorer */
+.vault-box{border:2px solid rgba(199,70,52,.5); border-radius:var(--radius); padding:16px; background:rgba(199,70,52,0.04); margin:12px 0;}
+.vault-box .vb-label{font-family:var(--font-mono); font-size:11px; color:var(--text-3); margin-bottom:10px;}
+.vault-items{display:flex; gap:8px; flex-wrap:wrap;}
+.vx-node{background:var(--panel); border:1px solid var(--border-strong); border-radius:8px; padding:8px 14px; font-size:12.5px; cursor:pointer; transition:.25s; user-select:none;}
+.vx-node:hover{border-color:var(--red); transform:translateY(-1px);}
+.vx-node.sel{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim);}
+.vx-node.lit{border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); color:var(--amber);}
+.vx-node.litok{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim); color:var(--green);}
+.vx-detail{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; color:var(--text-2); line-height:1.7; margin-top:14px; min-height:56px;}
+.vx-detail strong{color:var(--text-1);}
+
+/* mailbox */
+.mailbox{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0;}
+@media(max-width:700px){.mailbox{grid-template-columns:1fr;}}
+.mb-side{border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:16px; text-align:center; background:var(--panel); transition:.3s;}
+.mb-side .mb-ico{font-size:28px;}
+.mb-side .mb-tag{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-top:6px;}
+.mb-side.pub .mb-tag{color:var(--blue);}
+.mb-side.priv .mb-tag{color:var(--red-bright);}
+.mb-side.hit-ok{border-color:var(--green); box-shadow:0 0 0 3px var(--green-dim);}
+.mb-side.hit-no{border-color:var(--red-bright); box-shadow:0 0 0 3px var(--red-dim); animation:shake .35s;}
+.sz-result{margin-top:12px; padding:12px 14px; border-radius:8px; font-size:13px; display:none;}
+.sz-result.blocked{display:block; background:var(--red-dim); color:var(--red-bright); border:1px solid rgba(199,70,52,.35);}
+.sz-result.allowed{display:block; background:var(--green-dim); color:var(--green); border:1px solid rgba(62,194,143,.35);}
+
+/* splitter */
+.splitter{display:flex; align-items:stretch; gap:0; margin:16px 0; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-strong);}
+.split-half{flex:1; padding:18px; text-align:center;}
+.split-half.left{background:var(--red-dim);}
+.split-half.right{background:var(--green-dim);}
+.split-half .sh-tag{font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;}
+.split-half.left .sh-tag{color:var(--red-bright);}
+.split-half.right .sh-tag{color:var(--green);}
+.split-half .sh-word{font-family:var(--font-mono); font-size:16px; font-weight:800; margin-top:6px; color:var(--text-1);}
+.split-half .sh-desc{font-size:11.5px; color:var(--text-2); margin-top:6px; line-height:1.55;}
+.split-div{display:flex; align-items:center; justify-content:center; background:#0c0d10; color:var(--amber); font-family:var(--font-mono); font-size:16px; font-weight:700; padding:0 12px;}
+html[data-theme="light"] .split-div{background:#1b1d22;}
+
+/* rotation timeline */
+.rot-line{display:flex; align-items:center; gap:6px; overflow-x:auto; padding:12px 0; flex-wrap:wrap;}
+.rot-key{background:var(--panel); border:1px solid var(--border-strong); border-radius:8px; padding:10px 14px; font-size:12px; font-family:var(--font-mono); text-align:center; transition:.3s;}
+.rot-key .rk-month{font-size:10px; color:var(--text-3); display:block;}
+.rot-key.current{border-color:var(--green); background:var(--green-dim); color:var(--green);}
+.rot-key.retired{opacity:.5;}
+.rot-key.stolen{border-color:var(--red-bright); background:var(--red-dim); color:var(--red-bright); animation:shake .35s;}
+
+/* posture score */
+.score-ring-wrap{display:flex; align-items:center; gap:28px; flex-wrap:wrap;}
+.score-ring{width:130px; height:130px; border-radius:50%; position:relative; background:conic-gradient(var(--green) calc(var(--score,0)*3.6deg), var(--panel-2) 0); transition:background .6s ease; flex-shrink:0;}
+.score-ring::before{content:""; position:absolute; inset:10px; border-radius:50%; background:var(--panel);}
+.score-ring span{position:relative; display:flex; align-items:center; justify-content:center; height:100%; font-family:var(--font-display); font-size:26px; font-weight:700;}
+
+/* who badges */
+.who{font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px; flex-shrink:0; min-width:90px; text-align:center;}
+.who-oracle{background:var(--blue-dim); color:var(--blue);}
+.who-you{background:var(--red-dim); color:var(--red-bright);}
+.who-shared{background:var(--amber-dim); color:var(--amber);}
+.who-good{background:var(--green-dim); color:var(--green);}
+
+/* speed race */
+.race2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media(max-width:700px){.race2{grid-template-columns:1fr;}}
+.race2-col{border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:14px; background:var(--panel);}
+.race2-col h4{font-size:13px; margin-bottom:10px;}
+.race2-track{height:18px; border-radius:9px; background:var(--panel-2); border:1px solid var(--border); overflow:hidden; margin:8px 0;}
+.race2-fill{height:100%; width:0%; border-radius:9px;}
+.race2-fill.sym{background:linear-gradient(90deg,var(--green),#6fe0b0); transition:width 1.2s linear;}
+.race2-fill.asym{background:linear-gradient(90deg,var(--red),var(--red-bright)); transition:width 8s linear;}
+.race2-time{font-family:var(--font-mono); font-size:11.5px; color:var(--text-2); min-height:16px;}
+
+/* rotation data buckets */
+.dbuckets{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+.dbucket{flex:1; min-width:120px; border:1px solid var(--border-strong); border-radius:8px; padding:10px; font-size:11px; text-align:center; background:var(--panel); transition:.3s; color:var(--text-2);}
+.dbucket .db-months{font-family:var(--font-mono); color:var(--text-3); display:block; font-size:10px;}
+.dbucket.exposed{border-color:var(--red-bright); background:var(--red-dim); color:var(--red-bright); animation:shake .35s;}
+.dbucket.safe{border-color:var(--green); background:var(--green-dim); color:var(--green);}
+.dbucket.future{opacity:.4; border-style:dashed;}
+
+/* km task rows */
+.km-task{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; font-size:13px;}
+
+/* game scenarios */
+.game-scen{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px 18px; margin-bottom:12px;}
+.game-scen .gs-q{font-size:13.5px; font-weight:600; margin-bottom:10px; color:var(--text-1);}
+.game-scen .gs-opts{display:flex; gap:8px; flex-wrap:wrap;}
+.game-scen .gs-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.game-scen.answered .gs-explain{display:block;}
+
+/* flashcards */
+.flash-wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:800px){.flash-wrap{grid-template-columns:1fr 1fr;}}
+@media (max-width:520px){.flash-wrap{grid-template-columns:1fr;}}
+.flashcard{perspective:1000px; height:130px; cursor:pointer;}
+.flashcard .fc-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm); border:1px solid var(--border-strong); padding:14px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13px;}
+.fc-front{background:var(--panel);}
+.fc-back{background:var(--red-dim); color:var(--red-bright); transform:rotateY(180deg); font-weight:600;}
+
+/* quiz */
+.quiz-q{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px 20px; margin-bottom:14px;}
+.quiz-q .qtext{font-size:14.5px; font-weight:600; margin-bottom:12px;}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; border:1px solid var(--border); cursor:pointer; font-size:13.5px; color:var(--text-2); transition:.15s;}
+.quiz-opt:hover{border-color:var(--border-strong); background:var(--panel-2);}
+.quiz-opt.correct{border-color:var(--green); background:var(--green-dim); color:var(--green);}
+.quiz-opt.incorrect{border-color:var(--red); background:var(--red-dim); color:var(--red-bright);}
+.quiz-explain{font-size:12.5px; color:var(--text-3); margin-top:10px; display:none; padding-top:10px; border-top:1px dashed var(--border);}
+.quiz-q.answered .quiz-explain{display:block;}
+
+/* badge / cert */
+.badge-circle{width:150px; height:150px; border-radius:50%; margin:0 auto 20px; position:relative; background:conic-gradient(var(--red-bright) 0deg, var(--red) var(--pct,0deg), var(--panel-2) var(--pct,0deg)); display:flex; align-items:center; justify-content:center; transition:background 1s ease;}
+.badge-circle::before{content:""; position:absolute; inset:10px; border-radius:50%; background:var(--void);}
+.badge-circle span{position:relative; font-family:var(--font-display); font-size:28px; font-weight:700;}
+.cert-frame{max-width:640px; margin:0 auto; border:2px solid var(--red); border-radius:var(--radius); padding:40px; text-align:center; background:linear-gradient(160deg,var(--panel),var(--panel-2)); position:relative; overflow:hidden;}
+.cert-frame::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(45deg, rgba(199,70,52,0.04) 0 12px, transparent 12px 24px); pointer-events:none;}
+.cert-frame h3{font-family:var(--font-display); font-size:22px; margin:14px 0 4px;}
+.cert-name{font-size:24px; font-family:var(--font-display); color:var(--red-bright); margin:16px 0; border-bottom:1px solid var(--border-strong); display:inline-block; padding-bottom:6px; min-width:260px;}
+
+.center{text-align:center;}
+.mt-lg{margin-top:36px;}
+.small{font-size:12px; color:var(--text-3);}
+footer{text-align:center; padding:50px 20px; color:var(--text-3); font-size:12.5px; border-top:1px solid var(--border); margin-top:60px;}
+@keyframes popIn{from{opacity:0; transform:scale(.7);} to{opacity:1; transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="progress-bar"></div>
+<div id="topbar">
+  <button id="sidebar-toggle" title="Toggle sidebar">☰</button>
+  <div class="brand"><span class="dot"></span> OCI Encryption &amp; Vault · Day 6</div>
+  <div id="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" type="text" placeholder="Search encryption, vault, keys, TLS…" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div id="score-chip">Quiz score: <b id="score-chip-val">0/0</b></div>
+  <button id="theme-toggle" title="Toggle theme">🌙</button>
+</div>
+
+<div id="shell">
+  <nav id="sidebar">
+    <div class="nav-group"><div class="nav-head">The Big Picture</div>
+      <a class="nav-link" href="#sec-bigpicture"><span class="num">01</span>The Bank Vault Map</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Fundamentals</div>
+      <a class="nav-link" href="#sec-encryption"><span class="num">02</span>What is Encryption? (Live Demo)</a>
+      <a class="nav-link" href="#sec-whyenc"><span class="num">03</span>Why Encrypt? Stolen Laptop</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Vault &amp; Secrets</div>
+      <a class="nav-link" href="#sec-vault"><span class="num">04</span>OCI Vault &amp; KMS</a>
+      <a class="nav-link" href="#sec-secrets"><span class="num">05</span>Secrets Management</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Encryption Types</div>
+      <a class="nav-link" href="#sec-symmetric"><span class="num">06</span>Symmetric — One Key</a>
+      <a class="nav-link" href="#sec-asymmetric"><span class="num">07</span>Asymmetric — The Mailbox</a>
+      <a class="nav-link" href="#sec-symvsasym"><span class="num">08</span>Symmetric vs Asymmetric</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Data Protection</div>
+      <a class="nav-link" href="#sec-atrest"><span class="num">09</span>Encryption at Rest</a>
+      <a class="nav-link" href="#sec-intransit"><span class="num">10</span>In Transit — TLS Sniffer</a>
+      <a class="nav-link" href="#sec-pki"><span class="num">11</span>PKI, Certificates &amp; CAs</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Key Lifecycle</div>
+      <a class="nav-link" href="#sec-rotation"><span class="num">12</span>Key Rotation</a>
+      <a class="nav-link" href="#sec-keymgmt"><span class="num">13</span>Who Manages the Keys?</a>
+      <a class="nav-link" href="#sec-posture"><span class="num">14</span>Security Posture Review</a>
+    </div>
+    <div class="nav-group"><div class="nav-head">Wrap-Up</div>
+      <a class="nav-link" href="#sec-e2e"><span class="num">15</span>End-to-End: Banking Flow</a>
+      <a class="nav-link" href="#sec-cheatsheet"><span class="num">16</span>Cheat Sheets</a>
+      <a class="nav-link" href="#sec-flashcards"><span class="num">17</span>Flash Cards</a>
+      <a class="nav-link" href="#sec-quiz"><span class="num">18</span>Certification Quiz</a>
+      <a class="nav-link" href="#sec-cert"><span class="num">19</span>Certificate Preview</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="hero">
+      <span class="eyebrow">● Oracle Cloud Infrastructure — Encryption &amp; Key Management Track</span>
+      <h1>Day 6: Lock everything.<br><span class="accent">Guard the keys.</span></h1>
+      <p class="lede">Encryption fundamentals, OCI Vault, secrets, symmetric vs asymmetric, TLS, certificates, key rotation and security posture — every concept has a hands-on simulator.</p>
+      <div class="hero-stats">
+        <div class="hstat"><b>19</b><span>Interactive sections</span></div>
+        <div class="hstat"><b>10</b><span>Certification MCQs</span></div>
+        <div class="hstat"><b>13</b><span>Live simulators</span></div>
+        <div class="hstat"><b id="hero-progress">0%</b><span>Your progress</span></div>
+      </div>
+      <div class="cta-row">
+        <a href="#sec-bigpicture" class="btn btn-primary">Start with the vault map →</a>
+        <a href="#sec-quiz" class="btn btn-ghost">Jump to certification quiz</a>
+      </div>
+    </section>
+
+    <div class="container">
+
+<!-- 01 BIG PICTURE -->
+<section class="chapter reveal" id="sec-bigpicture">
+  <div class="chapter-kicker"><span class="idx">01</span><span class="track">The Big Picture</span></div>
+  <h2>The Bank Vault Map</h2>
+  <p class="dek">Imagine you own a bank. You don't leave money on the table — you lock it in a locker, guard the key, and change the lock periodically. Cloud security works EXACTLY the same way. Click each piece, then run the journeys.</p>
+  <div class="panel">
+    <div class="vault-box" style="border-color:var(--border-strong); background:transparent;">
+      <div class="vb-label">🏦 YOUR BANK — how data is protected in OCI</div>
+      <div class="vault-items" style="margin-bottom:10px;">
+        <span class="vx-node" data-bp="data">📄 Your Data (money on the table)</span>
+        <span class="vx-node" data-bp="encrypt">🔒 Encryption (the lock)</span>
+        <span class="vx-node" data-bp="encdata">🔏 Encrypted Data (locked locker)</span>
+        <span class="vx-node" data-bp="storage">☁️ Cloud Storage (the vault room)</span>
+      </div>
+      <div class="vault-box">
+        <div class="vb-label">🗝 OCI VAULT — where the keys live (never with the data!)</div>
+        <div class="vault-items">
+          <span class="vx-node" data-bp="key">🔑 Encryption Keys</span>
+          <span class="vx-node" data-bp="secret">🤫 Secrets</span>
+          <span class="vx-node" data-bp="rotate">🔄 Key Rotation</span>
+        </div>
+      </div>
+    </div>
+    <div class="vx-detail" id="bp-detail">👆 Click any piece of the bank to learn what it does.</div>
+    <div class="cost-filters mt-lg" style="justify-content:center;">
+      <button class="chip-btn" id="bp-trip1">🔐 Journey 1: lock the money away</button>
+      <button class="chip-btn" id="bp-trip2">😈 Journey 2: a thief breaks into the vault room</button>
+    </div>
+  </div>
+  <h3>Quick recap — what "security" protects (CIA Triad, from Day 2)</h3>
+  <div class="grid grid-3">
+    <div class="card"><h4>🔒 Confidentiality</h4><p>Only authorized eyes see the data — your ATM PIN, HR salary records. <strong>Encryption is Day-6's weapon for this.</strong></p></div>
+    <div class="card"><h4>✍️ Integrity</h4><p>Nobody silently changes ₹25,000 into ₹5,000. Checksums, audit logs and signed data keep it true.</p></div>
+    <div class="card"><h4>⚡ Availability</h4><p>Hospital software works 24×7 — OCI's redundant infrastructure keeps data reachable when needed.</p></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏦</div><div><b>Hold this all day</b>Data = money · Encryption = the lock · Key = the locker key · OCI Vault = the key cabinet · Key rotation = changing locks. Every topic below is one part of running this bank properly.</div></div>
+</section>
+
+<!-- 02 ENCRYPTION DEMO -->
+<section class="chapter reveal" id="sec-encryption">
+  <div class="chapter-kicker"><span class="idx">02</span><span class="track">Fundamentals</span></div>
+  <h2>What is Encryption? — Try It Live</h2>
+  <p class="dek">Encryption turns readable data into unreadable gibberish — like writing your diary in a secret code. Type anything, lock it with a key, then try unlocking with the RIGHT and WRONG key.</p>
+  <div class="panel">
+    <div class="enc-box">
+      <div class="enc-side">
+        <div class="es-tag">📄 Plain data (readable)</div>
+        <textarea id="enc-input" maxlength="60">My ATM PIN is 1234</textarea>
+      </div>
+      <div class="enc-mid">
+        <div class="enc-key">🔑 Key: <select id="enc-key"><option>3</option><option>5</option><option selected>7</option><option>9</option></select></div>
+        <button class="chip-btn active" id="enc-lock">🔒 Encrypt →</button>
+      </div>
+      <div class="enc-side locked">
+        <div class="es-tag">🔏 Encrypted data (gibberish)</div>
+        <div class="enc-out" id="enc-output">— press Encrypt —</div>
+      </div>
+    </div>
+    <div class="cost-filters" style="justify-content:center;">
+      <span class="enc-key">🔓 Decrypt with key: <select id="dec-key"><option>3</option><option>5</option><option>7</option><option selected>9</option></select></span>
+      <button class="chip-btn" id="enc-unlock">🔓 Try to decrypt</button>
+    </div>
+    <div class="sz-result" id="enc-result"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">📔</div><div><b>Diary Analogy</b>Instead of writing "My ATM PIN is 1234" you write "ZXYT ABQ LMN". Only your secret code decodes it. Without the correct key, encrypted data is <em>useless noise</em> — that's the entire point.</div></div>
+</section>
+
+<!-- 03 WHY ENCRYPT -->
+<section class="chapter reveal" id="sec-whyenc">
+  <div class="chapter-kicker"><span class="idx">03</span><span class="track">Fundamentals</span></div>
+  <h2>Why Encrypt? — The Stolen Laptop</h2>
+  <p class="dek">Your laptop just got stolen. What does the thief actually see? Flip disk encryption ON or OFF, then let the theft happen.</p>
+  <div class="panel">
+    <div class="toggle-row"><span><strong>💽 Full-disk encryption</strong> <span class="small">protects everything stored on the laptop</span></span><label class="switch"><input type="checkbox" id="steal-enc"><span class="slider"></span></label></div>
+    <div class="center"><button class="chip-btn active" id="steal-btn">😈 The laptop gets stolen…</button></div>
+    <div class="file-list" id="steal-files"></div>
+    <div class="sz-result" id="steal-result"></div>
+  </div>
+  <div class="callout callout-trap"><div class="ic">💥</div><div><b>Remember</b>Hardware can always be stolen — disks, laptops, even backup tapes. Encryption means the thief gets the <em>box</em> but never the <em>contents</em>. The same logic protects OCI Block Volumes and Object Storage.</div></div>
+</section>
+
+<!-- 04 OCI VAULT -->
+<section class="chapter reveal" id="sec-vault">
+  <div class="chapter-kicker"><span class="idx">04</span><span class="track">Vault &amp; Secrets</span></div>
+  <h2>OCI Vault &amp; KMS — The Bank Locker for Keys</h2>
+  <p class="dek">OCI Vault securely stores encryption keys, secrets and certificates — a bank locker for your most sensitive items. Golden rule: NEVER store the key with the data it protects.</p>
+  <div class="panel">
+    <p class="small">What lives inside the Vault? Click each item:</p>
+    <div class="vault-box">
+      <div class="vb-label">🗝 OCI VAULT (KMS — Key Management Service)</div>
+      <div class="vault-items">
+        <span class="vx-node" data-vault="mek">🔑 Master Encryption Keys</span>
+        <span class="vx-node" data-vault="secrets">🤫 Secrets</span>
+        <span class="vx-node" data-vault="certs">📜 Certificates</span>
+        <span class="vx-node" data-vault="hsm">🧱 HSM protection mode</span>
+        <span class="vx-node" data-vault="soft">💾 Software protection mode</span>
+        <span class="vx-node" data-vault="repl">🌍 Key Replication</span>
+      </div>
+    </div>
+    <div class="vx-detail" id="vault-detail">👆 Click an item to see what it is.</div>
+    <h3 style="margin-top:26px;">The mistake everyone makes once</h3>
+    <div class="cost-filters">
+      <button class="chip-btn" id="vault-wrong">😅 Store the key ON the VM, next to the data</button>
+      <button class="chip-btn" id="vault-right">✅ Store the key in OCI Vault</button>
+    </div>
+    <div class="sz-result" id="vault-result"></div>
+    <h3>How applications use the Vault</h3>
+    <div class="problem-pipeline" id="vault-pipeline"></div>
+    <div class="center"><button class="chip-btn active" id="vault-play">▶ Encrypt a file using the Vault</button></div>
+  </div>
+  <div class="callout callout-warn"><div class="ic">⚠️</div><div><b>Exam Point</b>Keys protected by <strong>HSM</strong> (Hardware Security Module) never leave tamper-proof hardware — required for strict compliance (FIPS 140-2 Level 3). <strong>Software-protected</strong> keys are cheaper but less isolated. <strong>Key replication</strong> copies keys across regions for disaster recovery.</div></div>
+</section>
+
+<!-- 05 SECRETS -->
+<section class="chapter reveal" id="sec-secrets">
+  <div class="chapter-kicker"><span class="idx">05</span><span class="track">Vault &amp; Secrets</span></div>
+  <h2>Secrets Management — Don't Write Passwords in Code</h2>
+  <p class="dek">Database passwords, API keys, SSH keys, tokens — these are SECRETS. Where you keep them decides whether a leaked repository becomes a disaster. Choose an approach, then let a hacker read your GitHub.</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" id="sec-hardcode">😅 Hardcode it: password="Oracle123"</button>
+      <button class="chip-btn" id="sec-vaulted">✅ Fetch it from OCI Vault at runtime</button>
+    </div>
+    <div class="sim-log" id="secrets-code"></div>
+    <div class="center mt-lg"><button class="chip-btn" id="sec-hack">😈 A hacker reads your source code repo…</button></div>
+    <div class="sz-result" id="secrets-result"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🕰</div><div><b>Secret Versions</b>Vault keeps <strong>versions</strong> of each secret — rotate the DB password and apps fetch the new version automatically, while the old one is kept for rollback. No redeploys, no passwords in code, full audit trail.</div></div>
+</section>
+
+<!-- 06 SYMMETRIC -->
+<section class="chapter reveal" id="sec-symmetric">
+  <div class="chapter-kicker"><span class="idx">06</span><span class="track">Encryption Types</span></div>
+  <h2>Symmetric Encryption — One Key Does Both</h2>
+  <p class="dek">ONE key locks AND unlocks — like your house key. Fast and efficient, perfect for encrypting large amounts of data.</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="sym-pipeline"></div>
+    <div class="center"><button class="chip-btn active" id="sym-play">▶ Watch Key A lock and unlock</button></div>
+    <div class="sim-log" id="sym-log"><span class="l-info">One key, both directions. Press play.</span></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><h4>✅ Advantages</h4><p>Very fast · efficient · ideal for big data volumes.</p></div>
+    <div class="card"><h4>🌍 Real-world uses</h4><p>Disk encryption · database encryption · file encryption · cloud storage (e.g. <strong>AES</strong>).</p></div>
+  </div>
+</section>
+
+<!-- 07 ASYMMETRIC -->
+<section class="chapter reveal" id="sec-asymmetric">
+  <div class="chapter-kicker"><span class="idx">07</span><span class="track">Encryption Types</span></div>
+  <h2>Asymmetric Encryption — The Mailbox</h2>
+  <p class="dek">TWO keys: a PUBLIC key anyone can use to lock, and a PRIVATE key only the owner uses to unlock. Exactly like a mailbox: anyone drops letters in the slot; only the owner has the door key.</p>
+  <div class="panel">
+    <div class="mailbox">
+      <div class="mb-side pub" id="mb-pub">
+        <div class="mb-ico">📮</div>
+        <strong>Public Slot</strong>
+        <div class="mb-tag">Public Key — everyone has it</div>
+        <p class="small">Anyone can encrypt (drop letters in)</p>
+      </div>
+      <div class="mb-side priv" id="mb-priv">
+        <div class="mb-ico">🚪</div>
+        <strong>Locked Door</strong>
+        <div class="mb-tag">Private Key — owner only</div>
+        <p class="small">Only the owner can decrypt (open the box)</p>
+      </div>
+    </div>
+    <div class="cost-filters" style="justify-content:center;">
+      <button class="chip-btn" id="mb-drop">✉️ Stranger drops in a letter (encrypts with public key)</button>
+      <button class="chip-btn" id="mb-pick">😈 Stranger tries to OPEN the mailbox with the public key</button>
+      <button class="chip-btn" id="mb-owner">🗝 Owner opens with the private key</button>
+    </div>
+    <div class="sz-result" id="mb-result"></div>
+  </div>
+  <h3>📖 The full story — Priya sends Ravi a secret</h3>
+  <p>But WHY two keys? Because Priya and Ravi have <strong>never met</strong> — they have no way to secretly share ONE key. Watch how the key pair solves it:</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="story-pipeline"></div>
+    <div class="center"><button class="chip-btn active" id="story-play">▶ Play the story</button></div>
+    <div class="sim-log" id="story-log"><span class="l-info">Two strangers, one secret message, zero secure meetings. Press play.</span></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🔐</div><div><b>Where you've already used this</b>SSH login (Day 5!), HTTPS/TLS, digital signatures. Your SSH key pair IS asymmetric encryption: public key in instance metadata, private key on your laptop.</div></div>
+</section>
+
+<!-- 08 SYM VS ASYM -->
+<section class="chapter reveal" id="sec-symvsasym">
+  <div class="chapter-kicker"><span class="idx">08</span><span class="track">Encryption Types</span></div>
+  <h2>Symmetric vs Asymmetric — Which One When?</h2>
+  <p class="dek">Easy trick: <strong>Symmetric = Same key · Asymmetric = A different pair</strong>. Now sort the real-world jobs.</p>
+  <table class="cmp">
+    <tr><th>Feature</th><th>Symmetric</th><th>Asymmetric</th></tr>
+    <tr><td>Keys</td><td>One (same key)</td><td>Two (public + private)</td></tr>
+    <tr><td>Speed</td><td>Fast ⚡</td><td>Slower 🐢</td></tr>
+    <tr><td>Best for</td><td>Encrypting large data</td><td>Key exchange &amp; authentication</td></tr>
+    <tr><td>Example</td><td>AES</td><td>RSA</td></tr>
+  </table>
+  <h3>🏎 Speed race — encrypt a 1 GB file</h3>
+  <p>Numbers stick better than words. Same file, both methods, GO:</p>
+  <div class="panel">
+    <div class="race2">
+      <div class="race2-col">
+        <h4>🔑 Symmetric (AES) — the sports car</h4>
+        <div class="race2-track"><div class="race2-fill sym" id="race2-sym"></div></div>
+        <div class="race2-time" id="race2-sym-time">waiting…</div>
+      </div>
+      <div class="race2-col">
+        <h4>🔑🔑 Asymmetric (RSA) — the armored truck</h4>
+        <div class="race2-track"><div class="race2-fill asym" id="race2-asym"></div></div>
+        <div class="race2-time" id="race2-asym-time">waiting…</div>
+      </div>
+    </div>
+    <div class="center mt-lg"><button class="chip-btn active" id="race2-go">🏁 Start the race</button></div>
+    <div class="sz-result" id="race2-result"></div>
+  </div>
+  <h3>🎯 Scenario Drill — which one?</h3>
+  <div id="sym-game">
+    <div class="game-scen" data-ans="sym">
+      <div class="gs-q">1. Encrypt a 2 TB database volume.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="sym">🔑 Symmetric</button><button class="chip-btn" data-pick="asym">🔑🔑 Asymmetric</button></div>
+      <div class="gs-explain">✓ <strong>Symmetric (AES)</strong> — huge data needs speed; one key locks and unlocks the whole volume.</div>
+    </div>
+    <div class="game-scen" data-ans="asym">
+      <div class="gs-q">2. Log into your OCI VM without a password (SSH).</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="sym">🔑 Symmetric</button><button class="chip-btn" data-pick="asym">🔑🔑 Asymmetric</button></div>
+      <div class="gs-explain">✓ <strong>Asymmetric (RSA)</strong> — public key on the VM, private key on your laptop. Authentication = asymmetric's job.</div>
+    </div>
+    <div class="game-scen" data-ans="asym">
+      <div class="gs-q">3. Two strangers (your browser &amp; a bank server) must agree on a secret over the open Internet.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="sym">🔑 Symmetric</button><button class="chip-btn" data-pick="asym">🔑🔑 Asymmetric</button></div>
+      <div class="gs-explain">✓ <strong>Asymmetric</strong> — secure key exchange. (Fun fact: TLS then switches to a fast symmetric key for the actual data. Both, in sequence!)</div>
+    </div>
+    <p class="small" id="sym-score">0 / 3 answered.</p>
+  </div>
+</section>
+
+<!-- 09 AT REST -->
+<section class="chapter reveal" id="sec-atrest">
+  <div class="chapter-kicker"><span class="idx">09</span><span class="track">Data Protection</span></div>
+  <h2>Encryption at Rest — Steal the Disk, Get Nothing</h2>
+  <p class="dek">Data SITTING on a disk (Block Volume, Object Storage, Boot Volume, databases) is encrypted. Someone walks out of a data center with the physical disk — what do they get?</p>
+  <div class="panel">
+    <div class="toggle-row"><span><strong>🔒 Encryption at rest</strong> <span class="small">OCI encrypts storage by default — but see what OFF would mean</span></span><label class="switch"><input type="checkbox" id="rest-enc" checked><span class="slider"></span></label></div>
+    <div class="center"><button class="chip-btn active" id="rest-steal">😈 Steal the physical disk from the data center</button></div>
+    <div class="file-list" id="rest-files"></div>
+    <div class="sz-result" id="rest-result"></div>
+  </div>
+  <h3>🌗 One file, two lives — when is data "at rest" vs "in transit"?</h3>
+  <p>Beginners mix these up constantly. Follow ONE file — <span class="mono">report.pdf</span> — through its day:</p>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" id="state-rest">🌙 Night — the file sleeps on the disk</button>
+      <button class="chip-btn" id="state-transit">🌞 Day — a user downloads the file</button>
+    </div>
+    <div class="sim-log" id="state-log"><span class="l-info">Pick a moment in the file's day.</span></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">💾</div><div><b>OCI Default</b>Block Volumes, Boot Volumes and Object Storage are <strong>always encrypted at rest</strong> in OCI — with Oracle-managed keys by default, or your own Vault keys if you need control (Topic 13).</div></div>
+</section>
+
+<!-- 10 IN TRANSIT -->
+<section class="chapter reveal" id="sec-intransit">
+  <div class="chapter-kicker"><span class="idx">10</span><span class="track">Data Protection</span></div>
+  <h2>Encryption in Transit — The Wi-Fi Sniffer</h2>
+  <p class="dek">Data MOVING across a network can be intercepted. You're logging into your bank on café Wi-Fi — and someone is sniffing the traffic. Choose HTTP or HTTPS and log in.</p>
+  <h3>🤝 First: how the tunnel gets built (the TLS handshake)</h3>
+  <p>Before any data flows, your browser and the server "shake hands" in 4 steps — using BOTH encryption types from earlier:</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="hs-pipeline"></div>
+    <div class="center"><button class="chip-btn active" id="hs-play">▶ Shake hands</button></div>
+    <div class="sim-log" id="hs-log"><span class="l-info">Watch the mailbox trick (Topic 7) and the sports car (Topic 8) work together.</span></div>
+  </div>
+  <h3>📡 Now: the café Wi-Fi sniffer</h3>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" id="tls-http">😅 Log in over HTTP (no encryption)</button>
+      <button class="chip-btn" id="tls-https">✅ Log in over HTTPS (TLS tunnel)</button>
+    </div>
+    <div class="sim-log" id="tls-log"><span class="l-info">Pick a protocol — then see the login through the attacker's eyes.</span></div>
+    <div class="sz-result" id="tls-result"></div>
+  </div>
+  <div class="callout callout-trap"><div class="ic">📡</div><div><b>TLS in one line</b>TLS (Transport Layer Security) builds an <strong>encrypted tunnel</strong> between two systems before any data flows. HTTPS = HTTP inside that tunnel. Without it, anyone on the network path reads everything.</div></div>
+</section>
+
+<!-- 11 PKI -->
+<section class="chapter reveal" id="sec-pki">
+  <div class="chapter-kicker"><span class="idx">11</span><span class="track">Data Protection</span></div>
+  <h2>PKI, Certificates &amp; Certificate Authorities</h2>
+  <p class="dek">One question TLS must answer first: "Is this REALLY my bank's server — or an impostor?" Certificates are ID cards for servers, and Certificate Authorities (CAs) are the passport offices that issue them.</p>
+  <div class="panel">
+    <p class="small">Your browser connects to a website. Check its certificate:</p>
+    <div class="cost-filters">
+      <button class="chip-btn" id="pki-valid">🏦 Visit yourbank.com (certificate signed by a trusted CA)</button>
+      <button class="chip-btn" id="pki-fake">😈 Visit y0urbank.com (self-signed fake certificate)</button>
+    </div>
+    <div class="problem-pipeline" id="pki-pipeline"></div>
+    <div class="sz-result" id="pki-result"></div>
+  </div>
+  <h3>🕵️ You be the browser — trust or block?</h3>
+  <p>Three sites present their ID cards. Your trusted passport-office list: <strong>DigiCert, Let's Encrypt, GlobalSign</strong>. Judge each:</p>
+  <div id="pki-game">
+    <div class="game-scen" data-ans="trust">
+      <div class="gs-q">1. <span class="mono">yourbank.com</span> — certificate signed by <strong>DigiCert</strong>, valid until 2027.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="trust">✅ Trust — show the padlock</button><button class="chip-btn" data-pick="block">🚫 Block — show a warning</button></div>
+      <div class="gs-explain">✓ <strong>Trust.</strong> DigiCert is on your trusted CA list — a real passport office vouched for this site.</div>
+    </div>
+    <div class="game-scen" data-ans="block">
+      <div class="gs-q">2. <span class="mono">y0urbank.com</span> (note the zero!) — certificate signed by… <strong>itself</strong>.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="trust">✅ Trust — show the padlock</button><button class="chip-btn" data-pick="block">🚫 Block — show a warning</button></div>
+      <div class="gs-explain">✓ <strong>Block.</strong> A self-signed certificate is an ID card the impostor printed at home. No trusted CA = full-page warning. (Also: look at that domain name…)</div>
+    </div>
+    <div class="game-scen" data-ans="trust">
+      <div class="gs-q">3. <span class="mono">myblog.com</span> — a small hobby blog, certificate signed by <strong>Let's Encrypt</strong> (a free CA).</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="trust">✅ Trust — show the padlock</button><button class="chip-btn" data-pick="block">🚫 Block — it's free, suspicious!</button></div>
+      <div class="gs-explain">✓ <strong>Trust.</strong> Free ≠ fake: Let's Encrypt is a genuine trusted CA. What matters is WHO signed, not how much it cost.</div>
+    </div>
+    <p class="small" id="pki-score">0 / 3 answered.</p>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🛂</div><div><b>PKI in one picture</b>Server presents a <strong>certificate</strong> (ID card) → browser checks who signed it → a trusted <strong>CA</strong> (passport office) → padlock appears. The whole trust system is called <strong>PKI</strong> — Public Key Infrastructure. OCI's Certificates service manages these for your own apps.</div></div>
+</section>
+
+<!-- 12 ROTATION -->
+<section class="chapter reveal" id="sec-rotation">
+  <div class="chapter-kicker"><span class="idx">12</span><span class="track">Key Lifecycle</span></div>
+  <h2>Key Rotation — Change the Locks</h2>
+  <p class="dek">Never use the same key forever. Lost your house key? You change the lock. Rotate encryption keys the same way — then see what happens when an OLD key gets stolen.</p>
+  <div class="panel">
+    <div class="rot-line" id="rot-line"></div>
+    <p class="small mt-lg">📦 The data each key protects (data written while that key was active):</p>
+    <div class="dbuckets" id="rot-buckets"></div>
+    <div class="cost-filters" style="margin-top:16px;">
+      <button class="chip-btn active" id="rot-rotate">🔄 Rotate the key (next quarter)</button>
+      <button class="chip-btn" id="rot-steal">😈 A hacker steals the JANUARY key</button>
+      <button class="chip-btn" id="rot-reset">↺ Reset to January</button>
+    </div>
+    <div class="sz-result" id="rot-result"></div>
+  </div>
+  <div class="callout callout-tip"><div class="ic">🏦</div><div><b>Real World</b>Banks rotate keys every few months so a compromised old key exposes only a small window of data. OCI Vault rotates keys <strong>without re-encrypting everything</strong> — new data uses the new key version, and the Vault tracks versions for old data.</div></div>
+</section>
+
+<!-- 13 KEY MGMT -->
+<section class="chapter reveal" id="sec-keymgmt">
+  <div class="chapter-kicker"><span class="idx">13</span><span class="track">Key Lifecycle</span></div>
+  <h2>Who Manages the Keys?</h2>
+  <p class="dek">Oracle-managed = Oracle creates and guards the keys (easy). Customer-managed = YOU create and control them in Vault (control + compliance). Pick the right one per company.</p>
+  <div class="splitter">
+    <div class="split-half left">
+      <div class="sh-tag">Oracle-Managed Keys</div>
+      <div class="sh-word">EASY MODE</div>
+      <div class="sh-desc">Oracle creates, stores, rotates. Zero effort — encryption just works. Great default for most apps.</div>
+    </div>
+    <div class="split-div">vs</div>
+    <div class="split-half right">
+      <div class="sh-tag">Customer-Managed Keys</div>
+      <div class="sh-word">CONTROL MODE</div>
+      <div class="sh-desc">You create keys in YOUR Vault, control rotation &amp; access, can revoke instantly. Required in finance, healthcare, government.</div>
+    </div>
+  </div>
+  <h3>🧾 Who does what? Flip the mode and watch the jobs move</h3>
+  <div class="panel">
+    <div class="cost-filters">
+      <button class="chip-btn active" data-kmode="oracle">🏢 Oracle-managed</button>
+      <button class="chip-btn" data-kmode="customer">🗝 Customer-managed (your Vault)</button>
+    </div>
+    <div id="km-tasks"></div>
+    <div class="sz-result allowed" id="km-note" style="display:block;"></div>
+  </div>
+  <h3>🎯 Scenario Drill — pick the mode</h3>
+  <div id="km-game">
+    <div class="game-scen" data-ans="oracle">
+      <div class="gs-q">1. A student project hosting a recipe blog.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="oracle">🏢 Oracle-managed</button><button class="chip-btn" data-pick="customer">🗝 Customer-managed</button><button class="chip-btn" data-pick="hsm">🧱 Customer-managed + HSM</button></div>
+      <div class="gs-explain">✓ <strong>Oracle-managed</strong> — encryption by default, zero key admin. Perfect when compliance doesn't demand control.</div>
+    </div>
+    <div class="game-scen" data-ans="customer">
+      <div class="gs-q">2. A hospital storing patient records (HIPAA compliance).</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="oracle">🏢 Oracle-managed</button><button class="chip-btn" data-pick="customer">🗝 Customer-managed</button><button class="chip-btn" data-pick="hsm">🧱 Customer-managed + HSM</button></div>
+      <div class="gs-explain">✓ <strong>Customer-managed</strong> — compliance requires the hospital to control key lifecycle, access and revocation.</div>
+    </div>
+    <div class="game-scen" data-ans="hsm">
+      <div class="gs-q">3. A central bank that must prove keys NEVER leave certified tamper-proof hardware.</div>
+      <div class="gs-opts"><button class="chip-btn" data-pick="oracle">🏢 Oracle-managed</button><button class="chip-btn" data-pick="customer">🗝 Customer-managed</button><button class="chip-btn" data-pick="hsm">🧱 Customer-managed + HSM</button></div>
+      <div class="gs-explain">✓ <strong>Customer-managed with HSM protection</strong> — keys live inside a FIPS-certified Hardware Security Module and never leave it.</div>
+    </div>
+    <p class="small" id="km-score">0 / 3 answered.</p>
+  </div>
+</section>
+
+<!-- 14 POSTURE -->
+<section class="chapter reveal" id="sec-posture">
+  <div class="chapter-kicker"><span class="idx">14</span><span class="track">Key Lifecycle</span></div>
+  <h2>Security Posture Review — Harden Your Setup</h2>
+  <p class="dek">Day-6 best practices in one checklist. Switch each practice ON and watch your security score climb to 100.</p>
+  <div class="panel">
+    <div class="score-ring-wrap">
+      <div class="score-ring" id="posture-ring" style="--score:0;"><span id="posture-val">0</span></div>
+      <div style="flex:1; min-width:240px;" id="posture-list"></div>
+    </div>
+    <div class="sz-result" id="posture-result"></div>
+    <div class="center mt-lg"><button class="chip-btn active" id="posture-attack">😈 Run the attack drill — 6 attacks hit your setup</button></div>
+    <div class="sim-log" id="posture-log"><span class="l-info">Switch on your defenses above, then run the drill. Each attack targets one practice.</span></div>
+  </div>
+</section>
+
+<!-- 15 E2E -->
+<section class="chapter reveal" id="sec-e2e">
+  <div class="chapter-kicker"><span class="idx">15</span><span class="track">Wrap-Up</span></div>
+  <h2>End-to-End: One Banking Transaction</h2>
+  <p class="dek">A customer sends money on a mobile app. Watch EVERY Day-6 concept protect that single transaction, layer by layer.</p>
+  <div class="panel">
+    <div class="problem-pipeline" id="e2e-pipeline" style="flex-direction:column; align-items:stretch;"></div>
+    <div class="center"><button class="chip-btn active" id="e2e-play">▶ Send ₹5,000 to a friend</button></div>
+    <div class="sim-log" id="e2e-log"><span class="l-info">Press play — the full encryption story in one transaction.</span></div>
+  </div>
+</section>
+
+<!-- 16 CHEAT SHEETS -->
+<section class="chapter reveal" id="sec-cheatsheet">
+  <div class="chapter-kicker"><span class="idx">16</span><span class="track">Wrap-Up</span></div>
+  <h2>Cheat Sheets</h2>
+  <div class="grid grid-2">
+    <div class="card"><h4>Encryption Basics</h4><ul style="margin-left:16px;"><li>Encryption = readable → unreadable without the key</li><li>Symmetric = same key (AES, fast, big data)</li><li>Asymmetric = public + private pair (RSA, SSH, TLS)</li></ul></div>
+    <div class="card"><h4>Vault &amp; Keys</h4><ul style="margin-left:16px;"><li>Vault stores keys, secrets, certificates — never with the data</li><li>HSM mode = keys never leave certified hardware</li><li>Oracle-managed = easy · Customer-managed = control/compliance</li><li>Rotate keys; replicate for DR; secrets have versions</li></ul></div>
+    <div class="card"><h4>Data Protection</h4><ul style="margin-left:16px;"><li>At rest = encrypted on disk (default in OCI)</li><li>In transit = TLS/HTTPS tunnel over the network</li><li>Certificates = server ID cards, issued by trusted CAs (PKI)</li></ul></div>
+    <div class="card"><h4>Best Practices</h4><ul style="margin-left:16px;"><li>Never hardcode passwords — fetch from Vault</li><li>Least-privilege IAM on keys &amp; secrets</li><li>Bastion for admin access · NSGs/Security Lists on VMs</li><li>Audit everything — every key use is logged</li></ul></div>
+  </div>
+</section>
+
+<!-- 17 FLASHCARDS -->
+<section class="chapter reveal" id="sec-flashcards">
+  <div class="chapter-kicker"><span class="idx">17</span><span class="track">Wrap-Up</span></div>
+  <h2>Flash Cards</h2>
+  <p class="dek">Click a card to flip it.</p>
+  <div class="flash-wrap" id="flash-wrap"></div>
+</section>
+
+<!-- 18 QUIZ -->
+<section class="chapter reveal" id="sec-quiz">
+  <div class="chapter-kicker"><span class="idx">18</span><span class="track">Wrap-Up</span></div>
+  <h2>Certification Readiness Quiz</h2>
+  <p class="dek">10 scenario-style questions covering everything from today.</p>
+  <div id="quiz-wrap"></div>
+  <div class="panel center mt-lg"><p>Your score: <b id="quiz-final-score" style="color:var(--red-bright); font-family:var(--font-display); font-size:20px;">0 / 10</b></p></div>
+</section>
+
+<!-- 19 CERT -->
+<section class="chapter reveal" id="sec-cert">
+  <div class="chapter-kicker"><span class="idx">19</span><span class="track">Wrap-Up</span></div>
+  <h2>Completion &amp; Certificate Preview</h2>
+  <div class="center" style="padding:20px 0 40px;">
+    <div class="badge-circle" id="badge-circle"><span id="badge-pct">0%</span></div>
+    <h3 id="badge-title">Keep going</h3>
+    <p class="small" id="badge-sub">Scroll through every section and finish the quiz to fill the ring.</p>
+  </div>
+  <div class="cert-frame">
+    <p class="small">ORACLE CLOUD INFRASTRUCTURE · 1Z0-1067-26</p>
+    <h3>Certificate of Completion</h3>
+    <p class="small">This certifies that</p>
+    <div class="cert-name" id="cert-name-display">Your Name</div>
+    <p class="small">has completed <strong>Day 6: Encryption &amp; Key Management</strong></p>
+    <p class="small mt-lg">Score: <span id="cert-score-display">0/10</span> · Date: <span id="cert-date-display"></span></p>
+    <div class="mt-lg"><input type="text" class="mini-input" id="cert-name-input" placeholder="Type your name…"></div>
+  </div>
+</section>
+
+    </div>
+  </main>
+</div>
+<footer>OCI Encryption &amp; Key Management — Day 6 · Interactive Learning Platform · Single self-contained HTML file · No external dependencies</footer>
+
+<script>
+const state = { quizScore:0, quizAnswered:0, quizTotal:10 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  initParticles(); initProgressBar(); initSidebar(); initSearch(); initTheme(); initReveal();
+  initBigPicture(); initEncDemo(); initStolenLaptop(); initVault(); initSecrets();
+  initSymmetric(); initMailbox(); initAsymStory(); initMiniGame('sym-game','sym-score'); initRace2();
+  initAtRest(); initRestState(); initHandshake(); initTLS(); initPKI(); initMiniGame('pki-game','pki-score');
+  initRotation(); initKmFlip(); initMiniGame('km-game','km-score');
+  initPosture(); initE2E(); initFlashcards(); initQuiz(); initCert(); updateBadge();
+});
+
+/* ---------- ambient (same platform base) ---------- */
+function initParticles(){
+  const c = document.getElementById('particles'); const ctx = c.getContext('2d');
+  let w,h,particles=[];
+  function resize(){ w=c.width=window.innerWidth; h=c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const N = Math.min(60, Math.floor(window.innerWidth/24));
+  for(let i=0;i<N;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+0.4,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15});
+  (function tick(){
+    ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(199,70,52,0.5)';
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=w; if(p.x>w)p.x=0; if(p.y<0)p.y=h; if(p.y>h)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+    requestAnimationFrame(tick);
+  })();
+}
+function initProgressBar(){
+  const bar = document.getElementById('progress-bar'); const heroProgress = document.getElementById('hero-progress');
+  window.addEventListener('scroll', () => {
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH>0 ? (window.scrollY/docH)*100 : 0;
+    bar.style.width = pct+'%'; if(heroProgress) heroProgress.textContent = Math.round(pct)+'%';
+    window.__scrollPct = pct; updateBadge(); highlightActiveNav();
+  }, {passive:true});
+}
+function highlightActiveNav(){
+  let current=null;
+  document.querySelectorAll('section.chapter').forEach(sec=>{ if(sec.getBoundingClientRect().top<160) current=sec.id; });
+  document.querySelectorAll('#sidebar a.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+}
+function initSidebar(){ const sb=document.getElementById('sidebar'); document.getElementById('sidebar-toggle').addEventListener('click', ()=>sb.classList.toggle('collapsed')); }
+function initSearch(){
+  const input=document.getElementById('search'); const results=document.getElementById('search-results'); const index=[];
+  document.querySelectorAll('section.chapter').forEach(sec=>{
+    const title = sec.querySelector('h2')?.textContent || sec.id;
+    sec.querySelectorAll('h3').forEach(h3=>index.push({label:h3.textContent, cat:title, href:'#'+sec.id}));
+    index.push({label:title, cat:'Section', href:'#'+sec.id});
+  });
+  input.addEventListener('input', ()=>{
+    const q=input.value.trim().toLowerCase(); if(!q){results.style.display='none'; return;}
+    const matches=index.filter(i=>i.label.toLowerCase().includes(q)).slice(0,8);
+    results.innerHTML = matches.map(m=>'<a href="'+m.href+'"><span class="sr-cat">'+m.cat+'</span>'+m.label+'</a>').join('') || '<a style="cursor:default;">No results</a>';
+    results.style.display='block';
+  });
+  document.addEventListener('click', e=>{ if(!document.getElementById('search-wrap').contains(e.target)) results.style.display='none'; });
+  results.addEventListener('click', ()=>setTimeout(()=>{results.style.display='none'; input.value='';},10));
+}
+function initTheme(){
+  const btn=document.getElementById('theme-toggle');
+  btn.addEventListener('click', ()=>{ const html=document.documentElement; const isDark=html.getAttribute('data-theme')!=='light'; html.setAttribute('data-theme', isDark?'light':'dark'); btn.textContent=isDark?'☀️':'🌙'; });
+}
+function initReveal(){
+  const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}), {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+}
+function initMiniGame(gameId, scoreId){
+  const game = document.getElementById(gameId); if(!game) return;
+  game.addEventListener('click', e=>{
+    const btn = e.target.closest('.chip-btn[data-pick]'); if(!btn) return;
+    const scen = btn.closest('.game-scen'); if(scen.classList.contains('answered')) return;
+    scen.classList.add('answered');
+    const correct = scen.dataset.ans;
+    scen.querySelectorAll('.chip-btn').forEach(b=>{
+      b.disabled = true;
+      if(b.dataset.pick===correct) b.classList.add('right');
+      else if(b===btn) b.classList.add('wrong');
+    });
+    if(scoreId){
+      const total = game.querySelectorAll('.game-scen').length;
+      const done = game.querySelectorAll('.game-scen.answered').length;
+      const correctCount = [...game.querySelectorAll('.game-scen.answered')].filter(s=>!s.querySelector('.chip-btn.wrong')).length;
+      document.getElementById(scoreId).textContent = done+' / '+total+' answered · '+correctCount+' correct.'+(done===total && correctCount===total ? ' 🏆 Perfect!' : '');
+    }
+  });
+}
+
+/* ---------- 01 big picture ---------- */
+function initBigPicture(){
+  const detail = document.getElementById('bp-detail'); if(!detail) return;
+  const info = {
+    data:   '📄 <strong>Your Data</strong> — customer records, reports, passwords. Left unencrypted, it\'s money lying on the table: whoever walks past can take it.',
+    encrypt:'🔒 <strong>Encryption</strong> — the lock. A mathematical process that turns readable data into gibberish that only the correct key can reverse.',
+    encdata:'🔏 <strong>Encrypted Data</strong> — the locked locker. Even if stolen, it\'s useless noise without the key. Safe to store, safe to move.',
+    storage:'☁️ <strong>Cloud Storage</strong> — the vault room where locked lockers sit: Object Storage, Block Volumes, databases. All encrypted at rest in OCI.',
+    key:    '🔑 <strong>Encryption Keys</strong> — the locker keys. THE most sensitive item in the whole bank. Whoever holds the key opens the data.',
+    secret: '🤫 <strong>Secrets</strong> — DB passwords, API keys, tokens. Not encryption keys, but just as dangerous if leaked — so they live in the Vault too.',
+    rotate: '🔄 <strong>Key Rotation</strong> — changing the locks periodically, so an old stolen key opens as little as possible.'
+  };
+  document.querySelectorAll('[data-bp]').forEach(n=>{
+    n.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-bp]').forEach(x=>x.classList.remove('sel'));
+      n.classList.add('sel');
+      detail.innerHTML = info[n.dataset.bp];
+    });
+  });
+  let running = false;
+  function journey(keys, texts){
+    if(running) return; running = true;
+    document.querySelectorAll('[data-bp]').forEach(x=>x.classList.remove('lit','litok','sel'));
+    keys.forEach((k,i)=> setTimeout(()=>{
+      const el = document.querySelector('[data-bp="'+k+'"]');
+      if(el) el.classList.add(i===keys.length-1?'litok':'lit');
+      detail.innerHTML = (i===keys.length-1?'✅ ':'→ ')+texts[i];
+      if(i===keys.length-1) running = false;
+    }, (i+1)*950));
+  }
+  document.getElementById('bp-trip1').addEventListener('click', ()=> journey(
+    ['data','encrypt','key','encdata','storage'],
+    ['Your data starts readable — money on the table.',
+     'Encryption locks it…',
+     '…using a key fetched from OCI Vault (never stored next to the data!).',
+     'Now it\'s a locked locker — gibberish to anyone without the key.',
+     '<strong>Stored safely in the cloud.</strong> Data in one place, key in another. That separation IS the security.']));
+  document.getElementById('bp-trip2').addEventListener('click', ()=> journey(
+    ['storage','encdata','key'],
+    ['😈 A thief breaks into the vault room and grabs the disks…',
+     'All they hold is locked lockers — unreadable encrypted noise.',
+     '<strong>The keys were never here!</strong> They\'re in OCI Vault, guarded separately. The thief leaves with nothing usable.']));
+}
+
+/* ---------- 02 encryption demo ---------- */
+function initEncDemo(){
+  const input = document.getElementById('enc-input'); if(!input) return;
+  const out = document.getElementById('enc-output');
+  const result = document.getElementById('enc-result');
+  let cipher = '', usedKey = 7;
+  function scramble(text, k){
+    return [...text].map(ch=>{
+      const c = ch.charCodeAt(0);
+      if(c>=32 && c<=126) return String.fromCharCode(33 + ((c - 33 + k*7) % 94));
+      return ch;
+    }).join('');
+  }
+  function unscramble(text, k){
+    return [...text].map(ch=>{
+      const c = ch.charCodeAt(0);
+      if(c>=32 && c<=126) return String.fromCharCode(33 + ((c - 33 - k*7 + 94*10) % 94));
+      return ch;
+    }).join('');
+  }
+  document.getElementById('enc-lock').addEventListener('click', ()=>{
+    usedKey = parseInt(document.getElementById('enc-key').value);
+    cipher = scramble(input.value || 'Hello', usedKey);
+    out.textContent = cipher;
+    result.className = 'sz-result allowed';
+    result.innerHTML = '🔒 Encrypted with <strong>key '+usedKey+'</strong>. Readable text became noise. Now try decrypting — first with the WRONG key, then the right one.';
+  });
+  document.getElementById('enc-unlock').addEventListener('click', ()=>{
+    if(!cipher){ result.className='sz-result blocked'; result.textContent='Encrypt something first!'; return; }
+    const k = parseInt(document.getElementById('dec-key').value);
+    const attempt = unscramble(cipher, k);
+    if(k===usedKey){
+      result.className = 'sz-result allowed';
+      result.innerHTML = '✅ <strong>Correct key ('+k+')!</strong> Decrypted: <span class="mono">"'+attempt+'"</span> — the original comes back perfectly.';
+    } else {
+      result.className = 'sz-result blocked';
+      result.innerHTML = '💥 <strong>Wrong key ('+k+', it was encrypted with '+usedKey+').</strong> You get: <span class="mono">"'+attempt+'"</span> — still gibberish! Without the exact key, encrypted data stays useless. That\'s why the KEY, not the data, is what must be guarded.';
+    }
+  });
+}
+
+/* ---------- 03 stolen laptop ---------- */
+function initStolenLaptop(){
+  const files = document.getElementById('steal-files'); if(!files) return;
+  const data = [
+    ['💳 bank-details.txt','Account 4402-9917, PIN 4471, balance ₹2,40,000'],
+    ['🧾 salary-2026.xlsx','CTC ₹18,50,000 · net pay ₹1,12,340/month'],
+    ['🩺 medical-report.pdf','Blood group O+ · diagnosis details · policy #88123'],
+    ['🔑 passwords.txt','gmail: sunshine123 · bank: sunshine123 (!!)']
+  ];
+  const gib = s => [...s].map(c=> c===' '?' ':'▓▒░▚▞▛'[Math.floor(Math.random()*6)]).join('');
+  const result = document.getElementById('steal-result');
+  function render(encrypted, stolen){
+    files.innerHTML = data.map(f=>
+      '<div class="file-row'+(encrypted&&stolen?' scrambled':'')+'"><span class="fname">'+f[0]+'</span><span class="fdata">'+
+      (stolen ? (encrypted ? gib(f[1]) : f[1]) : '•••••• (laptop is safely with you)')+'</span></div>'
+    ).join('');
+  }
+  render(false, false);
+  document.getElementById('steal-btn').addEventListener('click', ()=>{
+    const enc = document.getElementById('steal-enc').checked;
+    render(enc, true);
+    if(enc){
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🛡 <strong>The thief opens the laptop and sees… noise.</strong> Every file is encrypted gibberish. Your bank details, salary, medical records and (terrible) passwords are all safe. The hardware is lost; the data is not.';
+    } else {
+      result.className = 'sz-result blocked';
+      result.innerHTML = '💥 <strong>Catastrophe.</strong> No encryption = the thief reads EVERYTHING: bank account, PIN, salary, medical records, and that password you reuse everywhere. Flip encryption ON and steal it again.';
+    }
+  });
+  document.getElementById('steal-enc').addEventListener('change', ()=>{ render(false,false); result.className='sz-result'; });
+}
+
+/* ---------- 04 vault ---------- */
+function initVault(){
+  const detail = document.getElementById('vault-detail'); if(!detail) return;
+  const info = {
+    mek:    '🔑 <strong>Master Encryption Keys</strong> — the top-level keys that protect (wrap) the data-encryption keys used on volumes, buckets and databases. Guard the master key and you guard everything under it.',
+    secrets:'🤫 <strong>Secrets</strong> — DB passwords, API keys, tokens, SSH keys. Stored encrypted, retrieved at runtime by authorized apps only — with automatic <strong>versions</strong> for rotation.',
+    certs:  '📜 <strong>Certificates</strong> — TLS server ID cards (Topic 11). OCI can issue, store and auto-renew them.',
+    hsm:    '🧱 <strong>HSM protection mode</strong> — the key lives inside a tamper-proof Hardware Security Module (FIPS 140-2 Level 3) and NEVER leaves it. Compliance-grade.',
+    soft:   '💾 <strong>Software protection mode</strong> — the key is protected by software. Cheaper, still secure, but the key can be exported. Fine for most workloads.',
+    repl:   '🌍 <strong>Key Replication</strong> — copies your Vault keys to another region, so a regional disaster doesn\'t lock you out of your own data. Keys need DR too!'
+  };
+  document.querySelectorAll('[data-vault]').forEach(n=>{
+    n.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-vault]').forEach(x=>x.classList.remove('sel'));
+      n.classList.add('sel');
+      detail.innerHTML = info[n.dataset.vault];
+    });
+  });
+  const result = document.getElementById('vault-result');
+  document.getElementById('vault-wrong').addEventListener('click', ()=>{
+    result.className = 'sz-result blocked';
+    result.innerHTML = '💥 <strong>Key kept on top of the safe!</strong> A hacker who breaches the VM finds BOTH the encrypted data AND the key sitting next to it — game over. Storing the key with the data defeats the entire purpose of encryption.';
+  });
+  document.getElementById('vault-right').addEventListener('click', ()=>{
+    result.className = 'sz-result allowed';
+    result.innerHTML = '✅ <strong>Key lives in OCI Vault, data lives in storage.</strong> A hacker who breaches the VM finds only gibberish — the key is in a separate, hardened, audited service with its own IAM rules. Separation of data and key = the golden rule.';
+  });
+  // pipeline
+  const wrap = document.getElementById('vault-pipeline');
+  const steps = ['⚙️ Application','🗝 OCI Vault — requests key','🔒 Encrypts the data','📦 Object Storage / 💽 Block Volume / 🗄 Database'];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s+'</div>').join('');
+  let running = false;
+  document.getElementById('vault-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1?'ok':'lit');
+      if(i===steps.length-1) running = false;
+    }, (i+1)*700));
+  });
+}
+
+/* ---------- 05 secrets ---------- */
+function initSecrets(){
+  const code = document.getElementById('secrets-code'); if(!code) return;
+  const result = document.getElementById('secrets-result');
+  let mode = 'hard';
+  function render(){
+    if(mode==='hard'){
+      code.innerHTML = '<div class="l-info"># app.py — committed to GitHub</div>'+
+        '<div>db_host = "10.0.2.15"</div>'+
+        '<div class="l-pass">db_password = "Oracle123"   # 😱 right there in the code</div>'+
+        '<div>conn = connect(db_host, db_password)</div>';
+    } else {
+      code.innerHTML = '<div class="l-info"># app.py — committed to GitHub</div>'+
+        '<div>db_host = "10.0.2.15"</div>'+
+        '<div class="l-block">db_password = vault.get_secret("db-prod-password")  # ✅ fetched at runtime</div>'+
+        '<div>conn = connect(db_host, db_password)</div>';
+    }
+    result.className = 'sz-result';
+  }
+  document.getElementById('sec-hardcode').addEventListener('click', function(){
+    mode='hard'; this.classList.add('active'); document.getElementById('sec-vaulted').classList.remove('active'); render();
+  });
+  document.getElementById('sec-vaulted').addEventListener('click', function(){
+    mode='vault'; this.classList.add('active'); document.getElementById('sec-hardcode').classList.remove('active'); render();
+  });
+  document.getElementById('sec-hack').addEventListener('click', ()=>{
+    if(mode==='hard'){
+      result.className = 'sz-result blocked';
+      result.innerHTML = '💥 <strong>Breached in seconds.</strong> The hacker reads your repo, sees <span class="mono">password="Oracle123"</span>, logs into your production database, and downloads everything. Hardcoded secrets are the #1 real-world leak.';
+    } else {
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🛡 <strong>Nothing to steal.</strong> The repo contains only a reference — <span class="mono">vault.get_secret("db-prod-password")</span>. The actual password sits in OCI Vault, released only to the authorized application identity (least-privilege IAM), with every access audited.';
+    }
+  });
+  render();
+}
+
+/* ---------- 06 symmetric ---------- */
+function initSymmetric(){
+  const wrap = document.getElementById('sym-pipeline'); if(!wrap) return;
+  const steps = ['📄 Plain Data','🔑 Key A locks','🔏 Encrypted Data','🔑 Key A unlocks','📄 Original Data'];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s+'</div>').join('');
+  const log = document.getElementById('sym-log');
+  const lines = [
+    'One key: Key A. Think of your single house key.',
+    '🔑 Key A LOCKS the data (encrypt)…',
+    'Now it\'s gibberish — safe to store anywhere.',
+    '🔑 The SAME Key A UNLOCKS it (decrypt)…',
+    '✅ Same key, both directions = SYMMETRIC. Blazing fast — which is why AES encrypts disks, databases and cloud storage.'
+  ];
+  let running = false;
+  document.getElementById('sym-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    log.innerHTML = '';
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1?'ok':'lit');
+      const d = document.createElement('div'); d.className = i===steps.length-1?'l-block':'l-info'; d.textContent = lines[i];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===steps.length-1) running = false;
+    }, (i+1)*750));
+  });
+}
+
+/* ---------- 07 mailbox ---------- */
+function initMailbox(){
+  const pub = document.getElementById('mb-pub'); if(!pub) return;
+  const priv = document.getElementById('mb-priv');
+  const result = document.getElementById('mb-result');
+  function clear(){ pub.classList.remove('hit-ok','hit-no'); priv.classList.remove('hit-ok','hit-no'); }
+  document.getElementById('mb-drop').addEventListener('click', ()=>{
+    clear(); void pub.offsetWidth; pub.classList.add('hit-ok');
+    result.className = 'sz-result allowed';
+    result.innerHTML = '✉️ <strong>Letter dropped in!</strong> Anyone can encrypt a message with the PUBLIC key — that\'s why it\'s safe to hand out freely. Once inside, even the sender can\'t get it back out.';
+  });
+  document.getElementById('mb-pick').addEventListener('click', ()=>{
+    clear(); void priv.offsetWidth; priv.classList.add('hit-no');
+    result.className = 'sz-result blocked';
+    result.innerHTML = '🚫 <strong>The public key does NOT open the door.</strong> Encrypting and decrypting use DIFFERENT keys — that\'s the "asymmetric" part. The stranger can add letters but never read them.';
+  });
+  document.getElementById('mb-owner').addEventListener('click', ()=>{
+    clear(); void priv.offsetWidth; priv.classList.add('hit-ok');
+    result.className = 'sz-result allowed';
+    result.innerHTML = '🗝 <strong>The owner\'s PRIVATE key opens the mailbox.</strong> Only this one key — never shared, never transmitted — can decrypt what the public key locked. SSH and HTTPS run on exactly this trick.';
+  });
+}
+
+/* ---------- 07b asym story ---------- */
+function initAsymStory(){
+  const wrap = document.getElementById('story-pipeline'); if(!wrap) return;
+  const steps = [
+    ['🙋 Ravi makes a key PAIR','Ravi generates two mathematically linked keys: one public 📮, one private 🗝.'],
+    ['📢 Ravi shares the PUBLIC key openly','He posts it anywhere — email, website. Even the sniffer gets a copy. Doesn\'t matter!'],
+    ['🙋‍♀️ Priya locks her message with it','"Meet at 5pm" becomes gibberish, locked with Ravi\'s PUBLIC key.'],
+    ['😈 A sniffer intercepts the message','The sniffer has the message AND the public key… but the public key CANNOT decrypt. Only lock, never unlock.'],
+    ['🗝 Ravi unlocks with his PRIVATE key','The only key on Earth that opens it — and it never left Ravi\'s pocket. Secret delivered!']
+  ];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s[0]+'</div>').join('');
+  const log = document.getElementById('story-log');
+  let running = false;
+  document.getElementById('story-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    log.innerHTML = '';
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1?'ok':'lit');
+      const d = document.createElement('div'); d.className = i===steps.length-1?'l-block':(i===3?'l-warn':'l-info');
+      d.textContent = (i===steps.length-1?'✅ ':'→ ')+s[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===steps.length-1) running = false;
+    }, (i+1)*900));
+  });
+}
+
+/* ---------- 08b speed race ---------- */
+function initRace2(){
+  const go = document.getElementById('race2-go'); if(!go) return;
+  const result = document.getElementById('race2-result');
+  let running = false;
+  go.addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const sym = document.getElementById('race2-sym'), asym = document.getElementById('race2-asym');
+    const st = document.getElementById('race2-sym-time'), at = document.getElementById('race2-asym-time');
+    sym.style.transition='none'; asym.style.transition='none';
+    sym.style.width='0%'; asym.style.width='0%';
+    st.textContent='encrypting…'; at.textContent='encrypting…';
+    result.className='sz-result';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      sym.style.transition='width 1.2s linear'; asym.style.transition='width 8s linear';
+      sym.style.width='100%'; asym.style.width='100%';
+    }));
+    setTimeout(()=>{ st.textContent='🏁 DONE in 1.2 s'; }, 1300);
+    let secs = 0;
+    const timer = setInterval(()=>{ secs++; if(secs<8) at.textContent = secs+' s… still going…'; }, 1000);
+    setTimeout(()=>{
+      clearInterval(timer);
+      at.textContent = '🏁 done in 8 s (in reality: 100–1000× slower!)';
+      result.className='sz-result allowed';
+      result.innerHTML = '🏆 <strong>Symmetric wins by a mile — that\'s why the world uses BOTH:</strong> asymmetric (slow but works between strangers) only to agree on a secret, then symmetric (fast) for the actual data. That combo is literally what TLS does next section.';
+      running = false;
+    }, 8200);
+  });
+}
+
+/* ---------- 09b rest vs transit states ---------- */
+function initRestState(){
+  const log = document.getElementById('state-log'); if(!log) return;
+  let busy = false;
+  function play(rest){
+    if(busy) return; busy = true;
+    document.getElementById('state-rest').classList.toggle('active', rest);
+    document.getElementById('state-transit').classList.toggle('active', !rest);
+    log.innerHTML='';
+    const lines = rest ? [
+      ['l-info','🌙 2:00 AM. report.pdf sits on a disk in Object Storage. Nobody is using it.'],
+      ['l-warn','State: DATA AT REST — data that is sitting still.'],
+      ['l-info','Protection: disk encryption (fast symmetric AES), key held in OCI Vault.'],
+      ['l-block','✅ Threat covered: someone steals the physical disk → they get gibberish.']
+    ] : [
+      ['l-info','🌞 11:00 AM. A user clicks Download — report.pdf starts moving across the Internet.'],
+      ['l-warn','State: DATA IN TRANSIT — data that is traveling.'],
+      ['l-info','Protection: TLS tunnel (HTTPS) wraps it for the journey.'],
+      ['l-block','✅ Threat covered: someone sniffs the network → they get gibberish.'],
+      ['l-warn','⭐ Same file, two states, two different protections. You always need BOTH.']
+    ];
+    lines.forEach((l,i)=> setTimeout(()=>{
+      const d = document.createElement('div'); d.className = l[0]; d.textContent = l[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===lines.length-1) busy = false;
+    }, (i+1)*750));
+  }
+  document.getElementById('state-rest').addEventListener('click', ()=>play(true));
+  document.getElementById('state-transit').addEventListener('click', ()=>play(false));
+}
+
+/* ---------- 10b TLS handshake ---------- */
+function initHandshake(){
+  const wrap = document.getElementById('hs-pipeline'); if(!wrap) return;
+  const steps = [
+    ['👋 1 · Hello','Browser: "Hi yourbank.com, let\'s talk secretly. Here\'s what I speak."'],
+    ['📜 2 · Certificate','Server shows its ID card, signed by a trusted CA — "I really am your bank" (next topic!).'],
+    ['🔑🔑 3 · Key exchange (ASYMMETRIC)','The mailbox trick: browser locks a fresh random secret with the server\'s PUBLIC key; only the server\'s PRIVATE key opens it. Now both share a secret — strangers no more.'],
+    ['⚡ 4 · Switch to SYMMETRIC','That shared secret becomes a fast AES session key — the sports car carries all the actual data. Tunnel ready 🔒.']
+  ];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s[0]+'</div>').join('');
+  const log = document.getElementById('hs-log');
+  let running = false;
+  document.getElementById('hs-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    log.innerHTML = '';
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1?'ok':'lit');
+      const d = document.createElement('div'); d.className = i===steps.length-1?'l-block':'l-info';
+      d.textContent = (i===steps.length-1?'✅ ':'→ ')+s[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===steps.length-1) running = false;
+    }, (i+1)*1000));
+  });
+}
+
+/* ---------- 09 at rest ---------- */
+function initAtRest(){
+  const files = document.getElementById('rest-files'); if(!files) return;
+  const data = [
+    ['💽 block-volume-01','customer_orders.db — 4.2 GB of order history'],
+    ['📦 backup-2026-08.zip','full production backup, all customer PII'],
+    ['💿 boot-volume','Ubuntu OS + application code + config']
+  ];
+  const gib = s => [...s].map(c=> c===' '?' ':'▓▒░▚▞▛'[Math.floor(Math.random()*6)]).join('');
+  const result = document.getElementById('rest-result');
+  function render(stolen){
+    const enc = document.getElementById('rest-enc').checked;
+    files.innerHTML = data.map(f=>
+      '<div class="file-row'+(enc&&stolen?' scrambled':'')+'"><span class="fname">'+f[0]+'</span><span class="fdata">'+
+      (stolen ? (enc ? gib(f[1]) : f[1]) : '(sitting quietly in the data center)')+'</span></div>'
+    ).join('');
+  }
+  render(false);
+  document.getElementById('rest-steal').addEventListener('click', ()=>{
+    const enc = document.getElementById('rest-enc').checked;
+    render(true);
+    if(enc){
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🛡 <strong>The stolen disk is worthless.</strong> Everything on it was encrypted at rest — and the keys live far away in OCI Vault. Physical theft ≠ data theft.';
+    } else {
+      result.className = 'sz-result blocked';
+      result.innerHTML = '💥 <strong>Full data breach from one stolen disk.</strong> Orders, backups, PII — all readable. This is why OCI encrypts storage at rest BY DEFAULT; you literally can\'t opt out of safety.';
+    }
+  });
+  document.getElementById('rest-enc').addEventListener('change', ()=>{ render(false); result.className='sz-result'; });
+}
+
+/* ---------- 10 TLS sniffer ---------- */
+function initTLS(){
+  const log = document.getElementById('tls-log'); if(!log) return;
+  const result = document.getElementById('tls-result');
+  let busy = false;
+  function play(https){
+    if(busy) return; busy = true;
+    document.getElementById('tls-http').classList.toggle('active', !https);
+    document.getElementById('tls-https').classList.toggle('active', https);
+    log.innerHTML = '';
+    const lines = https ? [
+      ['l-info','You: connecting to yourbank.com over HTTPS…'],
+      ['l-block','TLS handshake ✓ — encrypted tunnel established (asymmetric key exchange → fast symmetric session key).'],
+      ['l-info','You send: user=priya  password=Summer@2026'],
+      ['l-warn','😈 Attacker sniffing the café Wi-Fi sees:'],
+      ['l-pass','9f#kQ▓▒!zR7▚mX2▞…binary noise…▛T4$'],
+      ['l-block','✅ The attacker captures the traffic but reads NOTHING. That\'s encryption in transit.']
+    ] : [
+      ['l-info','You: connecting to yourbank.com over plain HTTP…'],
+      ['l-warn','No TLS. Everything travels as readable text.'],
+      ['l-info','You send: user=priya  password=Summer@2026'],
+      ['l-warn','😈 Attacker sniffing the café Wi-Fi sees:'],
+      ['l-pass','user=priya  password=Summer@2026   ← EVERYTHING, in plain text'],
+      ['l-pass','💥 Credentials stolen without touching your laptop. Never send logins over HTTP.']
+    ];
+    lines.forEach((l,i)=> setTimeout(()=>{
+      const d = document.createElement('div'); d.className = l[0]; d.textContent = l[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===lines.length-1){
+        busy = false;
+        result.className = 'sz-result '+(https?'allowed':'blocked');
+        result.innerHTML = https
+          ? '✅ <strong>HTTPS = HTTP inside a TLS tunnel.</strong> Same request, same Wi-Fi, same attacker — but the tunnel makes the traffic unreadable.'
+          : '💥 <strong>HTTP is a postcard</strong> — everyone who handles it can read it. HTTPS is a sealed envelope. Now try the HTTPS button.';
+      }
+    }, (i+1)*750));
+  }
+  document.getElementById('tls-http').addEventListener('click', ()=>play(false));
+  document.getElementById('tls-https').addEventListener('click', ()=>play(true));
+}
+
+/* ---------- 11 PKI ---------- */
+function initPKI(){
+  const wrap = document.getElementById('pki-pipeline'); if(!wrap) return;
+  const result = document.getElementById('pki-result');
+  let busy = false;
+  function play(valid){
+    if(busy) return; busy = true;
+    const steps = valid
+      ? ['🌐 Browser connects','📜 Server presents certificate','🛂 Signed by: DigiCert (trusted CA ✓)','🔒 Padlock — TLS begins']
+      : ['🌐 Browser connects','📜 Server presents certificate','🛂 Signed by: itself?! (no trusted CA)','⚠️ FULL-PAGE WARNING'];
+    wrap.innerHTML = steps.map((s,i)=>(i>0?'<span class="pipe-arrow">→</span>':'')+'<div class="pipe-step" data-i="'+i+'">'+s+'</div>').join('');
+    const els = wrap.querySelectorAll('.pipe-step');
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1 ? (valid?'ok':'lit') : 'lit');
+      if(i===steps.length-1){
+        busy = false;
+        result.className = 'sz-result '+(valid?'allowed':'blocked');
+        result.innerHTML = valid
+          ? '✅ <strong>Certificate checks out.</strong> The ID card was issued by a Certificate Authority your browser already trusts — like a passport from a real passport office. TLS proceeds; you see the padlock 🔒.'
+          : '🚫 <strong>"Your connection is not private!"</strong> The certificate is self-signed — an ID card the impostor printed at home. No trusted CA vouches for it, so the browser slams on the brakes. This is PKI protecting you from fake bank sites.';
+      }
+    }, (i+1)*800));
+  }
+  document.getElementById('pki-valid').addEventListener('click', ()=>play(true));
+  document.getElementById('pki-fake').addEventListener('click', ()=>play(false));
+}
+
+/* ---------- 12 rotation ---------- */
+function initRotation(){
+  const line = document.getElementById('rot-line'); if(!line) return;
+  const result = document.getElementById('rot-result');
+  const quarters = ['January','April','July','October'];
+  let idx = 0, stolen = false;
+  function render(){
+    line.innerHTML = quarters.map((q,i)=>{
+      let cls = '';
+      if(i<idx) cls = 'retired';
+      if(i===idx) cls = 'current';
+      if(stolen && i===0) cls += ' stolen';
+      return '<div class="rot-key '+cls+'"><span class="rk-month">'+q+'</span>🔑 Key '+String.fromCharCode(65+i)+
+        (i===idx?'<span class="rk-month">ACTIVE</span>':(i<idx?'<span class="rk-month">retired</span>':'<span class="rk-month">future</span>'))+'</div>'
+        +(i<quarters.length-1?'<span class="pipe-arrow">→</span>':'');
+    }).join('');
+    // data buckets: what each key protects
+    const buckets = document.getElementById('rot-buckets');
+    if(buckets){
+      buckets.innerHTML = quarters.map((q,i)=>{
+        let cls = '', label = '📦 Q'+(i+1)+' data';
+        if(i>idx){ cls='future'; label='(no data yet)'; }
+        else if(stolen){
+          if(i===0){ cls='exposed'; label = idx===0 ? '💥 ALL data EXPOSED' : '💥 Q1 data EXPOSED'; }
+          else { cls='safe'; label='🛡 Q'+(i+1)+' data SAFE'; }
+        }
+        return '<div class="dbucket '+cls+'"><span class="db-months">'+q+' era · Key '+String.fromCharCode(65+i)+'</span>'+label+'</div>';
+      }).join('');
+    }
+  }
+  document.getElementById('rot-rotate').addEventListener('click', ()=>{
+    if(idx<quarters.length-1){ idx++; render();
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🔄 <strong>Rotated to Key '+String.fromCharCode(65+idx)+' ('+quarters[idx]+').</strong> New data now uses the new key; the Vault remembers old versions for old data. Like changing the locks each quarter.';
+    } else {
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🔁 End of the year — in OCI Vault, rotation can be scheduled automatically. Press Reset to replay.';
+    }
+  });
+  document.getElementById('rot-steal').addEventListener('click', ()=>{
+    stolen = true; render();
+    if(idx===0){
+      result.className = 'sz-result blocked';
+      result.innerHTML = '💥 <strong>Disaster: Key A is the CURRENT key.</strong> You never rotated — everything ever encrypted is exposed. One stolen key = total loss. Now rotate a few times, reset, and steal it again.';
+    } else {
+      result.className = 'sz-result allowed';
+      result.innerHTML = '🛡 <strong>Damage contained.</strong> Key A was retired '+(idx)+' rotation(s) ago — the hacker can only touch the small window of data from January\'s era, and re-encryption can close even that. Rotation turned a catastrophe into a bad afternoon.';
+    }
+  });
+  document.getElementById('rot-reset').addEventListener('click', ()=>{ idx=0; stolen=false; render(); result.className='sz-result'; });
+  render();
+}
+
+/* ---------- 13b km flipper ---------- */
+function initKmFlip(){
+  const tasks = document.getElementById('km-tasks'); if(!tasks) return;
+  const rows = [
+    ['🔑 Create the key',            {oracle:['who-oracle','ORACLE'],   customer:['who-you','YOU']}],
+    ['🏦 Store it safely',           {oracle:['who-oracle','ORACLE'],   customer:['who-oracle','YOUR VAULT']}],
+    ['🔄 Rotate it',                 {oracle:['who-oracle','ORACLE'],   customer:['who-you','YOU (scheduled)']}],
+    ['🛂 Decide who may use it',     {oracle:['who-you','YOU (IAM)'],   customer:['who-you','YOU (IAM)']}],
+    ['⛔ Revoke it instantly',       {oracle:['who-shared','LIMITED'],  customer:['who-good','YOU — one click']}],
+    ['📋 Prove control to auditors', {oracle:['who-shared','HARDER'],   customer:['who-good','FULL PROOF']}]
+  ];
+  const notes = {
+    oracle: '🏢 <strong>Oracle-managed:</strong> Oracle does the heavy lifting — you only manage IAM access. Perfect default… until an auditor asks "show me YOU control the keys."',
+    customer: '🗝 <strong>Customer-managed:</strong> the jobs move to YOUR side. More work, but you can revoke a key in one click (instantly making all data unreadable) and prove full control — which is exactly what finance, healthcare and government audits demand.'
+  };
+  function render(mode){
+    tasks.innerHTML = rows.map(r=>
+      '<div class="km-task"><span>'+r[0]+'</span><span class="who '+r[1][mode][0]+'">'+r[1][mode][1]+'</span></div>'
+    ).join('');
+    document.getElementById('km-note').innerHTML = notes[mode];
+  }
+  document.querySelectorAll('[data-kmode]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-kmode]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); render(btn.dataset.kmode);
+    });
+  });
+  render('oracle');
+}
+
+/* ---------- 14 posture ---------- */
+function initPosture(){
+  const list = document.getElementById('posture-list'); if(!list) return;
+  const items = [
+    ['vault','🗝 Keys &amp; secrets live in OCI Vault (never in code or on VMs)'],
+    ['rotate','🔄 Key rotation scheduled quarterly'],
+    ['iam','🛂 Least-privilege IAM on keys &amp; secrets'],
+    ['nsg','🚧 NSGs &amp; Security Lists lock down every subnet and VM'],
+    ['bastion','🚪 Bastion service for admin access (no public SSH)'],
+    ['audit','🎥 Audit logs reviewed — every key use is recorded']
+  ];
+  list.innerHTML = items.map(it=>
+    '<div class="toggle-row"><span style="font-size:12.5px;">'+it[1]+'</span><label class="switch"><input type="checkbox" class="posture-toggle" data-k="'+it[0]+'"><span class="slider"></span></label></div>'
+  ).join('');
+  const ring = document.getElementById('posture-ring');
+  const val = document.getElementById('posture-val');
+  const result = document.getElementById('posture-result');
+  const msgs = {
+    vault:'Secrets out of code — the #1 breach vector closed.',
+    rotate:'Old keys retire on schedule — stolen keys age into uselessness.',
+    iam:'Only the right identities can touch keys — Day-1 IAM meets Day-6 crypto.',
+    nsg:'Network doors locked — Day-5 meets Day-6.',
+    bastion:'Admins enter through one guarded, audited door instead of public SSH.',
+    audit:'You can PROVE who used which key when — compliance loves this.'
+  };
+  list.addEventListener('change', e=>{
+    const t = e.target.closest('.posture-toggle'); if(!t) return;
+    const on = document.querySelectorAll('.posture-toggle:checked').length;
+    const score = Math.round(on/items.length*100);
+    ring.style.setProperty('--score', score); val.textContent = score;
+    if(t.checked){
+      result.className = 'sz-result allowed';
+      result.innerHTML = (score===100 ? '🏆 <strong>100 — hardened!</strong> All six Day-6 best practices in place. Now prove it: run the attack drill below.' : '✅ '+msgs[t.dataset.k]+' <strong>Score: '+score+'</strong>');
+    } else {
+      result.className = 'sz-result blocked';
+      result.innerHTML = '⚠️ Practice removed — score drops to <strong>'+score+'</strong>. Every unchecked box is an open door.';
+    }
+  });
+  // attack drill — each attack targets one practice
+  const attacks = [
+    ['vault','😈 Attack 1: hacker scrapes your public GitHub repo for passwords…','🛡 BLOCKED — no secrets in code; everything sits in Vault.','💥 SUCCESS — found "password=Oracle123" hardcoded. Database breached.'],
+    ['rotate','😈 Attack 2: a year-old key surfaces on the dark web…','🛡 BLOCKED — that key was retired 3 rotations ago; its data window is tiny/re-encrypted.','💥 SUCCESS — the old key is STILL the active key. Everything decrypts.'],
+    ['iam','😈 Attack 3: an intern\'s account gets phished; attacker tries to read Vault keys…','🛡 BLOCKED — least-privilege IAM: the intern\'s role can\'t touch keys at all.','💥 SUCCESS — everyone has manage-all rights. The attacker exports keys.'],
+    ['nsg','😈 Attack 4: Internet-wide scan probes your database port…','🛡 BLOCKED — NSGs/Security Lists: the DB accepts connections only from the app server.','💥 SUCCESS — DB port open to 0.0.0.0/0. Brute-forcing begins.'],
+    ['bastion','😈 Attack 5: botnet brute-forces SSH on your VMs…','🛡 BLOCKED — no public SSH anywhere; admins enter via the audited Bastion only.','💥 SUCCESS — public SSH + weak password on one VM = attacker inside.'],
+    ['audit','😈 Attack 6: the attacker hopes nobody is watching…','🛡 CAUGHT — Audit logs flag unusual key/secret access; the team responds the same day.','💥 SUCCESS — no audit review; the breach sits unnoticed for months.']
+  ];
+  const plog = document.getElementById('posture-log');
+  let drilling = false;
+  document.getElementById('posture-attack').addEventListener('click', ()=>{
+    if(drilling) return; drilling = true;
+    plog.innerHTML = '';
+    let blocked = 0;
+    attacks.forEach((a,i)=> setTimeout(()=>{
+      const on = document.querySelector('.posture-toggle[data-k="'+a[0]+'"]').checked;
+      if(on) blocked++;
+      const q = document.createElement('div'); q.className='l-warn'; q.textContent = a[1];
+      const r = document.createElement('div'); r.className = on?'l-block':'l-pass'; r.textContent = on?a[2]:a[3];
+      plog.appendChild(q); plog.appendChild(r); plog.scrollTop = plog.scrollHeight;
+      if(i===attacks.length-1){
+        const s = document.createElement('div');
+        s.className = blocked===attacks.length ? 'l-block' : 'l-warn';
+        s.textContent = blocked===attacks.length
+          ? '🏆 DRILL RESULT: 6/6 attacks blocked. This is what "good security posture" means.'
+          : '⚠ DRILL RESULT: '+blocked+'/6 blocked. Every failed defense above maps to an unchecked practice — switch it on and drill again.';
+        plog.appendChild(s); plog.scrollTop = plog.scrollHeight;
+        drilling = false;
+      }
+    }, (i+1)*1100));
+  });
+}
+
+/* ---------- 15 e2e ---------- */
+function initE2E(){
+  const wrap = document.getElementById('e2e-pipeline'); if(!wrap) return;
+  const steps = [
+    ['📱 Customer taps "Send ₹5,000"','The mobile banking app prepares the transaction.'],
+    ['🔒 HTTPS / TLS tunnel','Encryption IN TRANSIT: the request crosses the Internet unreadable — café-Wi-Fi sniffers get noise (Topic 10). The bank\'s certificate, signed by a trusted CA, proved the server is real (Topic 11).'],
+    ['🏦 Bank server receives it','Inside OCI, the app processes the transfer.'],
+    ['🗝 OCI Vault provides the key','The encryption key comes from the Vault — HSM-protected, least-privilege IAM, every access audited (Topics 5, 14). The DB password came from Vault Secrets, not code (Topic 6).'],
+    ['🔐 Transaction encrypted','Fast SYMMETRIC encryption (AES) locks the record (Topic 7).'],
+    ['🗄 Written to the database','Encryption AT REST: the disk itself holds only gibberish (Topic 9).'],
+    ['🔄 Keys rotate quarterly','Even if an old key leaks someday, the exposure window is tiny (Topic 12).'],
+    ['✅ Money delivered — data never exposed','Steal the disk? Noise. Sniff the network? Noise. Read the code? No secrets. THIS is defense by encryption.']
+  ];
+  wrap.innerHTML = steps.map((s,i)=>(i>0?'<div class="pipe-arrow" style="text-align:center;">↓</div>':'')+'<div class="pipe-step" style="min-width:0;" data-i="'+i+'">'+s[0]+'</div>').join('');
+  const log = document.getElementById('e2e-log');
+  let running = false;
+  document.getElementById('e2e-play').addEventListener('click', ()=>{
+    if(running) return; running = true;
+    const els = wrap.querySelectorAll('.pipe-step'); els.forEach(e=>e.classList.remove('lit','ok'));
+    log.innerHTML = '';
+    steps.forEach((s,i)=> setTimeout(()=>{
+      els[i].classList.add(i===steps.length-1?'ok':'lit');
+      const d = document.createElement('div'); d.className = i===steps.length-1?'l-block':'l-info';
+      d.textContent = (i===steps.length-1?'✅ ':'→ ')+s[1];
+      log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if(i===steps.length-1) running = false;
+    }, (i+1)*950));
+  });
+}
+
+/* ---------- 17 flashcards ---------- */
+function initFlashcards(){
+  const wrap = document.getElementById('flash-wrap'); if(!wrap) return;
+  const cards = [
+    ['Encryption in one line?','Readable data → gibberish; only the correct key reverses it'],
+    ['Symmetric vs Asymmetric?','Same key (AES, fast, big data) vs public+private pair (RSA, SSH, TLS)'],
+    ['Golden rule of keys?','NEVER store the key with the data — keys live in OCI Vault'],
+    ['At rest vs in transit?','On disk (default in OCI) vs moving on the network (TLS/HTTPS)'],
+    ['What does a CA do?','Signs certificates — the passport office of PKI trust'],
+    ['Why rotate keys?','A stolen old key exposes only a small window of data'],
+    ['HSM protection mode?','Keys never leave tamper-proof certified hardware'],
+    ['Oracle vs Customer-managed keys?','Easy default vs full control for compliance (finance/health/gov)'],
+    ['Where do DB passwords belong?','Vault Secrets, fetched at runtime — never hardcoded']
+  ];
+  wrap.innerHTML = cards.map(c=>'<div class="flashcard"><div class="fc-inner"><div class="fc-face fc-front">'+c[0]+'</div><div class="fc-face fc-back">'+c[1]+'</div></div></div>').join('');
+  wrap.addEventListener('click', e=>{
+    const fc = e.target.closest('.flashcard'); if(fc) fc.classList.toggle('flipped');
+  });
+}
+
+/* ---------- 18 quiz ---------- */
+function initQuiz(){
+  const wrap = document.getElementById('quiz-wrap'); if(!wrap) return;
+  const Q = [
+    ['Encrypting a 4 TB block volume — which type of encryption does the heavy lifting?',['Asymmetric (RSA)','Symmetric (AES)','Hashing'],1,'Symmetric = same key, very fast — built for large data. Asymmetric handles key exchange, not bulk data.'],
+    ['Where should encryption keys be stored?',['On the VM next to the data','In OCI Vault, separate from the data','Inside the application code'],1,'Golden rule: key and data never live together. Vault keeps keys separate, guarded and audited.'],
+    ['A hacker reads your GitHub repo. Which practice saves you?',['Passwords in a config file','Secrets fetched from Vault at runtime','Base64-encoding the password'],1,'The repo holds only a reference; the secret stays in Vault. (Base64 is encoding, NOT encryption!)'],
+    ['In asymmetric encryption, which key does the mailbox owner keep?',['Public key','Private key','Both keys are shared'],1,'Anyone uses the public key to encrypt (drop letters); only the private key decrypts (opens the box).'],
+    ['A disk is physically stolen from a data center, but the data is safe. Why?',['Encryption in transit','Encryption at rest','Key rotation'],1,'At-rest encryption means the disk holds only gibberish — and the keys are far away in Vault.'],
+    ['Logging into a bank on café Wi-Fi — what makes the traffic unreadable to a sniffer?',['A strong password','TLS (HTTPS) tunnel','A firewall on the server'],1,'Encryption in transit: TLS encrypts the channel itself. HTTP would show the password in plain text.'],
+    ['Your browser shows "connection not private" on a bank-lookalike site. What failed?',['The TLS speed test','The certificate / CA trust check','The DNS lookup'],1,'The certificate wasn\'t signed by a trusted Certificate Authority — PKI caught the impostor.'],
+    ['Why rotate keys quarterly?',['Old keys slow down','It limits the exposure window if an old key leaks','Oracle requires it'],1,'A stolen retired key opens only its own small era of data — rotation contains the blast radius.'],
+    ['A government agency must prove keys never leave certified hardware. Choose:',['Oracle-managed keys','Customer-managed, software-protected','Customer-managed with HSM protection'],2,'HSM protection = keys locked inside FIPS-certified tamper-proof hardware, never exportable.'],
+    ['What is key replication for?',['Faster encryption','Copying keys to another region for disaster recovery','Sharing keys with partners'],1,'A regional outage must not lock you out of your own data — keys need DR just like data does.']
+  ];
+  state.quizTotal = Q.length;
+  wrap.innerHTML = Q.map((q,qi)=>
+    '<div class="quiz-q" data-qi="'+qi+'"><div class="qtext">'+(qi+1)+'. '+q[0]+'</div><div class="quiz-opts">'+
+    q[1].map((o,oi)=>'<div class="quiz-opt" data-oi="'+oi+'">'+String.fromCharCode(65+oi)+'. '+o+'</div>').join('')+
+    '</div><div class="quiz-explain">'+q[3]+'</div></div>'
+  ).join('');
+  wrap.addEventListener('click', e=>{
+    const opt = e.target.closest('.quiz-opt'); if(!opt) return;
+    const qEl = opt.closest('.quiz-q'); if(qEl.classList.contains('answered')) return;
+    qEl.classList.add('answered');
+    const qi = parseInt(qEl.dataset.qi), oi = parseInt(opt.dataset.oi);
+    const correct = Q[qi][2];
+    qEl.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+      if(i===correct) o.classList.add('correct');
+      else if(i===oi) o.classList.add('incorrect');
+    });
+    state.quizAnswered++;
+    if(oi===correct) state.quizScore++;
+    document.getElementById('score-chip-val').textContent = state.quizScore+'/'+state.quizAnswered;
+    document.getElementById('quiz-final-score').textContent = state.quizScore+' / '+state.quizTotal;
+    document.getElementById('cert-score-display').textContent = state.quizScore+'/'+state.quizTotal;
+    updateBadge();
+  });
+}
+
+/* ---------- 19 badge + cert ---------- */
+function updateBadge(){
+  const scroll = window.__scrollPct || 0;
+  const quiz = state.quizTotal ? (state.quizAnswered/state.quizTotal)*100 : 0;
+  const pct = Math.round(scroll*0.5 + quiz*0.5);
+  const circle = document.getElementById('badge-circle'); if(!circle) return;
+  circle.style.setProperty('--pct', (pct*3.6)+'deg');
+  document.getElementById('badge-pct').textContent = pct+'%';
+  const title = document.getElementById('badge-title');
+  if(pct>=90) title.textContent='🏆 Day 6 mastered!';
+  else if(pct>=60) title.textContent='Almost there';
+  else title.textContent='Keep going';
+}
+function initCert(){
+  document.getElementById('cert-date-display').textContent = new Date().toLocaleDateString('en-IN', {year:'numeric', month:'long', day:'numeric'});
+  const input = document.getElementById('cert-name-input');
+  input.addEventListener('input', ()=>{
+    document.getElementById('cert-name-display').textContent = input.value || 'Your Name';
+  });
+}
+</script>
+</body>
+</html>
