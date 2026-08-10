@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Cloud Architect — Exam Prep | Interactive Visualizer</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS — matching Day 1 visualizer pattern
+   ============================================================ */
+:root{
+  --void:#08090b;
+  --panel:#101217;
+  --panel-2:#15171e;
+  --panel-glass: rgba(21,23,30,0.6);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text-1:#eef0f3;
+  --text-2:#a7acb8;
+  --text-3:#6b7180;
+  --red:#c74634;
+  --red-bright:#ff5a3c;
+  --red-dim: rgba(199,70,52,0.15);
+  --blue:#4f8cff;
+  --blue-dim: rgba(79,140,255,0.15);
+  --amber:#e8a33d;
+  --amber-dim: rgba(232,163,61,0.15);
+  --green:#3ec28f;
+  --green-dim: rgba(62,194,143,0.15);
+  --purple:#a78bfa;
+  --purple-dim: rgba(167,139,250,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: "Space Grotesk","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-body: "Inter","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.35);
+}
+html[data-theme="light"]{
+  --void:#f3f2ee;
+  --panel:#ffffff;
+  --panel-2:#f7f6f2;
+  --panel-glass: rgba(255,255,255,0.7);
+  --border: rgba(10,10,10,0.08);
+  --border-strong: rgba(10,10,10,0.16);
+  --text-1:#15171c;
+  --text-2:#4b4f58;
+  --text-3:#83879160;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void); color:var(--text-1); font-family:var(--font-body);
+  line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 500px at 15% -5%, rgba(199,70,52,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgba(79,140,255,0.10), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 100%, rgba(199,70,52,0.08), transparent 60%);
+}
+h1,h2,h3,h4{font-family:var(--font-display); letter-spacing:-0.02em; font-weight:700; color:var(--text-1);}
+code,.mono{font-family:var(--font-mono);}
+a{color:inherit;}
+::selection{background:var(--red); color:#fff;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:10px;}
+
+#particles{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;}
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg,var(--red),var(--red-bright));
+  z-index:9999; box-shadow:0 0 12px var(--red-bright); transition:width .1s linear;
+}
+#topbar{
+  position:fixed; top:0; left:0; right:0; z-index:900; height:60px;
+  display:flex; align-items:center; gap:14px; padding:0 18px; margin-top:3px;
+  background:var(--panel-glass); backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:15px; white-space:nowrap;}
+#topbar .brand .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,var(--red),var(--red-bright)); box-shadow:0 0 14px var(--red-bright);}
+#sidebar-toggle{
+  background:transparent; border:1px solid var(--border); color:var(--text-2);
+  width:36px; height:36px; border-radius:var(--radius-sm); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center; transition:.2s;
+}
+#sidebar-toggle:hover{border-color:var(--border-strong); color:var(--text-1);}
+#search-wrap{position:relative; flex:1; max-width:420px;}
+#search{
+  width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text-1);
+  padding:8px 14px 8px 34px; border-radius:999px; font-size:13px; font-family:var(--font-body);
+  outline:none; transition:.2s;
+}
+#search:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-dim);}
+#search-wrap .sicon{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-3);}
+#search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--panel);
+  border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:var(--shadow-lg);
+  max-height:320px; overflow-y:auto; display:none; z-index:50;
+}
+#search-results a{display:block; padding:9px 14px; font-size:13px; color:var(--text-2); border-bottom:1px solid var(--border); text-decoration:none;}
+#search-results a:hover{background:var(--panel-2); color:var(--text-1);}
+#search-results .sr-cat{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--red-bright); display:block; margin-bottom:2px;}
+.topbar-spacer{flex:1;}
+#theme-toggle{
+  background:var(--panel); border:1px solid var(--border); color:var(--text-2);
+  width:36px; height:36px; border-radius:999px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:.2s; font-size:15px;
+}
+#theme-toggle:hover{border-color:var(--red); color:var(--red-bright);}
+#score-chip{
+  display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border);
+  padding:6px 12px; border-radius:999px; font-size:12px; color:var(--text-2); white-space:nowrap;
+}
+#score-chip b{color:var(--red-bright); font-family:var(--font-display);}
+
+#shell{display:flex; padding-top:63px; position:relative; z-index:1;}
+#sidebar{
+  width:270px; flex-shrink:0; height:calc(100vh - 63px); position:sticky; top:63px;
+  overflow-y:auto; border-right:1px solid var(--border); padding:18px 10px 60px;
+  transition:margin-left .3s ease, opacity .3s ease;
+}
+#sidebar.collapsed{margin-left:-270px; opacity:0;}
+#sidebar .nav-group{margin-bottom:4px;}
+#sidebar .nav-head{
+  font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--red-bright);
+  padding:14px 12px 6px; font-weight:700; display:flex; align-items:center; gap:8px;
+}
+#sidebar .nav-head .day-num{background:var(--red-dim); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);}
+#sidebar a.nav-link{
+  display:flex; align-items:center; gap:9px; padding:7px 12px; border-radius:var(--radius-sm);
+  font-size:13px; color:var(--text-2); text-decoration:none; transition:.15s; border-left:2px solid transparent;
+}
+#sidebar a.nav-link:hover{background:var(--panel); color:var(--text-1);}
+#sidebar a.nav-link.active{background:var(--red-dim); color:var(--red-bright); border-left-color:var(--red-bright); font-weight:600;}
+#sidebar a.nav-link .num{font-family:var(--font-mono); font-size:10px; color:var(--text-3); width:22px;}
+
+main{flex:1; min-width:0; padding:0 0 100px;}
+.container{max-width:980px; margin:0 auto; padding:0 32px;}
+
+/* ---------- hero ---------- */
+#hero{position:relative; padding:80px 32px 60px; overflow:hidden; text-align:left;}
+#hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red-bright); background:var(--red-dim); border:1px solid rgba(199,70,52,0.3);
+  padding:6px 14px; border-radius:999px; margin-bottom:22px; font-weight:600;
+}
+#hero h1{font-size:clamp(2.2rem,4.5vw,3.8rem); line-height:1.02; max-width:820px;}
+#hero h1 .accent{background:linear-gradient(135deg,var(--red),var(--red-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+#hero p.lede{max-width:640px; font-size:16.5px; color:var(--text-2); margin-top:22px;}
+#hero .hero-stats{display:flex; gap:34px; margin-top:36px; flex-wrap:wrap;}
+#hero .hstat b{font-family:var(--font-display); font-size:26px; display:block;}
+#hero .hstat span{font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;}
+#hero .cta-row{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:14px; padding:12px 22px; border-radius:999px;
+  border:1px solid var(--border-strong); cursor:pointer; transition:.2s;
+  display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn-primary{background:linear-gradient(135deg,var(--red),var(--red-bright)); color:#fff; border:none; box-shadow:0 8px 24px rgba(199,70,52,0.35);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px rgba(199,70,52,0.45);}
+.btn-ghost{background:var(--panel); color:var(--text-1);}
+.btn-ghost:hover{border-color:var(--red); color:var(--red-bright);}
+
+/* ---------- day banner ---------- */
+.day-banner{
+  margin:60px 0 0; padding:22px 26px; border-radius:var(--radius);
+  background:linear-gradient(120deg, var(--red-dim), transparent 70%);
+  border:1px solid rgba(199,70,52,.25); position:relative; overflow:hidden;
+}
+.day-banner .day-tag{
+  display:inline-block; font-family:var(--font-mono); font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--red-bright); padding:4px 10px;
+  background:var(--red-dim); border-radius:6px; margin-bottom:10px;
+}
+.day-banner h2{font-size:1.9rem; margin-bottom:6px;}
+.day-banner p{color:var(--text-2); font-size:14.5px; max-width:640px;}
+
+/* ---------- sections ---------- */
+section.chapter{padding:50px 0 10px; border-top:1px solid var(--border); scroll-margin-top:80px;}
+section.chapter:first-of-type{border-top:none; padding-top:30px;}
+.chapter-kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.chapter-kicker .idx{
+  font-family:var(--font-mono); font-size:12px; color:var(--red-bright); background:var(--red-dim);
+  padding:4px 10px; border-radius:6px; border:1px solid rgba(199,70,52,.3);
+}
+.chapter-kicker .track{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-3);}
+.chapter h2{font-size:clamp(1.5rem,2.6vw,2rem); margin-bottom:6px;}
+.chapter .dek{color:var(--text-2); font-size:15px; max-width:680px; margin-bottom:22px;}
+.chapter h3{font-size:1.1rem; margin:28px 0 12px;}
+.chapter p{color:var(--text-2); font-size:14.5px; margin-bottom:12px; max-width:720px;}
+.chapter ul, .chapter ol{color:var(--text-2); font-size:14.5px; margin:0 0 14px 20px;}
+.chapter li{margin-bottom:5px;}
+.chapter strong{color:var(--text-1);}
+.chapter em{color:var(--text-1); font-style:normal; font-weight:500;}
+
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+/* ---------- panel & cards ---------- */
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border); border-radius:var(--radius); padding:22px;
+  box-shadow:var(--shadow-sm); position:relative;
+}
+.grid{display:grid; gap:14px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:800px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:16px; transition:.25s; cursor:default;
+}
+.card:hover{border-color:var(--border-strong); transform:translateY(-3px); box-shadow:var(--shadow-sm);}
+.card h4{font-size:14px; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
+.card p{font-size:13px; margin:0; color:var(--text-2);}
+.card .tag{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--red-bright); background:var(--red-dim); padding:3px 8px; border-radius:6px; margin-bottom:8px; display:inline-block;}
+.card.blue .tag{color:var(--blue); background:var(--blue-dim);}
+.card.green .tag{color:var(--green); background:var(--green-dim);}
+.card.amber .tag{color:var(--amber); background:var(--amber-dim);}
+.card.purple .tag{color:var(--purple); background:var(--purple-dim);}
+
+/* ---------- callouts ---------- */
+.callout{border-radius:var(--radius-sm); padding:13px 15px; margin:14px 0; border:1px solid; font-size:13.5px; display:flex; gap:12px; align-items:flex-start;}
+.callout .ic{font-size:16px; flex-shrink:0; margin-top:1px;}
+.callout-tip{background:var(--green-dim); border-color:rgba(62,194,143,.35);}
+.callout-warn{background:var(--amber-dim); border-color:rgba(232,163,61,.35);}
+.callout-trap{background:var(--red-dim); border-color:rgba(199,70,52,.35);}
+.callout-q{background:var(--blue-dim); border-color:rgba(79,140,255,.35);}
+.callout b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+
+/* ---------- tables ---------- */
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0;}
+table.cmp th{text-align:left; color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:10px 12px; border-bottom:1px solid var(--border-strong);}
+table.cmp td{padding:11px 12px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:top;}
+table.cmp tr:hover td{background:var(--panel);}
+table.cmp td:first-child, table.cmp th:first-child{color:var(--text-1); font-weight:600;}
+
+/* ---------- small buttons ---------- */
+.chip-btn{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text-2); font-size:12.5px;
+  padding:7px 14px; border-radius:999px; cursor:pointer; transition:.2s; font-family:var(--font-body); font-weight:600;
+}
+.chip-btn:hover{border-color:var(--red); color:var(--red-bright);}
+.chip-btn.active{background:var(--red); color:#fff; border-color:var(--red);}
+
+/* ---------- footer ---------- */
+footer{padding:40px 32px; text-align:center; font-size:12.5px; color:var(--text-3); border-top:1px solid var(--border);}
+
+/* ============================================================
+   INTERACTIVE-SPECIFIC STYLES
+   ============================================================ */
+
+/* --- AD/FD failure simulator --- */
+.ad-buildings{display:flex; gap:14px; justify-content:center; margin:20px 0; flex-wrap:wrap;}
+.building{width:130px; text-align:center; padding:14px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel); transition:.4s;}
+.building .roof{font-size:26px; margin-bottom:6px;}
+.building .b-name{font-family:var(--font-mono); font-size:12px; margin-bottom:4px;}
+.building .b-status{font-size:11px; padding:3px 8px; border-radius:6px; display:inline-block;}
+.b-status.ok{background:var(--green-dim); color:var(--green);}
+.b-status.down{background:var(--red-dim); color:var(--red-bright);}
+.building.failed{opacity:.4; filter:grayscale(1); transform:translateY(4px);}
+.building.shaking{animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.fd-rack{display:flex; gap:12px; justify-content:center; margin:20px 0; flex-wrap:wrap;}
+.rack{width:150px; border:1px solid var(--border-strong); border-radius:8px; padding:8px; background:var(--panel);}
+.rack .rack-head{font-family:var(--font-mono); font-size:11px; text-align:center; color:var(--text-3); margin-bottom:6px;}
+.rack-slot{height:22px; border-radius:4px; background:var(--panel-2); margin-bottom:4px; font-size:10px; display:flex; align-items:center; justify-content:center; color:var(--text-3); border:1px solid var(--border);}
+.rack-slot.filled{background:var(--blue-dim); color:var(--blue); border-color:rgba(79,140,255,.4); font-weight:700;}
+.rack.dead{opacity:.35;}
+.rack.dead .rack-slot.filled{background:var(--red-dim); color:var(--red-bright);}
+
+/* --- Shared responsibility --- */
+.resp-track{position:relative; height:10px; border-radius:6px; background:linear-gradient(90deg,var(--blue) 0%,var(--blue) var(--split,50%), var(--red) var(--split,50%), var(--red) 100%); margin:24px 0 8px;}
+.resp-handle{position:absolute; top:50%; left:var(--split,50%); transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; border:3px solid var(--void); cursor:grab; box-shadow:0 0 0 4px rgba(255,255,255,0.15);}
+.resp-labels{display:flex; justify-content:space-between; font-size:12px; color:var(--text-2); margin-bottom:4px;}
+.resp-layers{display:flex; flex-direction:column; gap:6px; margin-top:16px;}
+.resp-layer-row{display:flex; align-items:center; gap:12px; font-size:13px;}
+.resp-layer-row .name{width:150px; flex-shrink:0; color:var(--text-1); font-weight:600;}
+.resp-layer-row .who{font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px;}
+.who-oracle{background:var(--blue-dim); color:var(--blue);}
+.who-you{background:var(--red-dim); color:var(--red-bright);}
+.who-shared{background:var(--amber-dim); color:var(--amber);}
+
+/* --- Compartment tree --- */
+.tree{font-family:var(--font-mono); font-size:13px; line-height:1.9;}
+.tree .node{padding:4px 10px; border-radius:6px; display:inline-block; cursor:pointer; transition:.2s;}
+.tree .node:hover{background:var(--panel-2);}
+.tree .node.root{color:var(--red-bright);}
+.tree .node.compartment{color:var(--blue);}
+.tree .node.resource{color:var(--text-3); font-size:12px;}
+.tree .lvl-1{margin-left:0;}
+.tree .lvl-2{margin-left:22px;}
+.tree .lvl-3{margin-left:44px;}
+.tree .lvl-4{margin-left:66px;}
+.tree .connector{color:var(--text-3);}
+
+/* --- CIA pillars --- */
+.pillars{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:20px 0;}
+@media (max-width:800px){.pillars{grid-template-columns:1fr;}}
+.pillar{padding:22px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); text-align:center; cursor:pointer; transition:.25s; background:var(--panel);}
+.pillar:hover{transform:translateY(-4px);}
+.pillar.active{border-color:var(--red-bright); box-shadow:0 0 24px rgba(199,70,52,.3);}
+.pillar .p-icon{font-size:38px; margin-bottom:10px;}
+.pillar .p-name{font-family:var(--font-display); font-weight:700; font-size:16px; margin-bottom:6px;}
+.pillar .p-tag{font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;}
+.pillar-detail{padding:18px; border-radius:var(--radius-sm); background:var(--panel-2); border:1px solid var(--border); min-height:100px; font-size:13.5px; color:var(--text-2);}
+.pillar-detail h5{color:var(--red-bright); font-family:var(--font-display); margin-bottom:8px; font-size:14px;}
+
+/* --- Defense in depth onion --- */
+.onion{position:relative; width:340px; height:340px; margin:20px auto; max-width:100%;}
+.onion-layer{position:absolute; border-radius:50%; border:2px solid; display:flex; align-items:flex-start; justify-content:center; padding-top:12px; font-family:var(--font-mono); font-size:11px; cursor:pointer; transition:.2s;}
+.onion-layer:hover{filter:brightness(1.25);}
+.onion-detail{margin-top:14px; padding:14px; background:var(--panel-2); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-2); min-height:70px; border:1px solid var(--border);}
+
+/* --- Zero Trust toggle --- */
+.zt-toggle{display:flex; gap:10px; margin:16px 0;}
+.zt-panel{padding:18px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel);}
+.zt-panel h5{margin-bottom:10px; font-size:14px;}
+
+/* --- Cost lever explorer --- */
+.lever-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0;}
+@media (max-width:800px){.lever-grid{grid-template-columns:1fr 1fr;}}
+.lever{padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--panel); cursor:pointer; transition:.2s; text-align:center;}
+.lever:hover{border-color:var(--red-bright);}
+.lever.active{border-color:var(--red-bright); background:var(--red-dim);}
+.lever .l-icon{font-size:22px; margin-bottom:6px;}
+.lever .l-name{font-size:12.5px; font-weight:600;}
+.lever-detail{padding:16px; border-radius:var(--radius-sm); background:var(--panel-2); border:1px solid var(--border); font-size:13.5px; margin-top:10px; min-height:80px;}
+
+/* --- chmod calculator --- */
+.chmod-box{background:var(--panel-2); border-radius:var(--radius-sm); padding:16px; border:1px solid var(--border);}
+.chmod-grid{display:grid; grid-template-columns:80px 1fr 1fr 1fr 80px; gap:8px; align-items:center; margin-bottom:10px;}
+.chmod-grid .label{color:var(--text-3); font-size:12px;}
+.chmod-cell{background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:8px; text-align:center; cursor:pointer; font-family:var(--font-mono); font-size:12px; transition:.2s;}
+.chmod-cell.on{background:var(--red-dim); color:var(--red-bright); border-color:var(--red);}
+.chmod-cell:hover{border-color:var(--border-strong);}
+.chmod-result{font-family:var(--font-mono); background:var(--panel); padding:12px; border-radius:6px; margin-top:12px; font-size:14px; color:var(--green); border:1px solid var(--border);}
+.chmod-result .octal{color:var(--red-bright); font-size:22px; font-weight:700;}
+
+/* --- CIDR calculator --- */
+.cidr-input{display:flex; gap:10px; align-items:center; margin:14px 0; flex-wrap:wrap;}
+.cidr-input input{
+  background:var(--panel); border:1px solid var(--border-strong); color:var(--text-1);
+  padding:10px 14px; border-radius:8px; font-family:var(--font-mono); font-size:14px; outline:none; width:200px;
+}
+.cidr-input input:focus{border-color:var(--red);}
+.cidr-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px;}
+@media (max-width:800px){.cidr-stats{grid-template-columns:1fr 1fr;}}
+.cidr-stat{background:var(--panel-2); padding:14px; border-radius:8px; text-align:center; border:1px solid var(--border);}
+.cidr-stat .val{font-family:var(--font-mono); font-size:22px; color:var(--red-bright); font-weight:700; display:block;}
+.cidr-stat .lbl{font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; margin-top:4px; display:block;}
+
+/* --- SSH diagnostics --- */
+.diag-tree{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:800px){.diag-tree{grid-template-columns:1fr;}}
+.diag-box{padding:18px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel); cursor:pointer; transition:.2s;}
+.diag-box:hover{border-color:var(--red-bright); transform:translateY(-2px);}
+.diag-box.active{border-color:var(--red-bright); background:var(--red-dim);}
+.diag-box .err{font-family:var(--font-mono); font-size:13px; color:var(--red-bright); margin-bottom:6px;}
+.diag-detail{padding:16px; border-radius:var(--radius-sm); background:var(--panel-2); border:1px solid var(--border); font-size:13.5px; margin-top:12px; min-height:80px;}
+
+/* --- Terraform workflow stepper --- */
+.tf-stepper{display:flex; gap:8px; margin:16px 0; flex-wrap:wrap;}
+.tf-step{
+  flex:1; min-width:120px; padding:14px; border-radius:var(--radius-sm); background:var(--panel);
+  border:1px solid var(--border-strong); cursor:pointer; transition:.2s; text-align:center; position:relative;
+}
+.tf-step:hover{border-color:var(--red-bright);}
+.tf-step.active{border-color:var(--red-bright); background:var(--red-dim);}
+.tf-step .tf-cmd{font-family:var(--font-mono); font-size:13px; color:var(--red-bright); font-weight:700;}
+.tf-step .tf-num{font-family:var(--font-mono); font-size:10px; color:var(--text-3); position:absolute; top:6px; left:8px;}
+.tf-detail{padding:16px; border-radius:var(--radius-sm); background:var(--panel-2); border:1px solid var(--border); font-size:13.5px; margin-top:12px; min-height:100px;}
+.tf-detail pre{background:#0c0d10; padding:10px; border-radius:6px; font-size:12px; margin-top:8px; color:#c7d0d9; overflow-x:auto;}
+
+/* --- State locking race demo --- */
+.race-demo{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0;}
+@media (max-width:800px){.race-demo{grid-template-columns:1fr;}}
+.engineer{padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel);}
+.engineer h5{margin-bottom:6px; font-size:13px;}
+.engineer .action{font-family:var(--font-mono); font-size:11.5px; color:var(--text-3); margin:4px 0; padding:4px 8px; background:var(--panel-2); border-radius:4px; display:inline-block;}
+.engineer .action.warn{color:var(--red-bright); background:var(--red-dim);}
+.engineer .action.ok{color:var(--green); background:var(--green-dim);}
+
+/* --- VCN diagram --- */
+.vcn-diagram{background:var(--panel); border:2px dashed var(--border-strong); border-radius:var(--radius); padding:18px; margin:14px 0;}
+.vcn-tier{border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; border:1px solid; transition:.2s; cursor:pointer;}
+.vcn-tier:hover{transform:translateX(4px);}
+.vcn-tier.web{border-color:rgba(62,194,143,.4); background:var(--green-dim);}
+.vcn-tier.app{border-color:rgba(232,163,61,.4); background:var(--amber-dim);}
+.vcn-tier.db{border-color:rgba(79,140,255,.4); background:var(--blue-dim);}
+.vcn-tier .t-name{font-family:var(--font-display); font-weight:700; font-size:14px; margin-bottom:4px;}
+.vcn-tier .t-meta{font-family:var(--font-mono); font-size:11px; color:var(--text-3);}
+.vcn-tier .t-info{font-size:12.5px; color:var(--text-2); margin-top:6px;}
+
+/* --- Gateway flow --- */
+.gw-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:14px 0;}
+@media (max-width:800px){.gw-grid{grid-template-columns:1fr;}}
+.gw{padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel); cursor:pointer; transition:.2s;}
+.gw:hover{border-color:var(--red-bright);}
+.gw.active{border-color:var(--red-bright); background:var(--red-dim);}
+.gw .gw-icon{font-size:26px; margin-bottom:8px;}
+.gw .gw-name{font-family:var(--font-display); font-weight:700; font-size:14px;}
+.gw .gw-abbr{font-family:var(--font-mono); font-size:11px; color:var(--text-3); margin-top:2px;}
+.gw-flow{padding:16px; border-radius:var(--radius-sm); background:var(--panel-2); border:1px solid var(--border); font-size:13.5px; margin-top:12px; min-height:80px;}
+
+/* --- Envelope encryption --- */
+.envelope{display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; margin:20px 0;}
+.env-item{padding:14px 18px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--panel); text-align:center; min-width:140px;}
+.env-item .icon{font-size:26px; margin-bottom:6px;}
+.env-item .name{font-family:var(--font-display); font-weight:700; font-size:13px;}
+.env-item .desc{font-size:11.5px; color:var(--text-3); margin-top:4px;}
+.env-arrow{font-size:20px; color:var(--red-bright);}
+.env-item.mek{border-color:var(--red-bright); box-shadow:0 0 20px rgba(199,70,52,.25);}
+.env-item.dek{border-color:var(--blue);}
+
+/* --- Quiz --- */
+.quiz-card{padding:22px; border-radius:var(--radius); border:1px solid var(--border-strong); background:var(--panel);}
+.quiz-q{font-size:15px; font-weight:600; margin-bottom:14px;}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{padding:11px 14px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2); cursor:pointer; transition:.2s; font-size:13.5px;}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{background:var(--green-dim); border-color:var(--green); color:var(--green);}
+.quiz-opt.wrong{background:var(--red-dim); border-color:var(--red); color:var(--red-bright);}
+.quiz-nav{display:flex; justify-content:space-between; align-items:center; margin-top:16px;}
+.quiz-progress{font-family:var(--font-mono); font-size:12px; color:var(--text-3);}
+.quiz-explain{margin-top:12px; padding:12px; border-radius:8px; background:var(--blue-dim); border:1px solid rgba(79,140,255,.3); font-size:13px; display:none;}
+.quiz-explain.show{display:block;}
+.quiz-explain b{color:var(--blue); display:block; margin-bottom:4px; font-size:11px; text-transform:uppercase; letter-spacing:.06em;}
+
+/* Chapter numbering colors per day */
+section[data-day="2"] .chapter-kicker .idx{color:var(--amber); background:var(--amber-dim); border-color:rgba(232,163,61,.3);}
+section[data-day="3"] .chapter-kicker .idx{color:var(--blue); background:var(--blue-dim); border-color:rgba(79,140,255,.3);}
+section[data-day="4"] .chapter-kicker .idx{color:var(--green); background:var(--green-dim); border-color:rgba(62,194,143,.3);}
+section[data-day="5"] .chapter-kicker .idx{color:var(--purple); background:var(--purple-dim); border-color:rgba(167,139,250,.3);}
+
+.small{font-size:12px; color:var(--text-3);}
+.center{text-align:center;}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <button id="sidebar-toggle" title="Toggle sidebar">☰</button>
+  <div class="brand"><span class="dot"></span> OCI Exam Prep</div>
+  <div id="search-wrap">
+    <span class="sicon">🔍</span>
+    <input type="text" id="search" placeholder="Search topics, keywords, commands…">
+    <div id="search-results"></div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div id="score-chip">Score: <b id="score-value">0</b>/<span id="score-total">10</span></div>
+  <button id="theme-toggle" title="Toggle theme">🌙</button>
+</div>
+
+<div id="shell">
+  <nav id="sidebar">
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">D1</span>Cloud Foundations &amp; IAM</div>
+      <a class="nav-link" href="#d1-regions"><span class="num">1.1</span>Regions, ADs, FDs</a>
+      <a class="nav-link" href="#d1-shared"><span class="num">1.2</span>Shared Responsibility</a>
+      <a class="nav-link" href="#d1-compartments"><span class="num">1.3</span>Compartments &amp; Tagging</a>
+      <a class="nav-link" href="#d1-identity"><span class="num">1.4</span>Identity &amp; IAM</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">D2</span>Security &amp; Cost</div>
+      <a class="nav-link" href="#d2-cia"><span class="num">2.1</span>CIA Triad</a>
+      <a class="nav-link" href="#d2-did"><span class="num">2.2</span>Defense-in-Depth</a>
+      <a class="nav-link" href="#d2-zt"><span class="num">2.3</span>Zero Trust</a>
+      <a class="nav-link" href="#d2-posture"><span class="num">2.4</span>Cloud Guard / Zones / Advisor</a>
+      <a class="nav-link" href="#d2-org"><span class="num">2.5</span>Organization Management</a>
+      <a class="nav-link" href="#d2-budgets"><span class="num">2.6</span>Budgets &amp; Cost Analysis</a>
+      <a class="nav-link" href="#d2-levers"><span class="num">2.7</span>Cost-Reduction Levers</a>
+      <a class="nav-link" href="#d2-compliance"><span class="num">2.8</span>Compliance Readiness</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">D3</span>Linux, Networking &amp; CLI</div>
+      <a class="nav-link" href="#d3-chmod"><span class="num">3.1</span>Linux Permissions</a>
+      <a class="nav-link" href="#d3-cidr"><span class="num">3.2</span>CIDR &amp; Subnetting</a>
+      <a class="nav-link" href="#d3-ssh"><span class="num">3.3</span>TLS/SSL &amp; SSH</a>
+      <a class="nav-link" href="#d3-lb"><span class="num">3.4</span>Load Balancer Basics</a>
+      <a class="nav-link" href="#d3-cli"><span class="num">3.5</span>OCI Cloud Shell &amp; CLI</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">D4</span>Infrastructure as Code</div>
+      <a class="nav-link" href="#d4-iac"><span class="num">4.1</span>Declarative vs Imperative</a>
+      <a class="nav-link" href="#d4-tf"><span class="num">4.2</span>Terraform Workflow</a>
+      <a class="nav-link" href="#d4-state"><span class="num">4.3</span>State &amp; Locking</a>
+      <a class="nav-link" href="#d4-rm"><span class="num">4.4</span>Resource Manager</a>
+      <a class="nav-link" href="#d4-drift"><span class="num">4.5</span>Drift Detection</a>
+      <a class="nav-link" href="#d4-discovery"><span class="num">4.6</span>Resource Discovery</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">D5</span>VCN, Compute &amp; Storage</div>
+      <a class="nav-link" href="#d5-vcn"><span class="num">5.1</span>VCN 3-Tier Design</a>
+      <a class="nav-link" href="#d5-gateways"><span class="num">5.2</span>IGW / NGW / SGW</a>
+      <a class="nav-link" href="#d5-nsg"><span class="num">5.3</span>NSGs &amp; Security Lists</a>
+      <a class="nav-link" href="#d5-cloudinit"><span class="num">5.4</span>Compute &amp; cloud-init</a>
+      <a class="nav-link" href="#d5-volumes"><span class="num">5.5</span>Boot vs Block Volume</a>
+      <a class="nav-link" href="#d5-ssh"><span class="num">5.6</span>SSH Key Injection</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">D6</span>Encryption &amp; Keys</div>
+      <a class="nav-link" href="#d6-vault"><span class="num">6.1</span>OCI Vault &amp; KMS</a>
+      <a class="nav-link" href="#d6-envelope"><span class="num">6.2</span>MEK vs DEK</a>
+      <a class="nav-link" href="#d6-hsm"><span class="num">6.3</span>Software vs HSM</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-head"><span class="day-num">★</span>Final</div>
+      <a class="nav-link" href="#quiz"><span class="num">Q</span>Practice Quiz</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="hero">
+      <span class="eyebrow">● Parul University · Mid-Sem Prep · Subject Code 303105518</span>
+      <h1>Six days of OCI,<br>one <span class="accent">interactive playground.</span></h1>
+      <p class="lede">Every important topic from your Day 1–6 planner — turned into visual explainers, click-through simulators, and worked exam questions. No slides. Just play with the concepts until they click.</p>
+      <div class="hero-stats">
+        <div class="hstat"><b>6</b><span>Days covered</span></div>
+        <div class="hstat"><b>28</b><span>Exam topics</span></div>
+        <div class="hstat"><b>15+</b><span>Live simulators</span></div>
+        <div class="hstat"><b>10</b><span>Practice MCQs</span></div>
+      </div>
+      <div class="cta-row">
+        <a href="#d1-regions" class="btn btn-primary">Start Day 1 →</a>
+        <a href="#quiz" class="btn btn-ghost">Jump to practice quiz</a>
+      </div>
+    </section>
+
+    <div class="container">
+
+    <!-- =========================================================
+         DAY 1 — CLOUD FOUNDATIONS & IAM
+         ========================================================= -->
+    <div class="day-banner reveal" data-day="1">
+      <span class="day-tag">Day 1 · 4 topics</span>
+      <h2>Cloud Foundations &amp; IAM</h2>
+      <p>OCI's physical layout (regions → ADs → fault domains), who owns what in the cloud, how you carve a tenancy into compartments, and how identity plugs it all together.</p>
+    </div>
+
+    <!-- 1.1 REGIONS, ADs, FDs -->
+    <section class="chapter reveal" id="d1-regions" data-day="1">
+      <div class="chapter-kicker"><span class="idx">1.1</span><span class="track">Resiliency Architecture</span></div>
+      <h2>Regions, Availability Domains &amp; Fault Domains</h2>
+      <p class="dek">Three levels of physical isolation. Each protects against a different kind of failure — and the exam <em>will</em> ask you which is which.</p>
+
+      <div class="grid grid-3">
+        <div class="card"><span class="tag">Largest</span><h4>🌍 Region</h4><p>A geographic area (e.g. Mumbai, Frankfurt) containing one or more ADs. Protects against city-level or country-level disaster.</p></div>
+        <div class="card blue"><span class="tag">Mid</span><h4>🏢 Availability Domain (AD)</h4><p>A physically separate data center within a region. Its own power, cooling, and network. Protects against DC-wide failure.</p></div>
+        <div class="card green"><span class="tag">Smallest</span><h4>🖥️ Fault Domain (FD)</h4><p>A logical grouping of hardware <strong>inside one AD</strong>. Three FDs per AD. Protects against rack-level or hardware failure.</p></div>
+      </div>
+
+      <h3>Try it: fail an AD</h3>
+      <p>Click a building below to simulate an availability domain outage. Watch what survives.</p>
+      <div class="panel">
+        <div class="ad-buildings" id="ad-sim">
+          <div class="building" data-ad="AD-1"><div class="roof">🏢</div><div class="b-name">AD-1</div><div class="b-status ok" id="ad-1-status">Healthy</div></div>
+          <div class="building" data-ad="AD-2"><div class="roof">🏢</div><div class="b-name">AD-2</div><div class="b-status ok" id="ad-2-status">Healthy</div></div>
+          <div class="building" data-ad="AD-3"><div class="roof">🏢</div><div class="b-name">AD-3</div><div class="b-status ok" id="ad-3-status">Healthy</div></div>
+        </div>
+        <p class="small center" id="ad-msg">Deploy across all 3 ADs and one AD outage doesn't take you down.</p>
+        <div style="text-align:center; margin-top:12px;">
+          <button class="chip-btn" id="ad-reset">↺ Reset all ADs</button>
+        </div>
+      </div>
+
+      <h3>Try it: fail a fault domain</h3>
+      <p>Each AD has three fault domains. OCI automatically spreads your instances across them.</p>
+      <div class="panel">
+        <div class="fd-rack" id="fd-sim">
+          <div class="rack" data-fd="FD-1">
+            <div class="rack-head">FD-1</div>
+            <div class="rack-slot filled">web-01</div>
+            <div class="rack-slot filled">app-01</div>
+          </div>
+          <div class="rack" data-fd="FD-2">
+            <div class="rack-head">FD-2</div>
+            <div class="rack-slot filled">web-02</div>
+            <div class="rack-slot filled">app-02</div>
+          </div>
+          <div class="rack" data-fd="FD-3">
+            <div class="rack-head">FD-3</div>
+            <div class="rack-slot filled">web-03</div>
+            <div class="rack-slot filled">db-01</div>
+          </div>
+        </div>
+        <p class="small center" id="fd-msg">Click a rack to simulate a fault domain failure. The other two carry the load.</p>
+        <div style="text-align:center; margin-top:12px;">
+          <button class="chip-btn" id="fd-reset">↺ Reset all FDs</button>
+        </div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>The question "what protects against hardware failure <em>inside a single AD</em>?" has one answer: <strong>Fault Domains</strong>. Regions protect against geography, ADs protect against data-center failure, FDs protect against hardware inside one DC.</div></div>
+      <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Common Trap</b>Some OCI regions have only <strong>one AD</strong> (single-AD regions). In those, high availability is achieved by spreading across the 3 fault domains, or by replicating to another region.</div></div>
+    </section>
+
+    <!-- 1.2 SHARED RESPONSIBILITY -->
+    <section class="chapter reveal" id="d1-shared" data-day="1">
+      <div class="chapter-kicker"><span class="idx">1.2</span><span class="track">Cloud Foundations</span></div>
+      <h2>Shared Responsibility Model</h2>
+      <p class="dek">The cloud doesn't do everything for you. Oracle secures the infrastructure; you secure what you build on top.</p>
+
+      <p>The line between "Oracle's job" and "your job" moves depending on the service model. In <strong>IaaS</strong>, you own more (guest OS, patches, apps). In <strong>PaaS</strong>, Oracle handles more (OS, runtime). In <strong>SaaS</strong>, you basically own only your data and users.</p>
+
+      <div class="panel">
+        <div class="resp-labels"><span>Oracle</span><span id="resp-model-name" style="color:var(--red-bright); font-family:var(--font-display); font-weight:700;">IaaS</span><span>You</span></div>
+        <div class="resp-track" id="resp-track" style="--split:35%;">
+          <div class="resp-handle" id="resp-handle"></div>
+        </div>
+        <div style="text-align:center; margin-top:14px; display:flex; gap:8px; justify-content:center;">
+          <button class="chip-btn active" data-model="IaaS">IaaS</button>
+          <button class="chip-btn" data-model="PaaS">PaaS</button>
+          <button class="chip-btn" data-model="SaaS">SaaS</button>
+        </div>
+        <div class="resp-layers" id="resp-layers"></div>
+      </div>
+
+      <h3>What each side ALWAYS owns</h3>
+      <table class="cmp">
+        <tr><th>Oracle always secures</th><th>You always secure</th></tr>
+        <tr>
+          <td>Physical facilities, hardware, hypervisor, network fabric, region &amp; AD infrastructure</td>
+          <td>Your <strong>data</strong>, <strong>users &amp; IAM policies</strong>, and <strong>configuration</strong> of the services you use</td>
+        </tr>
+      </table>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Two responsibilities you'll be asked about — <em>Provider (Oracle):</em> physical security of the data center. <em>Customer (You):</em> configuring IAM policies and encrypting your data. These are the safest example answers.</div></div>
+    </section>
+
+    <!-- 1.3 COMPARTMENTS & TAGGING -->
+    <section class="chapter reveal" id="d1-compartments" data-day="1">
+      <div class="chapter-kicker"><span class="idx">1.3</span><span class="track">Governance</span></div>
+      <h2>Compartments &amp; Tagging Strategy</h2>
+      <p class="dek">Compartments are logical folders for resources. Tags are labels on those resources. Together they let you split one tenancy across many teams cleanly.</p>
+
+      <p>A <strong>compartment</strong> is a logical container. Every OCI resource lives in exactly one compartment. IAM policies are almost always written <em>against</em> compartments — that's how you give a team access to only their stuff.</p>
+
+      <h3>Example compartment hierarchy</h3>
+      <div class="panel">
+        <div class="tree">
+          <div class="lvl-1"><span class="node root">📁 root (tenancy)</span></div>
+          <div class="lvl-2"><span class="connector">├─</span> <span class="node compartment">📂 Prod</span></div>
+          <div class="lvl-3"><span class="connector">│  ├─</span> <span class="node compartment">📂 Prod-Web</span> <span class="resource">→ VCN, LB, Compute</span></div>
+          <div class="lvl-3"><span class="connector">│  ├─</span> <span class="node compartment">📂 Prod-App</span> <span class="resource">→ Compute, Vault</span></div>
+          <div class="lvl-3"><span class="connector">│  └─</span> <span class="node compartment">📂 Prod-DB</span> <span class="resource">→ Autonomous DB, Backups</span></div>
+          <div class="lvl-2"><span class="connector">├─</span> <span class="node compartment">📂 Dev</span></div>
+          <div class="lvl-3"><span class="connector">│  ├─</span> <span class="node compartment">📂 Dev-Sandbox</span> <span class="resource">→ Free-tier resources</span></div>
+          <div class="lvl-3"><span class="connector">│  └─</span> <span class="node compartment">📂 Dev-Shared</span> <span class="resource">→ Shared services</span></div>
+          <div class="lvl-2"><span class="connector">└─</span> <span class="node compartment">📂 Security</span> <span class="resource">→ Audit logs, Vault, Bastion</span></div>
+        </div>
+      </div>
+
+      <h3>Tagging: give every resource a label</h3>
+      <p>Tags are key–value labels attached to resources. Two kinds:</p>
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">Free-form</span><h4>🏷️ Free-form Tags</h4><p>Any key, any value. No governance. Good for quick notes; bad for enterprise-scale.</p></div>
+        <div class="card blue"><span class="tag">Governed</span><h4>🔒 Defined Tags</h4><p>Keys defined in a tag namespace by an admin. Values can be constrained. Use these for cost allocation and policy enforcement.</p></div>
+      </div>
+
+      <div class="callout callout-q"><div class="ic">❓</div><div><b>Why it matters for the exam</b>The tenancy operating-model question in your paper asks for a compartment structure. Answer with: <strong>root → environment (Prod/Dev) → application/team compartments</strong>, plus a separate Security compartment for audit and vault resources.</div></div>
+    </section>
+
+    <!-- 1.4 IDENTITY -->
+    <section class="chapter reveal" id="d1-identity" data-day="1">
+      <div class="chapter-kicker"><span class="idx">1.4</span><span class="track">IAM</span></div>
+      <h2>Identity Domains, Users, Groups, Policies &amp; Federation</h2>
+      <p class="dek">Who you are (identity), what you can do (policy), and how you sign in without creating a new password for every cloud (federation).</p>
+
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">Container</span><h4>🏛️ Identity Domain</h4><p>A self-contained identity solution — its own users, groups, applications, and sign-in policies. A tenancy can have several.</p></div>
+        <div class="card blue"><span class="tag">Actor</span><h4>👤 User</h4><p>A single principal — a person or an application. Users authenticate; they don't get permissions directly.</p></div>
+        <div class="card green"><span class="tag">Collection</span><h4>👥 Group</h4><p>A set of users. Permissions are granted to <strong>groups</strong>, not to users individually.</p></div>
+        <div class="card amber"><span class="tag">Rule</span><h4>📜 Policy</h4><p>A statement of who can do what. Grammar: <code>Allow group &lt;G&gt; to &lt;verb&gt; &lt;resource&gt; in compartment &lt;C&gt;</code></p></div>
+      </div>
+
+      <h3>The IAM flow — how a request is authorized</h3>
+      <div class="panel">
+        <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:center;">
+          <div class="env-item"><div class="icon">👤</div><div class="name">User</div><div class="desc">alice@corp</div></div>
+          <div class="env-arrow">→</div>
+          <div class="env-item"><div class="icon">👥</div><div class="name">Group</div><div class="desc">DBAdmins</div></div>
+          <div class="env-arrow">→</div>
+          <div class="env-item"><div class="icon">📜</div><div class="name">Policy</div><div class="desc">Allow group DBAdmins to manage database-family in compartment Prod-DB</div></div>
+          <div class="env-arrow">→</div>
+          <div class="env-item"><div class="icon">✅</div><div class="name">Access</div><div class="desc">Granted</div></div>
+        </div>
+      </div>
+
+      <h3>Federation &amp; SSO — one login, many clouds</h3>
+      <p><strong>Federation</strong> trusts identities from an <em>external</em> identity provider (Microsoft Entra ID, Okta, Active Directory). Users sign in <em>there</em>, and OCI accepts their token. <strong>SSO</strong> (Single Sign-On) is the user-visible outcome: sign in once, access everything.</p>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Never grant permissions to a user directly. Always create a <strong>group</strong>, attach the user to the group, and write the policy against the group. This is testable and interviewable.</div></div>
+      <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Common Trap</b>Policies use <em>verb families</em>: <code>inspect</code> (weakest, list only) → <code>read</code> → <code>use</code> → <code>manage</code> (strongest, full CRUD). Don't grant <code>manage</code> when <code>use</code> is enough. Least privilege is exam-tested.</div></div>
+    </section>
+
+    <!-- =========================================================
+         DAY 2 — SECURITY & COST GOVERNANCE
+         ========================================================= -->
+    <div class="day-banner reveal" data-day="2" style="background:linear-gradient(120deg, var(--amber-dim), transparent 70%); border-color:rgba(232,163,61,.25);">
+      <span class="day-tag" style="color:var(--amber); background:var(--amber-dim);">Day 2 · 8 topics</span>
+      <h2>Security &amp; Cost Governance</h2>
+      <p>The two things every enterprise cloud program lives or dies on: keeping the environment secure, and keeping the bill sane.</p>
+    </div>
+
+    <!-- 2.1 CIA TRIAD -->
+    <section class="chapter reveal" id="d2-cia" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.1</span><span class="track">Security Fundamentals</span></div>
+      <h2>The CIA Triad</h2>
+      <p class="dek">Three properties every security control ultimately serves. Click a pillar to see what each protects.</p>
+
+      <div class="pillars" id="cia-pillars">
+        <div class="pillar active" data-pillar="C"><div class="p-icon">🔒</div><div class="p-name">Confidentiality</div><div class="p-tag">Keep secrets secret</div></div>
+        <div class="pillar" data-pillar="I"><div class="p-icon">🛡️</div><div class="p-name">Integrity</div><div class="p-tag">Data isn't tampered with</div></div>
+        <div class="pillar" data-pillar="A"><div class="p-icon">⚡</div><div class="p-name">Availability</div><div class="p-tag">System is reachable</div></div>
+      </div>
+      <div class="pillar-detail" id="cia-detail">
+        <h5>Confidentiality</h5>
+        <p>Only authorized people can read the data. <strong>OCI controls:</strong> IAM policies (least privilege), Vault encryption, TLS in transit, private subnets. Broken by: leaked credentials, misconfigured public buckets, unencrypted traffic.</p>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>When asked "what does each principle protect?", give a concrete OCI example: <em>Confidentiality → encryption &amp; IAM. Integrity → checksums, audit logs, MFA. Availability → multi-AD deployment, load balancer, backups.</em></div></div>
+    </section>
+
+    <!-- 2.2 DEFENSE IN DEPTH -->
+    <section class="chapter reveal" id="d2-did" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.2</span><span class="track">Security Fundamentals</span></div>
+      <h2>Defense-in-Depth</h2>
+      <p class="dek">Never rely on one wall. Stack layers of controls so that if one fails, the next one still holds.</p>
+
+      <p>Think of your OCI environment as an onion. An attacker must peel through every layer to reach the data. Each layer is independent.</p>
+
+      <div class="onion" id="onion-viz">
+        <!-- Populated by JS -->
+      </div>
+      <div class="onion-detail" id="onion-detail">
+        <b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">Click a layer above</b>
+        <div style="margin-top:6px;">Each ring is an independent security layer. If one breaks, the ones beneath still protect the data.</div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>OCI Example (exam answer)</b>"Attacker gets past the load balancer → NSG blocks the port → Security List blocks the subnet → the OS firewall drops the packet → IAM policy denies the API call → data is encrypted with a customer-managed key." <em>That's</em> defense-in-depth.</div></div>
+    </section>
+
+    <!-- 2.3 ZERO TRUST -->
+    <section class="chapter reveal" id="d2-zt" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.3</span><span class="track">Security Fundamentals</span></div>
+      <h2>Zero Trust vs Traditional Perimeter</h2>
+      <p class="dek">The old model: trust the network. The new model: trust nothing, verify everything.</p>
+
+      <div class="grid grid-2">
+        <div class="zt-panel" style="border-color:rgba(232,163,61,.4);">
+          <h5 style="color:var(--amber);">🏰 Traditional Perimeter</h5>
+          <p style="font-size:13.5px; color:var(--text-2);">Build a strong outer wall (firewall). Inside = trusted. Outside = untrusted. Once you're in the LAN, you can usually reach most things.</p>
+          <p style="font-size:12.5px; color:var(--text-3); margin-top:8px;"><strong>Fails when:</strong> the attacker gets one credential and moves laterally through the network.</p>
+        </div>
+        <div class="zt-panel" style="border-color:rgba(62,194,143,.4);">
+          <h5 style="color:var(--green);">🛑 Zero Trust</h5>
+          <p style="font-size:13.5px; color:var(--text-2);">No implicit trust anywhere. Every request is authenticated, authorized, and encrypted — <em>even inside the network</em>.</p>
+          <p style="font-size:12.5px; color:var(--text-3); margin-top:8px;"><strong>Core principles:</strong> Verify explicitly · Least privilege · Assume breach.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>One-line Zero Trust principle: <em>"Never trust, always verify."</em> Every request re-authenticates and re-authorizes regardless of where it comes from.</div></div>
+    </section>
+
+    <!-- 2.4 CLOUD GUARD / SECURITY ZONES / ADVISOR -->
+    <section class="chapter reveal" id="d2-posture" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.4</span><span class="track">Security Posture</span></div>
+      <h2>Cloud Guard, Security Zones &amp; Security Advisor</h2>
+      <p class="dek">Three OCI services that watch, block, and guide. They sound similar — but only one <em>prevents</em> risky actions.</p>
+
+      <table class="cmp">
+        <tr><th>Service</th><th>What it does</th><th>Mode</th></tr>
+        <tr>
+          <td>☁️ Cloud Guard</td>
+          <td>Continuously scans your tenancy for risky configurations and suspicious activity. Uses <strong>detectors</strong> (find problems) and <strong>responders</strong> (fix them).</td>
+          <td><strong>Detects</strong> (and can auto-respond)</td>
+        </tr>
+        <tr>
+          <td>🛡️ Security Zones</td>
+          <td>Locks a compartment down to a policy of security best practices. Risky actions are <strong>blocked at creation time</strong> — e.g., you cannot create a public bucket in a Security Zone.</td>
+          <td><strong>Prevents</strong></td>
+        </tr>
+        <tr>
+          <td>💡 Security Advisor</td>
+          <td>A unified workflow that walks you through creating resources with best-practice security defaults (encryption keys, private endpoints, etc.).</td>
+          <td><strong>Guides</strong></td>
+        </tr>
+      </table>
+
+      <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Exam-critical distinction</b>Cloud Guard <em>detects</em> problems after they exist. Security Zones <em>prevent</em> them from being created in the first place. That's the difference the exam wants: <strong>Security Zones enforce policy at creation; Cloud Guard just observes and reports.</strong></div></div>
+    </section>
+
+    <!-- 2.5 ORG MANAGEMENT -->
+    <section class="chapter reveal" id="d2-org" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.5</span><span class="track">Governance</span></div>
+      <h2>Organization Management</h2>
+      <p class="dek">When one tenancy isn't enough, OCI Organizations let you group multiple tenancies for central billing and governance.</p>
+
+      <p>Big companies often need <strong>separate tenancies</strong> — one per business unit, per region, or per environment (Prod isolated from Dev). Organization Management gives you:</p>
+      <ul>
+        <li><strong>Centralized billing</strong> — one invoice across all child tenancies.</li>
+        <li><strong>Consolidated governance</strong> — apply security and cost policies from the parent.</li>
+        <li><strong>Cross-tenancy visibility</strong> — usage and cost reports rolled up.</li>
+      </ul>
+
+      <div class="callout callout-q"><div class="ic">❓</div><div><b>When to use compartments vs tenancies</b>Same team, different apps → <strong>compartments</strong>. Different legal entities or hard security boundaries → <strong>separate tenancies under one Organization</strong>.</div></div>
+    </section>
+
+    <!-- 2.6 BUDGETS -->
+    <section class="chapter reveal" id="d2-budgets" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.6</span><span class="track">Cost Management</span></div>
+      <h2>Budgets &amp; Cost Analysis</h2>
+      <p class="dek">Set a spend cap. Get an email before you blow it. Look back to see where the money went.</p>
+
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">Forward-looking</span><h4>💰 Budgets &amp; Alerts</h4><p>Define a monthly spending cap on a compartment or a tag. OCI emails you when actual or forecast spend crosses a threshold (e.g. 80%, 100%).</p></div>
+        <div class="card blue"><span class="tag">Backward-looking</span><h4>📊 Cost Analysis</h4><p>Break down what you've already spent — by compartment, service, tag, or time. Answers "why did our bill jump last week?"</p></div>
+      </div>
+
+      <h3>Mock budget dashboard</h3>
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:13px; color:var(--text-3);">Budget: Prod-Web compartment · $5,000/mo</span>
+          <span style="font-family:var(--font-mono); font-size:13px; color:var(--amber);">$4,120 / $5,000 (82%)</span>
+        </div>
+        <div style="height:12px; background:var(--panel-2); border-radius:6px; overflow:hidden;">
+          <div style="height:100%; width:82%; background:linear-gradient(90deg, var(--amber), var(--red-bright));"></div>
+        </div>
+        <p class="small" style="margin-top:10px;">⚠️ At 80% you'd receive an email alert. At 100%, OCI does <em>not</em> shut resources down — it just warns. You must act on the alert.</p>
+      </div>
+
+      <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Common Trap</b>OCI budgets are <strong>advisory</strong>. Hitting 100% does not stop your workloads. To hard-stop spend, you have to use <strong>service limits and quotas</strong> instead.</div></div>
+    </section>
+
+    <!-- 2.7 COST LEVERS -->
+    <section class="chapter reveal" id="d2-levers" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.7</span><span class="track">Cost Management</span></div>
+      <h2>Cost-Reduction Levers</h2>
+      <p class="dek">Four buttons you can pull to reduce spend without reducing capability. Click each one below.</p>
+
+      <div class="lever-grid" id="lever-grid">
+        <div class="lever active" data-lever="byol"><div class="l-icon">📜</div><div class="l-name">BYOL</div></div>
+        <div class="lever" data-lever="reserved"><div class="l-icon">💾</div><div class="l-name">Reserved Capacity</div></div>
+        <div class="lever" data-lever="marketplace"><div class="l-icon">🛒</div><div class="l-name">OCI Marketplace</div></div>
+        <div class="lever" data-lever="advisor"><div class="l-icon">💡</div><div class="l-name">Cloud Advisor</div></div>
+      </div>
+      <div class="lever-detail" id="lever-detail">
+        <b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">BYOL — Bring Your Own License</b>
+        <div style="margin-top:6px;">Already own Oracle Database or WebLogic licenses on-prem? Bring them to OCI. You pay the lower "BYOL" compute rate instead of the "License Included" rate — often 60–70% cheaper for licensed products.</div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-ready summary</b>Four levers, one feature each: <strong>BYOL</strong> (licensing), <strong>Reserved Capacity</strong> (compute commit for discount), <strong>OCI Marketplace</strong> (pre-approved, sometimes discounted software), <strong>Cloud Advisor</strong> (recommendations engine that finds idle/oversized resources).</div></div>
+    </section>
+
+    <!-- 2.8 COMPLIANCE -->
+    <section class="chapter reveal" id="d2-compliance" data-day="2">
+      <div class="chapter-kicker"><span class="idx">2.8</span><span class="track">Governance</span></div>
+      <h2>Compliance Readiness &amp; Governance Frameworks</h2>
+      <p class="dek">When an auditor walks in, you have about 30 minutes to prove your controls are working. Here's where the evidence lives.</p>
+
+      <table class="cmp">
+        <tr><th>What to check</th><th>Where the evidence lives in OCI</th></tr>
+        <tr><td>Who did what, and when?</td><td><strong>OCI Audit</strong> service — logs every API call for 365 days.</td></tr>
+        <tr><td>Are risky configs present?</td><td><strong>Cloud Guard</strong> problem list.</td></tr>
+        <tr><td>Is data encrypted?</td><td><strong>Vault / KMS</strong> — key catalog, rotation history.</td></tr>
+        <tr><td>Who has access to what?</td><td><strong>IAM policies</strong> + tag defaults on compartments.</td></tr>
+        <tr><td>Third-party certifications (SOC 2, ISO 27001, PCI DSS, HIPAA)</td><td><strong>Oracle Compliance Portal</strong> — Oracle publishes attestations.</td></tr>
+      </table>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Standard governance frameworks the exam may name-drop: <strong>NIST CSF</strong>, <strong>CIS Benchmarks</strong>, <strong>ISO 27001</strong>, <strong>SOC 2</strong>. Oracle maps its own compliance to these — so "which framework?" is less important than "where's the evidence?" — and evidence lives in <strong>Audit + Cloud Guard</strong>.</div></div>
+    </section>
+
+    <!-- =========================================================
+         DAY 3 — LINUX, NETWORKING & CLI
+         ========================================================= -->
+    <div class="day-banner reveal" data-day="3" style="background:linear-gradient(120deg, var(--blue-dim), transparent 70%); border-color:rgba(79,140,255,.25);">
+      <span class="day-tag" style="color:var(--blue); background:var(--blue-dim);">Day 3 · 5 topics</span>
+      <h2>Linux, Networking &amp; CLI</h2>
+      <p>The Unix filesystem permissions model, the addressing math you can't escape, why SSH failed <em>this time</em>, why the load balancer returned 502, and how to drive OCI from a command line.</p>
+    </div>
+
+    <!-- 3.1 CHMOD -->
+    <section class="chapter reveal" id="d3-chmod" data-day="3">
+      <div class="chapter-kicker"><span class="idx">3.1</span><span class="track">Linux Access Control</span></div>
+      <h2>Linux Permissions &amp; <code>chmod</code></h2>
+      <p class="dek">Every file has three sets of permissions — for its <em>owner</em>, its <em>group</em>, and <em>everyone else</em>. Each set has read, write, execute.</p>
+
+      <p>The classic 10-character listing decodes like this:</p>
+      <div class="panel" style="padding:16px;">
+        <div style="font-family:var(--font-mono); font-size:14px; text-align:center; line-height:2.2;">
+          <span style="color:var(--text-3);">-</span><span style="color:var(--red-bright);">rwx</span><span style="color:var(--amber);">r-x</span><span style="color:var(--blue);">---</span>
+          &nbsp;&nbsp; 1 oracle dba 4096 Aug 6 deploy.sh
+        </div>
+        <div style="display:flex; justify-content:center; gap:36px; font-size:12px; color:var(--text-2); margin-top:8px;">
+          <span><span style="color:var(--text-3);">─</span> file type</span>
+          <span><span style="color:var(--red-bright);">rwx</span> owner (oracle)</span>
+          <span><span style="color:var(--amber);">r-x</span> group (dba)</span>
+          <span><span style="color:var(--blue);">---</span> others</span>
+        </div>
+      </div>
+
+      <h3>Try it: chmod calculator</h3>
+      <p>Click the cells to toggle permissions. The octal notation updates live.</p>
+      <div class="chmod-box">
+        <div class="chmod-grid" style="grid-template-columns:80px repeat(3, 1fr); font-size:11px; color:var(--text-3);">
+          <div></div><div class="center">Read (4)</div><div class="center">Write (2)</div><div class="center">Execute (1)</div>
+        </div>
+        <div class="chmod-grid" style="grid-template-columns:80px repeat(3, 1fr);">
+          <div class="label">Owner</div>
+          <div class="chmod-cell on" data-perm="owner-r" data-value="4">r</div>
+          <div class="chmod-cell on" data-perm="owner-w" data-value="2">w</div>
+          <div class="chmod-cell on" data-perm="owner-x" data-value="1">x</div>
+        </div>
+        <div class="chmod-grid" style="grid-template-columns:80px repeat(3, 1fr);">
+          <div class="label">Group</div>
+          <div class="chmod-cell on" data-perm="group-r" data-value="4">r</div>
+          <div class="chmod-cell" data-perm="group-w" data-value="2">-</div>
+          <div class="chmod-cell on" data-perm="group-x" data-value="1">x</div>
+        </div>
+        <div class="chmod-grid" style="grid-template-columns:80px repeat(3, 1fr);">
+          <div class="label">Others</div>
+          <div class="chmod-cell" data-perm="other-r" data-value="4">-</div>
+          <div class="chmod-cell" data-perm="other-w" data-value="2">-</div>
+          <div class="chmod-cell" data-perm="other-x" data-value="1">-</div>
+        </div>
+        <div class="chmod-result">
+          <span>Symbolic: <span id="chmod-sym" style="color:var(--text-1);">rwxr-x---</span></span>
+          &nbsp;·&nbsp;
+          <span>Octal: <span class="octal" id="chmod-octal">750</span></span>
+        </div>
+        <p class="small" id="chmod-desc" style="margin-top:10px;">Owner: full control. Group: read + execute (can run the script). Others: no access at all.</p>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>Your paper asks about <code>-rwxr-x---</code>. Octal = <strong>750</strong>. Can a <em>dba group member</em> execute? Yes (group has x). Can they modify? No (group lacks w). Standard exam answer.</div></div>
+    </section>
+
+    <!-- 3.2 CIDR -->
+    <section class="chapter reveal" id="d3-cidr" data-day="3">
+      <div class="chapter-kicker"><span class="idx">3.2</span><span class="track">Networking</span></div>
+      <h2>IPv4, CIDR &amp; Subnetting</h2>
+      <p class="dek">CIDR notation writes a whole subnet in one number. The prefix length tells you how many addresses it holds.</p>
+
+      <p>Formula: a <code>/N</code> block contains <code>2^(32-N)</code> addresses. So <code>/24</code> = 2^8 = <strong>256</strong> addresses; <code>/28</code> = 2^4 = <strong>16</strong>; <code>/16</code> = 2^16 = <strong>65,536</strong>.</p>
+
+      <h3>Try it: CIDR calculator</h3>
+      <p>Enter a CIDR block. See the exam-important numbers immediately.</p>
+      <div class="panel">
+        <div class="cidr-input">
+          <input type="text" id="cidr-input" value="10.0.0.0/24">
+          <button class="chip-btn active" data-cidr="10.0.0.0/24">/24</button>
+          <button class="chip-btn" data-cidr="10.0.0.0/25">/25</button>
+          <button class="chip-btn" data-cidr="10.0.0.0/28">/28</button>
+          <button class="chip-btn" data-cidr="10.0.0.0/16">/16</button>
+        </div>
+        <div class="cidr-stats">
+          <div class="cidr-stat"><span class="val" id="cidr-total">256</span><span class="lbl">Total addresses</span></div>
+          <div class="cidr-stat"><span class="val" id="cidr-reserved" style="color:var(--amber);">3</span><span class="lbl">OCI reserved</span></div>
+          <div class="cidr-stat"><span class="val" id="cidr-usable" style="color:var(--green);">253</span><span class="lbl">Usable hosts</span></div>
+          <div class="cidr-stat"><span class="val" id="cidr-mask" style="font-size:14px;">255.255.255.0</span><span class="lbl">Subnet mask</span></div>
+        </div>
+        <p class="small" style="margin-top:12px;">In OCI, every subnet reserves <strong>3 addresses</strong>: the network address (<code>.0</code>), the broadcast address (last), and one for the subnet's default gateway.</p>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>For <code>10.0.0.0/24</code>: <strong>256 total, 3 reserved (network, broadcast, gateway), 253 usable hosts</strong>. Memorize this exact answer — it's a direct question on your paper.</div></div>
+    </section>
+
+    <!-- 3.3 SSH -->
+    <section class="chapter reveal" id="d3-ssh" data-day="3">
+      <div class="chapter-kicker"><span class="idx">3.3</span><span class="track">Protocols &amp; Security</span></div>
+      <h2>TLS/SSL &amp; SSH — Reading the Error Message</h2>
+      <p class="dek">The error tells you the layer that failed. Timeout = network. Permission denied = authentication.</p>
+
+      <p>Click either error to see what it actually means.</p>
+      <div class="diag-tree">
+        <div class="diag-box active" data-diag="timeout">
+          <div class="err">ssh: connect to host 129.146.42.7 port 22: Operation timed out</div>
+          <div style="font-size:12px; color:var(--text-3);">The connection never even reached SSH.</div>
+        </div>
+        <div class="diag-box" data-diag="publickey">
+          <div class="err">Permission denied (publickey).</div>
+          <div style="font-size:12px; color:var(--text-3);">SSH answered — it just rejected you.</div>
+        </div>
+      </div>
+      <div class="diag-detail" id="diag-detail">
+        <b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">Timeout → Network-layer problem</b>
+        <div style="margin-top:6px;">Your packets never got a reply. Check in this order:</div>
+        <ul style="margin-top:6px; font-size:13px;">
+          <li><strong>NSG / Security List</strong> — is port 22 allowed inbound from your IP?</li>
+          <li><strong>Route table</strong> — does the subnet have a route to an Internet Gateway (for public IPs)?</li>
+          <li><strong>Public IP</strong> — was one actually assigned to the instance?</li>
+          <li><strong>OS firewall</strong> (<code>iptables</code>/<code>firewalld</code>) — usually open on port 22 by default in OCI images, but check.</li>
+        </ul>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>Timeout ⇒ <strong>network path is blocked</strong> (NSG/Security List/routing). "Permission denied (publickey)" ⇒ <strong>network is fine, key/user is wrong</strong> (wrong private key, wrong username like <code>ubuntu</code> vs <code>opc</code>, or missing <code>authorized_keys</code>).</div></div>
+    </section>
+
+    <!-- 3.4 LOAD BALANCER -->
+    <section class="chapter reveal" id="d3-lb" data-day="3">
+      <div class="chapter-kicker"><span class="idx">3.4</span><span class="track">Networking</span></div>
+      <h2>Load Balancer Basics — Debugging 502</h2>
+      <p class="dek">A 502 means the LB got a bad or no response from the backend. But the backend "looks healthy"…</p>
+
+      <p>An OCI Load Balancer has three moving parts you need to understand:</p>
+      <div class="grid grid-3">
+        <div class="card"><span class="tag">Front door</span><h4>👂 Listener</h4><p>The port the LB listens on (80, 443). Terminates TLS if configured. Matches to a backend set via rules.</p></div>
+        <div class="card blue"><span class="tag">Pool</span><h4>🎯 Backend Set</h4><p>The group of instances the LB forwards traffic to. Has a health check policy.</p></div>
+        <div class="card green"><span class="tag">Check</span><h4>❤️ Health Check</h4><p>The LB pings each backend on a specific URL/port. Unhealthy backends are removed from rotation.</p></div>
+      </div>
+
+      <h3>Why 502 with healthy backends?</h3>
+      <table class="cmp">
+        <tr><th>Cause</th><th>Where to check</th></tr>
+        <tr><td>Backend listens on a different port than the LB is sending to</td><td>Backend set → <strong>port</strong></td></tr>
+        <tr><td>Health check reports healthy on port 80, but app actually runs on 8080</td><td>Backend set → <strong>health check URL &amp; port</strong></td></tr>
+        <tr><td>NSG on the backend blocks the LB's source IPs</td><td>Backend NSG / Security List</td></tr>
+        <tr><td>App returns non-2xx (e.g. 500) — LB relays it as 502</td><td>Backend app logs</td></tr>
+        <tr><td>TLS/SSL misconfiguration between LB and backend</td><td>Backend set → SSL config</td></tr>
+      </table>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Two quick causes: <strong>(1) wrong backend port</strong>, <strong>(2) NSG/Security List blocking the LB → backend traffic</strong>. Look in the <strong>backend set configuration</strong> and the <strong>NSG attached to the backend instances</strong>.</div></div>
+    </section>
+
+    <!-- 3.5 OCI CLI -->
+    <section class="chapter reveal" id="d3-cli" data-day="3">
+      <div class="chapter-kicker"><span class="idx">3.5</span><span class="track">Tooling</span></div>
+      <h2>OCI Cloud Shell &amp; OCI CLI</h2>
+      <p class="dek">Two ways to run OCI commands: a browser terminal (zero setup) or your laptop (needs config). The auth model is different.</p>
+
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">In-browser</span><h4>☁️ Cloud Shell</h4><p>Free Linux terminal built into the OCI console. Pre-installed with the CLI, Ansible, Terraform, kubectl. Auth is <strong>automatic</strong> — it uses your console session token.</p></div>
+        <div class="card blue"><span class="tag">Local</span><h4>💻 CLI on your laptop</h4><p>You install the CLI yourself. Auth requires a config file at <code>~/.oci/config</code> containing your tenancy OCID, user OCID, fingerprint, region, and path to your API private key.</p></div>
+      </div>
+
+      <h3>The config file format</h3>
+      <div class="panel" style="padding:0;">
+        <div style="background:#0c0d10; padding:16px 18px; font-family:var(--font-mono); font-size:12.5px; border-radius:var(--radius); overflow-x:auto;">
+<pre style="color:#c7d0d9; margin:0;">[DEFAULT]
+user       = ocid1.user.oc1..aaaaa...
+tenancy    = ocid1.tenancy.oc1..aaaaa...
+fingerprint= 20:3b:97:...
+key_file   = ~/.oci/oci_api_key.pem
+region     = ap-mumbai-1</pre>
+        </div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>Config file: <strong><code>~/.oci/config</code></strong>. Cloud Shell auths via your <strong>console session</strong> automatically. Laptop CLI needs the config file + a private API signing key on disk.</div></div>
+    </section>
+
+    <!-- =========================================================
+         DAY 4 — INFRASTRUCTURE AS CODE
+         ========================================================= -->
+    <div class="day-banner reveal" data-day="4" style="background:linear-gradient(120deg, var(--green-dim), transparent 70%); border-color:rgba(62,194,143,.25);">
+      <span class="day-tag" style="color:var(--green); background:var(--green-dim);">Day 4 · 6 topics</span>
+      <h2>Infrastructure as Code</h2>
+      <p>Stop clicking in the console. Write the infrastructure as text, review it in Git, deploy it with one command. Terraform is the tool. OCI Resource Manager is the managed service.</p>
+    </div>
+
+    <!-- 4.1 IAC CONCEPTS -->
+    <section class="chapter reveal" id="d4-iac" data-day="4">
+      <div class="chapter-kicker"><span class="idx">4.1</span><span class="track">IaC Concepts</span></div>
+      <h2>Declarative vs Imperative &amp; Idempotence</h2>
+      <p class="dek">Two philosophies. One property. All three come up on the exam.</p>
+
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">Describe outcome</span><h4>📝 Declarative</h4><p>"I want <em>this</em> state to exist." You describe the <strong>goal</strong>. The tool figures out the steps. Terraform, Kubernetes manifests, CloudFormation.</p></div>
+        <div class="card amber"><span class="tag">Describe steps</span><h4>🔧 Imperative</h4><p>"Do <em>this</em>, then <em>this</em>, then <em>this</em>." You describe the <strong>sequence of actions</strong>. Bash scripts, Ansible tasks (partly).</p></div>
+      </div>
+
+      <h3>Idempotence — the property that makes IaC safe</h3>
+      <p>A tool is <strong>idempotent</strong> when applying it repeatedly produces the same end state. Run <code>terraform apply</code> once → resources are created. Run it again with no changes → nothing happens. Run it after editing the file → only the diff is applied.</p>
+      <p>Contrast with an imperative script that creates a resource: run it twice and you may get two resources or an error.</p>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>One-liner definitions: <strong>Declarative</strong> = "describe the state you want." <strong>Imperative</strong> = "describe the steps to get there." <strong>Idempotence</strong> = "running the same thing twice gives the same result as running it once."</div></div>
+    </section>
+
+    <!-- 4.2 TERRAFORM WORKFLOW -->
+    <section class="chapter reveal" id="d4-tf" data-day="4">
+      <div class="chapter-kicker"><span class="idx">4.2</span><span class="track">Terraform</span></div>
+      <h2>Terraform Workflow — <code>init → plan → apply → destroy</code></h2>
+      <p class="dek">Four commands. That's 95% of Terraform. Click each one below to see what it does.</p>
+
+      <div class="tf-stepper" id="tf-stepper">
+        <div class="tf-step active" data-tf="init"><div class="tf-num">01</div><div class="tf-cmd">terraform init</div></div>
+        <div class="tf-step" data-tf="plan"><div class="tf-num">02</div><div class="tf-cmd">terraform plan</div></div>
+        <div class="tf-step" data-tf="apply"><div class="tf-num">03</div><div class="tf-cmd">terraform apply</div></div>
+        <div class="tf-step" data-tf="destroy"><div class="tf-num">04</div><div class="tf-cmd">terraform destroy</div></div>
+      </div>
+      <div class="tf-detail" id="tf-detail">
+        <b style="color:var(--red-bright);">terraform init — set up the workspace</b>
+        <div style="margin-top:6px; font-size:13.5px;">Downloads the OCI provider plugin, initializes the backend (where state is stored), and prepares the working directory. Run this once per project (and again after adding a new provider or changing backend config).</div>
+        <pre>$ terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding hashicorp/oci versions...
+Terraform has been successfully initialized!</pre>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-ready mnemonic</b><strong>init</strong> (prepare) → <strong>plan</strong> (preview) → <strong>apply</strong> (create/update) → <strong>destroy</strong> (tear down). Plan is <em>read-only</em>; apply is what actually changes cloud state.</div></div>
+    </section>
+
+    <!-- 4.3 STATE & LOCKING -->
+    <section class="chapter reveal" id="d4-state" data-day="4">
+      <div class="chapter-kicker"><span class="idx">4.3</span><span class="track">Terraform</span></div>
+      <h2>Terraform State &amp; State Locking</h2>
+      <p class="dek">The state file is Terraform's memory of what it created. Lose it, and Terraform loses track of your infrastructure.</p>
+
+      <p>After every apply, Terraform writes a <code>terraform.tfstate</code> file mapping each resource in your code to the real cloud resource it manages. Without this file, Terraform doesn't know that <code>oci_core_instance.web</code> in your code corresponds to a specific instance OCID in the cloud.</p>
+
+      <h3>Why remote state matters</h3>
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">Team access</span><h4>👥 Shared source of truth</h4><p>State on your laptop = only you can apply. State in a shared backend (OCI Object Storage, S3, etc.) = the whole team can collaborate.</p></div>
+        <div class="card blue"><span class="tag">Safety</span><h4>🔒 Locking</h4><p>A remote backend with locking prevents two people from running <code>apply</code> at the same time. Without a lock, a race condition can corrupt state.</p></div>
+      </div>
+
+      <h3>The race condition: two engineers, one local state</h3>
+      <div class="race-demo">
+        <div class="engineer">
+          <h5>👩‍💻 Engineer A (local state)</h5>
+          <div class="action">10:00 — reads state file</div>
+          <div class="action">10:01 — plans: create web-01</div>
+          <div class="action ok">10:02 — apply succeeds ✓</div>
+          <div class="action">10:03 — writes state locally</div>
+        </div>
+        <div class="engineer">
+          <h5>👨‍💻 Engineer B (own local state)</h5>
+          <div class="action">10:00 — reads own outdated state</div>
+          <div class="action">10:01 — plans: create db-01</div>
+          <div class="action warn">10:02 — apply succeeds but state is stale</div>
+          <div class="action warn">10:03 — overwrites — web-01 lost from state!</div>
+        </div>
+      </div>
+      <p class="small">Result: cloud has both instances, but Terraform state only knows about one. Next <code>terraform destroy</code> orphans the other.</p>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Two reasons to keep state remote: <strong>(1) team collaboration</strong>, <strong>(2) locking prevents concurrent-apply corruption</strong>. Bonus reason: state files often contain secrets — Object Storage encrypts at rest, your laptop maybe doesn't.</div></div>
+    </section>
+
+    <!-- 4.4 RESOURCE MANAGER -->
+    <section class="chapter reveal" id="d4-rm" data-day="4">
+      <div class="chapter-kicker"><span class="idx">4.4</span><span class="track">OCI Resource Manager</span></div>
+      <h2>OCI Resource Manager &amp; Stacks</h2>
+      <p class="dek">Terraform-as-a-service, hosted by Oracle. You give it your <code>.tf</code> files, it runs the workflow for you.</p>
+
+      <p>A <strong>Stack</strong> in Resource Manager is essentially <em>your Terraform configuration + its state + a run history</em>, all managed by OCI. You upload the config (from a zip, from Object Storage, from Git), and RM runs <code>plan</code>/<code>apply</code>/<code>destroy</code> on your behalf.</p>
+
+      <h3>Why use it instead of Terraform on your laptop?</h3>
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">No install</span><h4>🚀 Zero setup</h4><p>No Terraform binary, no provider install, no laptop config. Runs entirely in OCI.</p></div>
+        <div class="card blue"><span class="tag">Managed state</span><h4>🗃️ State handled for you</h4><p>Remote state, locking, and encryption at rest are built in. No S3/Object-Storage backend to configure.</p></div>
+        <div class="card green"><span class="tag">Audit</span><h4>📋 Everything is logged</h4><p>Every plan and apply is a Job with a timestamped log. Full audit trail for compliance.</p></div>
+        <div class="card amber"><span class="tag">IAM-native</span><h4>🔐 IAM permissions</h4><p>Access to a stack is controlled by IAM policies — no separate secret management.</p></div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>Two RM advantages over laptop Terraform (any two): <strong>(1) managed remote state with locking</strong>, <strong>(2) IAM-integrated access control</strong>, <strong>(3) audit-logged job history</strong>, <strong>(4) no local install required</strong>.</div></div>
+    </section>
+
+    <!-- 4.5 DRIFT DETECTION -->
+    <section class="chapter reveal" id="d4-drift" data-day="4">
+      <div class="chapter-kicker"><span class="idx">4.5</span><span class="track">OCI Resource Manager</span></div>
+      <h2>Drift Detection</h2>
+      <p class="dek">Someone edited a resource in the console. Now the real cloud doesn't match your Terraform code. That's drift.</p>
+
+      <p><strong>Drift</strong> is any difference between the state Terraform expects and the state that actually exists in the cloud. It happens when someone bypasses IaC — edits a security list in the console, deletes an instance manually, changes a tag.</p>
+
+      <h3>How Resource Manager finds it</h3>
+      <p>Resource Manager has a built-in <strong>Drift Detection</strong> action on every stack. Click "Detect Drift" and RM:</p>
+      <ol>
+        <li>Reads the current cloud state via APIs.</li>
+        <li>Compares it to the stack's Terraform state.</li>
+        <li>Reports each resource as <em>In Sync</em>, <em>Modified</em>, or <em>Deleted</em>.</li>
+      </ol>
+
+      <div class="panel" style="padding:0;">
+        <div style="background:#0c0d10; padding:16px 18px; font-family:var(--font-mono); font-size:12.5px; border-radius:var(--radius); overflow-x:auto;">
+<pre style="margin:0; color:#c7d0d9;"><span style="color:var(--text-3);"># Drift Detection Report</span>
+<span style="color:var(--green);">✓  IN SYNC   </span> oci_core_vcn.main
+<span style="color:var(--amber);">~  MODIFIED  </span> oci_core_security_list.web
+             expected: ingress port 80 only
+             actual:   ingress ports 80, 22
+<span style="color:var(--red-bright);">✗  DELETED   </span> oci_core_instance.web_02
+             (removed outside Terraform)</pre>
+        </div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>The one-line answer: <strong>Drift</strong> = "cloud state has diverged from Terraform state." The OCI feature that reports it = <strong>Resource Manager's Drift Detection</strong>.</div></div>
+    </section>
+
+    <!-- 4.6 RESOURCE DISCOVERY -->
+    <section class="chapter reveal" id="d4-discovery" data-day="4">
+      <div class="chapter-kicker"><span class="idx">4.6</span><span class="track">OCI Resource Manager</span></div>
+      <h2>Resource Discovery</h2>
+      <p class="dek">You inherited a compartment full of hand-built resources. Resource Discovery generates Terraform code for what's already there.</p>
+
+      <p><strong>Resource Discovery</strong> is a Resource Manager feature that scans an existing compartment and produces:</p>
+      <ul>
+        <li>A set of <strong><code>.tf</code> configuration files</strong> describing every resource it finds.</li>
+        <li>A <strong>Terraform state file</strong> mapping those files to the real resources.</li>
+      </ul>
+      <p>The result: you can adopt an already-running environment into Terraform without rebuilding it.</p>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>"Which RM capability generates Terraform configuration + state from resources that already exist in a compartment?" → <strong>Resource Discovery</strong>.</div></div>
+    </section>
+
+    <!-- =========================================================
+         DAY 5 — VCN, COMPUTE & STORAGE
+         ========================================================= -->
+    <div class="day-banner reveal" data-day="5" style="background:linear-gradient(120deg, var(--purple-dim), transparent 70%); border-color:rgba(167,139,250,.25);">
+      <span class="day-tag" style="color:var(--purple); background:var(--purple-dim);">Day 5 · 6 topics</span>
+      <h2>VCN, Compute &amp; Storage</h2>
+      <p>Where your applications actually run. Design the network, launch the compute, choose the right storage — and understand why a private DB subnet never touches the internet.</p>
+    </div>
+
+    <!-- 5.1 VCN 3-TIER -->
+    <section class="chapter reveal" id="d5-vcn" data-day="5">
+      <div class="chapter-kicker"><span class="idx">5.1</span><span class="track">VCN Architecture</span></div>
+      <h2>VCN — Three-Tier Design</h2>
+      <p class="dek">The exam-standard architecture: public web tier, private app tier, private DB tier. Each subnet has its own routing rules.</p>
+
+      <p>A <strong>VCN</strong> (Virtual Cloud Network) is your private network in OCI — a big CIDR block (e.g. <code>10.0.0.0/16</code>) sliced into subnets. Subnets are labelled <em>public</em> or <em>private</em> based on whether they get public IPs and how they route to the internet.</p>
+
+      <h3>Blueprint: three-tier web application</h3>
+      <div class="vcn-diagram">
+        <div style="text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--text-3); margin-bottom:14px;">VCN 10.0.0.0/16</div>
+
+        <div class="vcn-tier web">
+          <div class="t-name">🌐 Web Tier — PUBLIC subnet <span style="color:var(--text-3); font-family:var(--font-mono); font-weight:400;">10.0.1.0/24</span></div>
+          <div class="t-meta">Route → Internet Gateway (0.0.0.0/0)</div>
+          <div class="t-info">Contains: the <strong>Load Balancer</strong> (public IP). Accepts internet traffic on 80/443.</div>
+        </div>
+
+        <div class="vcn-tier app">
+          <div class="t-name">⚙️ App Tier — PRIVATE subnet <span style="color:var(--text-3); font-family:var(--font-mono); font-weight:400;">10.0.2.0/24</span></div>
+          <div class="t-meta">Route → NAT Gateway (for outbound patching/updates only)</div>
+          <div class="t-info">Contains: application compute instances. Only reachable from the LB. Can call out to the internet for updates, but internet cannot call in.</div>
+        </div>
+
+        <div class="vcn-tier db">
+          <div class="t-name">🗄️ Database Tier — PRIVATE subnet <span style="color:var(--text-3); font-family:var(--font-mono); font-weight:400;">10.0.3.0/24</span></div>
+          <div class="t-meta">Route → Service Gateway (Oracle Services only)</div>
+          <div class="t-info">Contains: the <strong>Database</strong> (Autonomous DB or DB System). Only reachable from the app tier. No internet access — uses Service Gateway for backups to Object Storage.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>Three-tier design answer: <strong>Web tier — public subnet, IGW, holds Load Balancer. App tier — private subnet, NAT GW for outbound. DB tier — private subnet, SGW for Oracle-service traffic, holds the database.</strong></div></div>
+    </section>
+
+    <!-- 5.2 GATEWAYS -->
+    <section class="chapter reveal" id="d5-gateways" data-day="5">
+      <div class="chapter-kicker"><span class="idx">5.2</span><span class="track">VCN Routing</span></div>
+      <h2>Internet Gateway, NAT Gateway &amp; Service Gateway</h2>
+      <p class="dek">Three gateways, three purposes. Click each to see which subnet uses it and why.</p>
+
+      <div class="gw-grid" id="gw-grid">
+        <div class="gw active" data-gw="igw">
+          <div class="gw-icon">🌐</div>
+          <div class="gw-name">Internet Gateway</div>
+          <div class="gw-abbr">IGW · bidirectional</div>
+        </div>
+        <div class="gw" data-gw="nat">
+          <div class="gw-icon">↗️</div>
+          <div class="gw-name">NAT Gateway</div>
+          <div class="gw-abbr">NGW · outbound only</div>
+        </div>
+        <div class="gw" data-gw="sgw">
+          <div class="gw-icon">🔗</div>
+          <div class="gw-name">Service Gateway</div>
+          <div class="gw-abbr">SGW · Oracle-only</div>
+        </div>
+      </div>
+      <div class="gw-flow" id="gw-flow">
+        <b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">Internet Gateway (IGW)</b>
+        <div style="margin-top:6px;">Two-way traffic between a <strong>public subnet</strong> and the internet. Use it for public-facing resources (web servers, load balancers) that need to be reachable <em>from</em> the internet.</div>
+      </div>
+
+      <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Exam-critical: private DB subnet</b>A private DB subnet should route to a <strong>Service Gateway</strong>, not an IGW or NAT. Why? The DB needs to send backups to <strong>Object Storage</strong> (an Oracle service) — SGW keeps that traffic on Oracle's private backbone, never touching the public internet. It's more secure and it's free.</div></div>
+    </section>
+
+    <!-- 5.3 NSG vs SECURITY LIST -->
+    <section class="chapter reveal" id="d5-nsg" data-day="5">
+      <div class="chapter-kicker"><span class="idx">5.3</span><span class="track">VCN Security</span></div>
+      <h2>NSGs &amp; Security Lists</h2>
+      <p class="dek">Two ways to write virtual firewall rules in OCI. Both work at the packet level. The difference is <em>what you attach them to</em>.</p>
+
+      <table class="cmp">
+        <tr><th>Feature</th><th>Security List</th><th>Network Security Group (NSG)</th></tr>
+        <tr><td>Attached to</td><td><strong>Subnet</strong> (applies to all instances in it)</td><td><strong>VNIC</strong> (applies only to specific instances you add)</td></tr>
+        <tr><td>Granularity</td><td>Coarse — one policy, many instances</td><td>Fine — different rules per instance in the same subnet</td></tr>
+        <tr><td>Rule source</td><td>CIDR block</td><td>CIDR block <em>or another NSG</em> (much more flexible)</td></tr>
+        <tr><td>Recommended?</td><td>Legacy — still supported</td><td><strong>Preferred</strong> for new designs</td></tr>
+      </table>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>They stack. If <em>both</em> a Security List and an NSG apply to a VNIC, traffic must be allowed by <strong>either one</strong> (rules are OR'd together, not AND'd). Also: NSGs let you reference other NSGs as a source — that's how "allow LB → app" is written cleanly.</div></div>
+    </section>
+
+    <!-- 5.4 COMPUTE & CLOUD-INIT -->
+    <section class="chapter reveal" id="d5-cloudinit" data-day="5">
+      <div class="chapter-kicker"><span class="idx">5.4</span><span class="track">Compute Automation</span></div>
+      <h2>Compute Instances &amp; cloud-init</h2>
+      <p class="dek">cloud-init is the tiny piece of software that runs on first boot and applies your customizations. Pass it a script or a YAML file as "user data."</p>
+
+      <p>When you launch a compute instance in OCI, you can attach <strong>user data</strong> — a text blob cloud-init interprets on the very first boot. This is how you install packages, start services, and drop configuration files <em>without</em> ever SSH-ing in.</p>
+
+      <h3>cloud-config to install and enable a web server</h3>
+      <div class="panel" style="padding:0;">
+        <div style="background:#0c0d10; padding:16px 18px; font-family:var(--font-mono); font-size:12.5px; border-radius:var(--radius); overflow-x:auto;">
+<pre style="margin:0; color:#c7d0d9;"><span style="color:var(--amber);">#cloud-config</span>
+
+<span style="color:var(--blue);">package_update:</span> true
+
+<span style="color:var(--blue);">packages:</span>
+  - httpd
+
+<span style="color:var(--blue);">runcmd:</span>
+  - systemctl enable httpd
+  - systemctl start httpd
+  - firewall-cmd --permanent --add-service=http
+  - firewall-cmd --reload
+  - echo <span style="color:var(--green);">"&lt;h1&gt;Hello from OCI&lt;/h1&gt;"</span> &gt; /var/www/html/index.html</pre>
+        </div>
+      </div>
+      <p class="small" style="margin-top:8px;">Paste this into the <em>Advanced options → User data</em> field when launching an Oracle Linux instance. On first boot: package installed, service enabled, firewall opened, homepage created.</p>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>The header <code>#cloud-config</code> is <strong>required</strong> — it's how cloud-init knows to parse the file as YAML instead of a shell script. Without it, cloud-init tries to execute the YAML as bash and fails.</div></div>
+    </section>
+
+    <!-- 5.5 BOOT vs BLOCK -->
+    <section class="chapter reveal" id="d5-volumes" data-day="5">
+      <div class="chapter-kicker"><span class="idx">5.5</span><span class="track">Block Storage</span></div>
+      <h2>Boot Volume vs Block Volume</h2>
+      <p class="dek">Two flavors of block storage in OCI. One boots the OS, the other adds data disks. Only one supports multi-attach.</p>
+
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">OS disk</span><h4>💿 Boot Volume</h4><p>Automatically created when you launch a compute instance. Contains the OS. Attached to <strong>exactly one instance</strong>.</p></div>
+        <div class="card blue"><span class="tag">Data disk</span><h4>💾 Block Volume</h4><p>Extra data disks you attach to instances after launch. Sizes 50 GB → 32 TB. Supports <strong>multi-attach</strong>.</p></div>
+      </div>
+
+      <h3>Multi-attach — one volume, many instances</h3>
+      <p>A block volume can be attached to <strong>up to 8 instances simultaneously</strong> for shared-storage scenarios (clustered databases, shared file processing).</p>
+      <p><strong>The filesystem catch:</strong> a normal filesystem (ext4, xfs) will corrupt if two instances write to it at the same time. Multi-attach <em>only works safely</em> with a <strong>cluster-aware filesystem</strong> (OCFS2, GFS2) or a database that has its own coordination (Oracle RAC).</p>
+
+      <div class="callout callout-trap"><div class="ic">⚠️</div><div><b>Exam-critical trap</b>"Which supports multi-attach?" → <strong>Block volume</strong> (not boot). "What filesystem requirement?" → <strong>a cluster-aware filesystem</strong> like OCFS2 — never a plain ext4/xfs, or the shared writes will corrupt the data.</div></div>
+    </section>
+
+    <!-- 5.6 SSH KEY INJECTION -->
+    <section class="chapter reveal" id="d5-ssh" data-day="5">
+      <div class="chapter-kicker"><span class="idx">5.6</span><span class="track">Compute Access</span></div>
+      <h2>SSH Key Injection</h2>
+      <p class="dek">How your public key ends up on a fresh Linux instance's <code>~/.ssh/authorized_keys</code>, without you ever setting a password.</p>
+
+      <p>When you launch an OCI compute instance, you paste a <strong>public SSH key</strong>. Behind the scenes:</p>
+      <ol>
+        <li>The public key is passed to the instance as <strong>instance metadata</strong>.</li>
+        <li>On first boot, <strong>cloud-init reads that metadata</strong> and writes the key into <code>/home/opc/.ssh/authorized_keys</code> (on Oracle Linux; <code>/home/ubuntu/</code> on Ubuntu).</li>
+        <li>You SSH in with the matching <em>private</em> key — no password ever set.</li>
+      </ol>
+
+      <div class="panel">
+        <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:center;">
+          <div class="env-item"><div class="icon">🔑</div><div class="name">Your public key</div><div class="desc">Paste at launch</div></div>
+          <div class="env-arrow">→</div>
+          <div class="env-item"><div class="icon">📦</div><div class="name">Instance metadata</div><div class="desc">169.254.169.254</div></div>
+          <div class="env-arrow">→</div>
+          <div class="env-item"><div class="icon">⚙️</div><div class="name">cloud-init</div><div class="desc">Writes authorized_keys</div></div>
+          <div class="env-arrow">→</div>
+          <div class="env-item"><div class="icon">✅</div><div class="name">SSH works</div><div class="desc">ssh opc@ip</div></div>
+        </div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Default OCI usernames: <strong><code>opc</code></strong> for Oracle Linux &amp; RHEL, <strong><code>ubuntu</code></strong> for Ubuntu, <strong><code>centos</code></strong> for CentOS. Using the wrong username is the #1 cause of "Permission denied (publickey)" on a freshly launched OCI instance.</div></div>
+    </section>
+
+    <!-- =========================================================
+         DAY 6 — ENCRYPTION & KEY MANAGEMENT
+         ========================================================= -->
+    <div class="day-banner reveal" data-day="6" style="background:linear-gradient(120deg, rgba(167,139,250,0.15), transparent 70%); border-color:rgba(199,70,52,.25);">
+      <span class="day-tag">Day 6 · 3 topics</span>
+      <h2>Encryption &amp; Key Management</h2>
+      <p>Where cryptographic keys live in OCI, how one key protects another, and why HSM-protected keys cost more.</p>
+    </div>
+
+    <!-- 6.1 VAULT & KMS -->
+    <section class="chapter reveal" id="d6-vault" data-day="6">
+      <div class="chapter-kicker"><span class="idx">6.1</span><span class="track">Key Management</span></div>
+      <h2>OCI Vault &amp; KMS</h2>
+      <p class="dek">Vault is the OCI service that stores and manages your cryptographic keys and secrets. KMS is the API layer that uses them.</p>
+
+      <p><strong>Vault</strong> is a container. Inside it, you create:</p>
+      <div class="grid grid-3">
+        <div class="card"><span class="tag">Keys</span><h4>🔑 Master Encryption Keys (MEKs)</h4><p>The top-level keys. Used to encrypt <em>other</em> keys (envelope encryption). Never leave the Vault.</p></div>
+        <div class="card blue"><span class="tag">Secrets</span><h4>🤫 Secrets</h4><p>Arbitrary text values — DB passwords, API tokens, TLS certificates. Versioned. Retrieved by ID.</p></div>
+        <div class="card green"><span class="tag">Ops</span><h4>🔄 Key Rotation &amp; Replication</h4><p>Rotate a key on schedule (invalidates old versions gracefully). Replicate a vault to another region for DR.</p></div>
+      </div>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam Tip</b>Vault + KMS work together with IAM. Only groups with a policy like <code>Allow group AppUsers to use keys in compartment X</code> can call KMS to encrypt/decrypt. This is how "encryption at rest with customer-managed keys" is actually implemented.</div></div>
+    </section>
+
+    <!-- 6.2 MEK vs DEK -->
+    <section class="chapter reveal" id="d6-envelope" data-day="6">
+      <div class="chapter-kicker"><span class="idx">6.2</span><span class="track">Envelope Encryption</span></div>
+      <h2>Master Encryption Key vs Data Encryption Key</h2>
+      <p class="dek">Two keys, one job. The DEK actually encrypts your data. The MEK just encrypts the DEK.</p>
+
+      <p>Encrypting terabytes of data directly with a single key from Vault would be slow. So OCI uses <strong>envelope encryption</strong>:</p>
+
+      <div class="envelope">
+        <div class="env-item"><div class="icon">📄</div><div class="name">Your data</div><div class="desc">(terabytes)</div></div>
+        <div class="env-arrow">→</div>
+        <div class="env-item dek"><div class="icon">🗝️</div><div class="name">DEK</div><div class="desc">Data Encryption Key<br>(local to the resource)</div></div>
+        <div class="env-arrow">→</div>
+        <div class="env-item mek"><div class="icon">🔐</div><div class="name">MEK</div><div class="desc">Master Encryption Key<br>(lives in Vault)</div></div>
+      </div>
+
+      <table class="cmp">
+        <tr><th>Property</th><th>Data Encryption Key (DEK)</th><th>Master Encryption Key (MEK)</th></tr>
+        <tr><td>What it encrypts</td><td>Your actual data (files, DB blocks, volumes)</td><td>The DEK</td></tr>
+        <tr><td>Where it lives</td><td>Alongside the data (as ciphertext, wrapped by the MEK)</td><td>Inside OCI Vault — <em>never</em> leaves</td></tr>
+        <tr><td>Generated by</td><td>The service that needs to encrypt (Block Volume, Object Storage, etc.)</td><td>You, via the Vault console/API</td></tr>
+        <tr><td>Rotation impact</td><td>Rotating rewraps the DEK; data doesn't have to be re-encrypted</td><td>Rotating the MEK is fast — only DEKs get rewrapped</td></tr>
+      </table>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>"MEK vs DEK": <strong>MEK encrypts the DEK; DEK encrypts the data.</strong> Only the MEK lives in Vault. This is what makes key rotation fast — you don't touch the data, only rewrap the DEK.</div></div>
+    </section>
+
+    <!-- 6.3 SOFTWARE vs HSM -->
+    <section class="chapter reveal" id="d6-hsm" data-day="6">
+      <div class="chapter-kicker"><span class="idx">6.3</span><span class="track">Key Protection</span></div>
+      <h2>Key Protection Modes — Software vs HSM</h2>
+      <p class="dek">Two ways OCI can store your MEK. Both are secure. HSM is stronger, more expensive, and required for some compliance regimes.</p>
+
+      <div class="grid grid-2">
+        <div class="card"><span class="tag">Cheaper</span><h4>💻 Software-protected</h4><p>The MEK is stored encrypted on disk. Cryptographic operations happen in software on regular servers. Good for most workloads.</p></div>
+        <div class="card purple"><span class="tag">Stronger</span><h4>🔒 HSM-protected</h4><p>The MEK lives inside a <strong>Hardware Security Module</strong> — a dedicated, tamper-resistant chip (FIPS 140-2 Level 3 certified). The key never leaves the HSM in plaintext, ever.</p></div>
+      </div>
+
+      <table class="cmp">
+        <tr><th>Attribute</th><th>Software</th><th>HSM</th></tr>
+        <tr><td>Cost</td><td>Lower</td><td>Higher</td></tr>
+        <tr><td>Certification</td><td>Standard cryptographic module</td><td>FIPS 140-2 Level 3</td></tr>
+        <tr><td>Best for</td><td>General workloads, dev/test, cost-sensitive prod</td><td>Regulated data — PCI DSS, HIPAA, government</td></tr>
+        <tr><td>Key export</td><td>Encrypted key material can be backed up</td><td>Never exportable in plaintext</td></tr>
+      </table>
+
+      <div class="callout callout-tip"><div class="ic">🎓</div><div><b>Exam-question walkthrough</b>"Name the two protection modes available for a master key in Vault" → <strong>Software</strong> and <strong>HSM</strong>. If asked which is stronger: HSM (FIPS 140-2 Level 3, tamper-resistant hardware).</div></div>
+    </section>
+
+    <!-- =========================================================
+         PRACTICE QUIZ
+         ========================================================= -->
+    <div class="day-banner reveal" style="background:linear-gradient(120deg, var(--red-dim), var(--blue-dim) 70%); border-color:var(--border-strong);">
+      <span class="day-tag">Final · 10 questions</span>
+      <h2>Practice Quiz</h2>
+      <p>One question from each key topic. Click an answer, get instant feedback, and see the reasoning. Your score chip updates at the top of the page.</p>
+    </div>
+
+    <section class="chapter reveal" id="quiz">
+      <div class="chapter-kicker"><span class="idx">Q</span><span class="track">Certification Readiness</span></div>
+      <h2>Mixed Practice Questions</h2>
+      <p class="dek">Answer at your own pace. Don't peek — try the reasoning first, then check.</p>
+
+      <div class="quiz-card" id="quiz-card">
+        <div class="quiz-progress" id="quiz-progress">Question 1 of 10</div>
+        <div class="quiz-q" id="quiz-q">Loading…</div>
+        <div class="quiz-opts" id="quiz-opts"></div>
+        <div class="quiz-explain" id="quiz-explain"></div>
+        <div class="quiz-nav">
+          <button class="chip-btn" id="quiz-prev">← Previous</button>
+          <button class="chip-btn active" id="quiz-next">Next →</button>
+        </div>
+      </div>
+
+      <div class="callout callout-q" style="margin-top:20px;">
+        <div class="ic">🎯</div>
+        <div><b>How to use this</b>Aim for 8/10+ on your first pass. If you miss a question, scroll back to the relevant Day section — the concept is explained there with a diagram or simulator.</div>
+      </div>
+    </section>
+
+    </div>
+  </main>
+</div>
+
+<footer>
+  OCI Cloud Architect — Exam Prep Visualizer · Built as a single self-contained HTML file · No external dependencies · Covers Day 1–6 important topics only
+</footer>
+
+<script>
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+const state = {
+  quizScore: 0,
+  quizAnswered: new Set(),
+  quizIdx: 0,
+  sectionsSeen: new Set(),
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  initParticles();
+  initProgressBar();
+  initSidebar();
+  initSearch();
+  initTheme();
+  initReveal();
+  initAD();
+  initFD();
+  initRespSlider();
+  initCIA();
+  initOnion();
+  initLeverExplorer();
+  initChmod();
+  initCIDR();
+  initSSHDiag();
+  initTFStepper();
+  initGateway();
+  initQuiz();
+});
+
+/* ---------- particles ---------- */
+function initParticles(){
+  const c = document.getElementById('particles');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  let w,h,particles=[];
+  function resize(){ w=c.width=window.innerWidth; h=c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const N = Math.min(60, Math.floor(window.innerWidth/24));
+  for(let i=0;i<N;i++){
+    particles.push({x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.6+0.4, vx:(Math.random()-0.5)*0.15, vy:(Math.random()-0.5)*0.15});
+  }
+  function tick(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = 'rgba(199,70,52,0.5)';
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0) p.x=w; if(p.x>w) p.x=0;
+      if(p.y<0) p.y=h; if(p.y>h) p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+/* ---------- progress bar + active nav ---------- */
+function initProgressBar(){
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH>0 ? (scrollTop/docH)*100 : 0;
+    bar.style.width = pct+'%';
+    highlightActiveNav();
+  }, {passive:true});
+}
+function highlightActiveNav(){
+  const sections = document.querySelectorAll('section.chapter');
+  let current = null;
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top < 160) current = sec.id;
+  });
+  document.querySelectorAll('#sidebar a.nav-link').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href') === '#'+current);
+  });
+  if(current) state.sectionsSeen.add(current);
+}
+
+/* ---------- sidebar toggle ---------- */
+function initSidebar(){
+  const sb = document.getElementById('sidebar');
+  document.getElementById('sidebar-toggle').addEventListener('click', ()=> sb.classList.toggle('collapsed'));
+}
+
+/* ---------- search ---------- */
+function initSearch(){
+  const input = document.getElementById('search');
+  const results = document.getElementById('search-results');
+  const index = [];
+  document.querySelectorAll('section.chapter').forEach(sec=>{
+    const title = sec.querySelector('h2')?.textContent || sec.id;
+    sec.querySelectorAll('h3').forEach(h3=> index.push({label:h3.textContent, cat:title, href:'#'+sec.id}));
+    index.push({label:title, cat:'Section', href:'#'+sec.id});
+  });
+  input.addEventListener('input', ()=>{
+    const q = input.value.trim().toLowerCase();
+    if(!q){ results.style.display='none'; return; }
+    const matches = index.filter(i=> i.label.toLowerCase().includes(q)).slice(0,8);
+    results.innerHTML = matches.map(m=>`<a href="${m.href}"><span class="sr-cat">${m.cat}</span>${m.label}</a>`).join('') || '<a style="cursor:default;">No results</a>';
+    results.style.display='block';
+  });
+  document.addEventListener('click', e=>{ if(!document.getElementById('search-wrap').contains(e.target)) results.style.display='none'; });
+  results.addEventListener('click', ()=> setTimeout(()=>{ results.style.display='none'; input.value=''; },10));
+}
+
+/* ---------- theme toggle ---------- */
+function initTheme(){
+  const btn = document.getElementById('theme-toggle');
+  btn.addEventListener('click', ()=>{
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') !== 'light';
+    html.setAttribute('data-theme', isDark ? 'light':'dark');
+    btn.textContent = isDark ? '☀️' : '🌙';
+  });
+}
+
+/* ---------- scroll reveal ---------- */
+function initReveal(){
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); } });
+  }, {threshold:0.08});
+  els.forEach(el=> io.observe(el));
+}
+
+/* ---------- Day 1: AD simulator ---------- */
+function initAD(){
+  const buildings = document.querySelectorAll('#ad-sim .building');
+  const msg = document.getElementById('ad-msg');
+  buildings.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      if(b.classList.contains('failed')) return;
+      b.classList.add('shaking');
+      setTimeout(()=> b.classList.remove('shaking'), 400);
+      setTimeout(()=>{
+        b.classList.add('failed');
+        b.querySelector('.b-status').classList.remove('ok');
+        b.querySelector('.b-status').classList.add('down');
+        b.querySelector('.b-status').textContent = 'Failed';
+        const surviving = document.querySelectorAll('#ad-sim .building:not(.failed)').length;
+        if(surviving === 2) msg.innerHTML = '<strong>1 AD down, 2 still serving.</strong> Because you deployed across all 3 ADs, users see no downtime.';
+        else if(surviving === 1) msg.innerHTML = '<strong style="color:var(--amber);">2 ADs down.</strong> One AD carries the whole load — hope you sized it right.';
+        else msg.innerHTML = '<strong style="color:var(--red-bright);">Full region outage.</strong> This is why cross-region DR exists (replicate to another region).';
+      }, 400);
+    });
+  });
+  document.getElementById('ad-reset').addEventListener('click', ()=>{
+    buildings.forEach(b=>{
+      b.classList.remove('failed');
+      const s = b.querySelector('.b-status');
+      s.classList.remove('down'); s.classList.add('ok'); s.textContent = 'Healthy';
+    });
+    msg.textContent = 'Deploy across all 3 ADs and one AD outage doesn\'t take you down.';
+  });
+}
+
+/* ---------- Day 1: FD simulator ---------- */
+function initFD(){
+  const racks = document.querySelectorAll('#fd-sim .rack');
+  const msg = document.getElementById('fd-msg');
+  racks.forEach(r=>{
+    r.addEventListener('click', ()=>{
+      if(r.classList.contains('dead')) return;
+      r.classList.add('dead');
+      const surviving = document.querySelectorAll('#fd-sim .rack:not(.dead)').length;
+      if(surviving===2) msg.innerHTML = '<strong>FD failed, 2 FDs still healthy.</strong> Instances on other FDs keep running — hardware failure inside this AD did not take you down.';
+      else if(surviving===1) msg.innerHTML = '<strong style="color:var(--amber);">Two FDs down.</strong> One FD is your only survival — consider adding a second AD.';
+      else msg.innerHTML = '<strong style="color:var(--red-bright);">All FDs down = AD outage.</strong> Time to fail over to another AD.';
+    });
+  });
+  document.getElementById('fd-reset').addEventListener('click', ()=>{
+    racks.forEach(r=> r.classList.remove('dead'));
+    msg.textContent = 'Click a rack to simulate a fault domain failure. The other two carry the load.';
+  });
+}
+
+/* ---------- Day 1: Shared Responsibility slider ---------- */
+function initRespSlider(){
+  const layers = [
+    {name:'Physical hardware', iaas:'oracle', paas:'oracle', saas:'oracle'},
+    {name:'Networking & DCs', iaas:'oracle', paas:'oracle', saas:'oracle'},
+    {name:'Hypervisor', iaas:'oracle', paas:'oracle', saas:'oracle'},
+    {name:'Guest OS & patches', iaas:'you', paas:'oracle', saas:'oracle'},
+    {name:'Runtime & middleware', iaas:'you', paas:'oracle', saas:'oracle'},
+    {name:'Application', iaas:'you', paas:'you', saas:'oracle'},
+    {name:'Data', iaas:'you', paas:'you', saas:'you'},
+    {name:'Users & access (IAM)', iaas:'you', paas:'you', saas:'you'},
+  ];
+  const track = document.getElementById('resp-track');
+  const layersDiv = document.getElementById('resp-layers');
+  const modelName = document.getElementById('resp-model-name');
+  const splits = {IaaS:35, PaaS:60, SaaS:85};
+  function render(model){
+    modelName.textContent = model;
+    track.style.setProperty('--split', splits[model]+'%');
+    layersDiv.innerHTML = layers.map(l=>{
+      const w = l[model.toLowerCase()];
+      const cls = w==='oracle' ? 'who-oracle' : 'who-you';
+      const label = w==='oracle' ? 'Oracle' : 'YOU';
+      return `<div class="resp-layer-row"><div class="name">${l.name}</div><div class="who ${cls}">${label}</div></div>`;
+    }).join('');
+  }
+  render('IaaS');
+  document.querySelectorAll('[data-model]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-model]').forEach(b=> b.classList.remove('active'));
+      btn.classList.add('active');
+      render(btn.dataset.model);
+    });
+  });
+}
+
+/* ---------- Day 2: CIA pillars ---------- */
+function initCIA(){
+  const details = {
+    C: {title:'Confidentiality', body:'Only authorized people can read the data. <strong>OCI controls:</strong> IAM policies (least privilege), Vault encryption, TLS in transit, private subnets. Broken by: leaked credentials, misconfigured public buckets, unencrypted traffic.'},
+    I: {title:'Integrity', body:'Data cannot be modified without detection. <strong>OCI controls:</strong> Audit logs (365-day retention), MFA on admin actions, tamper-evident logging, checksums on Object Storage. Broken by: unauthorized writes, log tampering, ransomware.'},
+    A: {title:'Availability', body:'The system is up and reachable when needed. <strong>OCI controls:</strong> multi-AD deployments, Load Balancer, auto-scaling, backups, DR replication. Broken by: DDoS, hardware failure with no redundancy, misconfigured routes.'},
+  };
+  const detail = document.getElementById('cia-detail');
+  document.querySelectorAll('#cia-pillars .pillar').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      document.querySelectorAll('#cia-pillars .pillar').forEach(x=> x.classList.remove('active'));
+      p.classList.add('active');
+      const d = details[p.dataset.pillar];
+      detail.innerHTML = `<h5>${d.title}</h5><p>${d.body}</p>`;
+    });
+  });
+}
+
+/* ---------- Day 2: Defense-in-depth onion ---------- */
+function initOnion(){
+  const layers = [
+    {size:340, color:'#c74634', name:'Physical', body:'Oracle secures the data center itself — building access, cameras, biometrics. You don\'t touch this layer.'},
+    {size:280, color:'#e8a33d', name:'Network', body:'IGW, NAT GW, Security Lists, NSGs, private subnets, VCN peering. First line of defense you control.'},
+    {size:220, color:'#4f8cff', name:'Host & OS', body:'OS-level firewall, kernel hardening, patch management, endpoint monitoring. Your responsibility on IaaS.'},
+    {size:160, color:'#3ec28f', name:'Application', body:'Input validation, secure coding, dependency scanning, WAF rules. Your application team owns this.'},
+    {size:100, color:'#a78bfa', name:'Data', body:'Encryption at rest (Vault), encryption in transit (TLS), IAM policies on data access. The core.'},
+  ];
+  const viz = document.getElementById('onion-viz');
+  const detail = document.getElementById('onion-detail');
+  viz.innerHTML = layers.map((l,i)=>{
+    const offset = (340 - l.size)/2;
+    return `<div class="onion-layer" data-layer="${i}" style="width:${l.size}px; height:${l.size}px; left:${offset}px; top:${offset}px; border-color:${l.color}; background:${l.color}22; color:${l.color};">${l.name}</div>`;
+  }).join('');
+  viz.querySelectorAll('.onion-layer').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const l = layers[+el.dataset.layer];
+      detail.innerHTML = `<b style="color:${l.color}; font-size:11px; text-transform:uppercase; letter-spacing:.06em;">${l.name} Layer</b><div style="margin-top:6px;">${l.body}</div>`;
+    });
+  });
+}
+
+/* ---------- Day 2: Cost lever explorer ---------- */
+function initLeverExplorer(){
+  const details = {
+    byol: {title:'BYOL — Bring Your Own License', body:'Already own Oracle Database or WebLogic licenses on-prem? Bring them to OCI. You pay the lower "BYOL" compute rate instead of the "License Included" rate — often 60–70% cheaper for licensed products.'},
+    reserved: {title:'Reserved Capacity', body:'Commit to using specific compute shapes for 1 or 3 years. In return, Oracle gives you guaranteed capacity in the region AND a discount vs on-demand pricing. Ideal for steady-state production workloads.'},
+    marketplace: {title:'OCI Marketplace', body:'Pre-packaged third-party software (databases, security tools, dev platforms) with vetted images. Some listings are BYOL — you get the software at your existing negotiated rate rather than a fresh cloud markup.'},
+    advisor: {title:'Cloud Advisor', body:'OCI\'s built-in recommendations engine. It scans your tenancy and surfaces: idle instances, oversized shapes, unused block volumes, missing backups. Free to run; the savings it finds are real dollars.'},
+  };
+  const detail = document.getElementById('lever-detail');
+  document.querySelectorAll('#lever-grid .lever').forEach(l=>{
+    l.addEventListener('click', ()=>{
+      document.querySelectorAll('#lever-grid .lever').forEach(x=> x.classList.remove('active'));
+      l.classList.add('active');
+      const d = details[l.dataset.lever];
+      detail.innerHTML = `<b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">${d.title}</b><div style="margin-top:6px;">${d.body}</div>`;
+    });
+  });
+}
+
+/* ---------- Day 3: chmod calculator ---------- */
+function initChmod(){
+  const cells = document.querySelectorAll('.chmod-cell');
+  const symEl = document.getElementById('chmod-sym');
+  const octEl = document.getElementById('chmod-octal');
+  const descEl = document.getElementById('chmod-desc');
+  function update(){
+    const grid = {};
+    ['owner','group','other'].forEach(role=>{
+      grid[role] = {r:false, w:false, x:false};
+      ['r','w','x'].forEach(p=>{
+        const cell = document.querySelector(`[data-perm="${role}-${p}"]`);
+        if(cell.classList.contains('on')) grid[role][p]=true;
+      });
+    });
+    let sym='', oct='';
+    ['owner','group','other'].forEach(role=>{
+      let n=0;
+      sym += (grid[role].r ? 'r':'-');
+      sym += (grid[role].w ? 'w':'-');
+      sym += (grid[role].x ? 'x':'-');
+      if(grid[role].r) n+=4;
+      if(grid[role].w) n+=2;
+      if(grid[role].x) n+=1;
+      oct += n;
+    });
+    symEl.textContent = sym;
+    octEl.textContent = oct;
+
+    // Human-readable description
+    const parts = [];
+    ['owner','group','other'].forEach(role=>{
+      const p = grid[role];
+      const roleName = role.charAt(0).toUpperCase()+role.slice(1);
+      if(!p.r && !p.w && !p.x) parts.push(`${roleName}: no access`);
+      else if(p.r && p.w && p.x) parts.push(`${roleName}: full control`);
+      else{
+        const perms=[];
+        if(p.r) perms.push('read');
+        if(p.w) perms.push('write');
+        if(p.x) perms.push('execute');
+        parts.push(`${roleName}: ${perms.join(' + ')}`);
+      }
+    });
+    descEl.innerHTML = parts.join('. ')+'.';
+  }
+  cells.forEach(c=>{
+    c.addEventListener('click', ()=>{
+      c.classList.toggle('on');
+      c.textContent = c.classList.contains('on') ? c.dataset.perm.split('-')[1] : '-';
+      update();
+    });
+  });
+  update();
+}
+
+/* ---------- Day 3: CIDR calculator ---------- */
+function initCIDR(){
+  const input = document.getElementById('cidr-input');
+  const totalEl = document.getElementById('cidr-total');
+  const resEl = document.getElementById('cidr-reserved');
+  const usableEl = document.getElementById('cidr-usable');
+  const maskEl = document.getElementById('cidr-mask');
+  function calc(cidr){
+    const m = cidr.match(/\/(\d+)$/);
+    if(!m) return;
+    const prefix = parseInt(m[1]);
+    if(prefix<0 || prefix>32) return;
+    const total = Math.pow(2, 32-prefix);
+    // OCI reserves 3 in a subnet; but not for very small blocks
+    const reserved = 3;
+    const usable = Math.max(0, total - reserved);
+    totalEl.textContent = total.toLocaleString();
+    resEl.textContent = reserved;
+    usableEl.textContent = usable.toLocaleString();
+    // Compute mask
+    const maskBits = 0xFFFFFFFF << (32-prefix);
+    const mask = [ (maskBits>>>24)&0xff, (maskBits>>>16)&0xff, (maskBits>>>8)&0xff, maskBits&0xff ].join('.');
+    maskEl.textContent = mask;
+  }
+  input.addEventListener('input', ()=> calc(input.value));
+  document.querySelectorAll('[data-cidr]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-cidr]').forEach(x=> x.classList.remove('active'));
+      b.classList.add('active');
+      input.value = b.dataset.cidr;
+      calc(b.dataset.cidr);
+    });
+  });
+  calc(input.value);
+}
+
+/* ---------- Day 3: SSH diagnostics ---------- */
+function initSSHDiag(){
+  const details = {
+    timeout: {
+      title:'Timeout → Network-layer problem',
+      body:'Your packets never got a reply. Check in this order:<ul style="margin-top:6px;"><li><strong>NSG / Security List</strong> — is port 22 allowed inbound from your IP?</li><li><strong>Route table</strong> — does the subnet have a route to an Internet Gateway (for public IPs)?</li><li><strong>Public IP</strong> — was one actually assigned to the instance?</li><li><strong>OS firewall</strong> (<code>iptables</code>/<code>firewalld</code>) — usually open on port 22 in OCI images, but check.</li></ul>'
+    },
+    publickey: {
+      title:'"Permission denied (publickey)" → Auth-layer problem',
+      body:'You reached SSH — SSH just doesn\'t like your key. Check in this order:<ul style="margin-top:6px;"><li><strong>Username</strong> — using <code>opc</code> on Oracle Linux? <code>ubuntu</code> on Ubuntu? Wrong user is the #1 cause.</li><li><strong>Private key</strong> — pointing at the right key with <code>-i</code>? Permissions <code>600</code> on the file?</li><li><strong>authorized_keys</strong> — was cloud-init able to write it? Check instance metadata was accessible on first boot.</li><li><strong>Key pair mismatch</strong> — the private key you\'re using must match the public key pasted at launch.</li></ul>'
+    }
+  };
+  const detail = document.getElementById('diag-detail');
+  document.querySelectorAll('.diag-box').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.diag-box').forEach(x=> x.classList.remove('active'));
+      b.classList.add('active');
+      const d = details[b.dataset.diag];
+      detail.innerHTML = `<b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">${d.title}</b><div style="margin-top:6px;">${d.body}</div>`;
+    });
+  });
+}
+
+/* ---------- Day 4: Terraform stepper ---------- */
+function initTFStepper(){
+  const details = {
+    init: {
+      title:'terraform init — set up the workspace',
+      body:'Downloads the OCI provider plugin, initializes the backend (where state is stored), and prepares the working directory. Run this once per project (and again after adding a new provider or changing backend config).',
+      code:'$ terraform init\nInitializing the backend...\nInitializing provider plugins...\n- Finding hashicorp/oci versions...\nTerraform has been successfully initialized!'
+    },
+    plan: {
+      title:'terraform plan — preview the diff',
+      body:'Compares your config to the current state and shows exactly what would be created, changed, or destroyed. Read-only — makes no changes. Always run before apply.',
+      code:'$ terraform plan\nTerraform will perform the following actions:\n  + oci_core_vcn.main will be created\n  + oci_core_subnet.web will be created\n  ~ oci_core_security_list.web will be updated in-place\nPlan: 2 to add, 1 to change, 0 to destroy.'
+    },
+    apply: {
+      title:'terraform apply — make it real',
+      body:'Executes the plan against the cloud. Creates, modifies, and destroys resources to match your config. Updates the state file. This is the only command that actually costs you money.',
+      code:'$ terraform apply\n  Enter a value: yes\noci_core_vcn.main: Creating...\noci_core_vcn.main: Creation complete after 4s\nApply complete! Resources: 2 added, 1 changed, 0 destroyed.'
+    },
+    destroy: {
+      title:'terraform destroy — tear it all down',
+      body:'Removes every resource in the state file. Useful for dev/test environments to keep costs down. Requires the same confirmation as apply.',
+      code:'$ terraform destroy\n  Enter a value: yes\noci_core_vcn.main: Destroying...\nDestroy complete! Resources: 3 destroyed.'
+    }
+  };
+  const detail = document.getElementById('tf-detail');
+  document.querySelectorAll('#tf-stepper .tf-step').forEach(s=>{
+    s.addEventListener('click', ()=>{
+      document.querySelectorAll('#tf-stepper .tf-step').forEach(x=> x.classList.remove('active'));
+      s.classList.add('active');
+      const d = details[s.dataset.tf];
+      detail.innerHTML = `<b style="color:var(--red-bright);">${d.title}</b><div style="margin-top:6px; font-size:13.5px;">${d.body}</div><pre>${d.code}</pre>`;
+    });
+  });
+}
+
+/* ---------- Day 5: Gateway explainer ---------- */
+function initGateway(){
+  const details = {
+    igw: {
+      title:'Internet Gateway (IGW)',
+      body:'Two-way traffic between a <strong>public subnet</strong> and the internet. Use it for public-facing resources (web servers, load balancers) that need to be reachable <em>from</em> the internet.<br><br><strong>Used by:</strong> web tier / public subnet.<br><strong>Traffic direction:</strong> ↔ bidirectional.'
+    },
+    nat: {
+      title:'NAT Gateway (NGW)',
+      body:'Lets instances in a <strong>private subnet</strong> reach the internet <em>outbound</em>, but nothing on the internet can start a connection <em>inbound</em>. Instances get software patches, hit external APIs, download packages — all one-way.<br><br><strong>Used by:</strong> app tier / private subnets that need outbound.<br><strong>Traffic direction:</strong> → outbound only.'
+    },
+    sgw: {
+      title:'Service Gateway (SGW)',
+      body:'Private path from your VCN to <strong>Oracle-managed services</strong> (Object Storage, Autonomous Database, etc.) without traversing the public internet. Traffic stays on Oracle\'s backbone, is free (no data transfer charge), and works from fully private subnets.<br><br><strong>Used by:</strong> database tier / any private subnet needing Oracle services.<br><strong>Traffic direction:</strong> → to Oracle services only.'
+    }
+  };
+  const flow = document.getElementById('gw-flow');
+  document.querySelectorAll('#gw-grid .gw').forEach(g=>{
+    g.addEventListener('click', ()=>{
+      document.querySelectorAll('#gw-grid .gw').forEach(x=> x.classList.remove('active'));
+      g.classList.add('active');
+      const d = details[g.dataset.gw];
+      flow.innerHTML = `<b style="color:var(--red-bright); font-size:11px; text-transform:uppercase; letter-spacing:.06em;">${d.title}</b><div style="margin-top:6px;">${d.body}</div>`;
+    });
+  });
+}
+
+/* ---------- Practice Quiz ---------- */
+const QUIZ = [
+  {
+    q:"What does a Fault Domain protect against, that an Availability Domain does not?",
+    opts:[
+      "Region-level natural disaster",
+      "Data center power failure",
+      "Rack or hardware failure within a single data center",
+      "Software bugs in your application"
+    ],
+    correct:2,
+    explain:"Fault Domains are logical groupings of hardware inside one AD. They protect against localized hardware failures (a bad rack, a failed hypervisor host). Region protects against geography; AD protects against data-center-level events."
+  },
+  {
+    q:"Under the Shared Responsibility Model in OCI, which of these is ALWAYS the customer's responsibility, regardless of service model?",
+    opts:[
+      "Patching the hypervisor",
+      "Physical security of the data center",
+      "Your data and your IAM configuration",
+      "Cooling the servers"
+    ],
+    correct:2,
+    explain:"Your data, your users, and your IAM policies are always yours to manage. Oracle secures physical facilities, hardware, hypervisor — those never become your problem."
+  },
+  {
+    q:"Which OCI service PREVENTS creating a risky resource in the first place (as opposed to just detecting it)?",
+    opts:[
+      "Cloud Guard",
+      "Security Zones",
+      "Security Advisor",
+      "Vault"
+    ],
+    correct:1,
+    explain:"Security Zones enforce security best practices at the compartment level — risky actions (like creating a public bucket) are blocked at creation. Cloud Guard only detects and reports after the fact."
+  },
+  {
+    q:"A file listing shows: <code>-rwxr-x---</code>. What are the octal permissions?",
+    opts:[
+      "770",
+      "750",
+      "755",
+      "740"
+    ],
+    correct:1,
+    explain:"Owner rwx = 4+2+1 = 7. Group r-x = 4+0+1 = 5. Others --- = 0. Answer: 750. A dba group member can execute but not modify."
+  },
+  {
+    q:"For CIDR block 10.0.0.0/24 in OCI, how many usable host addresses are available?",
+    opts:[
+      "256",
+      "254",
+      "253",
+      "252"
+    ],
+    correct:2,
+    explain:"A /24 has 2^8 = 256 total addresses. OCI reserves 3 (network address, broadcast, subnet default gateway). Usable = 256 − 3 = 253."
+  },
+  {
+    q:"You SSH to a new instance and see: <code>ssh: connect to host … port 22: Operation timed out</code>. What layer is failing?",
+    opts:[
+      "Authentication — your key is wrong",
+      "The user account doesn't exist",
+      "Network — packets aren't reaching SSH (NSG/Security List/routing)",
+      "SSH daemon isn't running"
+    ],
+    correct:2,
+    explain:"A timeout means the TCP handshake never completed — the packet is being dropped in the network path. Check NSG, Security List, route table, public IP assignment. If SSH answered but rejected you, you'd see 'Permission denied (publickey)' instead."
+  },
+  {
+    q:"Which Terraform command previews changes without touching cloud state?",
+    opts:[
+      "terraform init",
+      "terraform plan",
+      "terraform apply",
+      "terraform validate"
+    ],
+    correct:1,
+    explain:"terraform plan is read-only: it compares your config to state and shows the diff. Nothing changes until you run apply. Always plan before apply."
+  },
+  {
+    q:"Two engineers apply the same Terraform configuration at the same time, using their own local state files. What's the primary risk?",
+    opts:[
+      "One apply will fail because Terraform detects the conflict",
+      "State files diverge — resources may be lost from state or duplicated in the cloud",
+      "OCI will reject one of the requests",
+      "Both applies are fine, Terraform handles it"
+    ],
+    correct:1,
+    explain:"With no remote backend and no lock, both engineers act on stale state. One overwrites the other's changes to the local state file — resulting in orphaned cloud resources that Terraform no longer knows about. This is exactly why remote state with locking exists."
+  },
+  {
+    q:"A private database subnet needs to back up to Object Storage. Which gateway should it route to?",
+    opts:[
+      "Internet Gateway — Object Storage is a public service",
+      "NAT Gateway — for outbound traffic",
+      "Service Gateway — for Oracle-managed services",
+      "No gateway needed — Object Storage is inside the VCN"
+    ],
+    correct:2,
+    explain:"Service Gateway provides a private path to Oracle services (like Object Storage) without traversing the public internet. It's the correct answer for a private DB subnet: more secure, keeps traffic on Oracle's backbone, and it's free."
+  },
+  {
+    q:"What's the difference between a Master Encryption Key (MEK) and a Data Encryption Key (DEK)?",
+    opts:[
+      "MEK is used by admins, DEK is used by users",
+      "MEK encrypts the DEK; DEK encrypts your actual data",
+      "MEK is for symmetric, DEK is for asymmetric encryption",
+      "They are the same thing"
+    ],
+    correct:1,
+    explain:"Envelope encryption: your data is encrypted by a fast DEK generated per resource. The DEK itself is then encrypted (wrapped) by the MEK, which lives in Vault and never leaves. Rotating the MEK just rewraps the DEK — no need to re-encrypt terabytes of data."
+  }
+];
+
+function initQuiz(){
+  const totalEl = document.getElementById('score-total');
+  if(totalEl) totalEl.textContent = QUIZ.length;
+  renderQuiz();
+  document.getElementById('quiz-next').addEventListener('click', ()=>{
+    if(state.quizIdx < QUIZ.length-1) state.quizIdx++;
+    renderQuiz();
+  });
+  document.getElementById('quiz-prev').addEventListener('click', ()=>{
+    if(state.quizIdx > 0) state.quizIdx--;
+    renderQuiz();
+  });
+}
+function renderQuiz(){
+  const q = QUIZ[state.quizIdx];
+  document.getElementById('quiz-progress').textContent = `Question ${state.quizIdx+1} of ${QUIZ.length}`;
+  document.getElementById('quiz-q').innerHTML = q.q;
+  const opts = document.getElementById('quiz-opts');
+  const explain = document.getElementById('quiz-explain');
+  explain.classList.remove('show');
+  const answered = state.quizAnswered.has(state.quizIdx);
+  opts.innerHTML = q.opts.map((o,i)=>`<div class="quiz-opt" data-i="${i}">${String.fromCharCode(65+i)}. ${o}</div>`).join('');
+  opts.querySelectorAll('.quiz-opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(state.quizAnswered.has(state.quizIdx)) return;
+      const chosen = +el.dataset.i;
+      if(chosen === q.correct){
+        el.classList.add('correct');
+        state.quizScore++;
+      } else {
+        el.classList.add('wrong');
+        opts.querySelector(`[data-i="${q.correct}"]`).classList.add('correct');
+      }
+      state.quizAnswered.add(state.quizIdx);
+      document.getElementById('score-value').textContent = state.quizScore;
+      explain.innerHTML = `<b>Explanation</b>${q.explain}`;
+      explain.classList.add('show');
+    });
+  });
+  // if already answered, show the state
+  if(answered){
+    // we don't persist which was chosen; just show correct + explanation
+    opts.querySelector(`[data-i="${q.correct}"]`).classList.add('correct');
+    explain.innerHTML = `<b>Explanation</b>${q.explain}`;
+    explain.classList.add('show');
+  }
+}
+</script>
+</body>
+</html>
+
+
+
+
+
